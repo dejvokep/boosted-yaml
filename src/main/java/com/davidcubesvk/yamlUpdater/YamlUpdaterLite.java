@@ -44,6 +44,7 @@ public class YamlUpdaterLite {
     public List<String> update() {
         //Read all sections
         Map<String, String> fromSections = readSections(fromLines), toSections = readSections(toLines);
+        return null;
     }
 
     /**
