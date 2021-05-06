@@ -6,8 +6,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="YamlUpdater" />
+        <module name="yamlupdater-core" />
+        <module name="yamlupdater-backend" />
+        <module name="yamlupdater-proxy" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="proxz" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

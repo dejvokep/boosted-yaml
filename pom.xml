@@ -6,7 +6,13 @@
 
     <groupId>com.davidcubesvk</groupId>
     <artifactId>YamlUpdater</artifactId>
+    <packaging>pom</packaging>
     <version>1.0</version>
+    <modules>
+        <module>yamlupdater-core</module>
+        <module>yamlupdater-proxy</module>
+        <module>yamlupdater-backend</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
