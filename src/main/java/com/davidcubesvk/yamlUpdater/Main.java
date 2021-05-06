@@ -40,11 +40,9 @@ public class Main {
     private static void print(Map<String, Object> map, int depth) {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             if (entry.getValue() instanceof Section) {
-                System.out.println("SECTION " + entry.getKey() + " depth=" + depth + "--------------");
                 print(((Section) entry.getValue()).getMappings(), depth + 1);
             } else {
                 Block b = (Block) entry.getValue();
-                System.out.println(b.getKey() + b.getValue().toString());
             }
         }
     }

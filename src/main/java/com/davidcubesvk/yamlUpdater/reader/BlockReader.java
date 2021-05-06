@@ -37,7 +37,6 @@ public class BlockReader {
         try {
             //Key
             Component<Key> key = getKey(lines.get(offset + comments.getLine()));
-            //System.out.println("KEY: " + key.getComponent().getRaw() + ", l=" + key.getLine() + ", i=" + key.getIndex());
             //If null
             if (key == null)
                 //Throw exception
@@ -45,7 +44,6 @@ public class BlockReader {
 
             //Value
             Component<Value> value = getValue(lines.subList(offset + comments.getLine(), lines.size()), key);
-            //System.out.println("read comments=" + comments.getLine() + ", value=" + value.getLine());
             //Return
             return new Block(comments.getComponent().toString(), key.getComponent(), value.getComponent().getValue(), comments.getLine() + value.getLine(), value.getComponent().isSection());
         } catch (Exception ex) {
@@ -293,7 +291,6 @@ public class BlockReader {
      * @return the index of the last list line
      */
     private int readList(List<String> lines, int offset, int spaces, StringBuilder builder) {
-        System.out.println("LIST" + builder);
         //If we are in a string
         Primitive<Boolean> quote = new Primitive<>(false), apostrophe = new Primitive<>(false);
         //Amount of brackets
@@ -486,7 +483,6 @@ public class BlockReader {
                 //Return
                 return new Component<>(position.getLine(), -1, new Value(valueBuilder));
             }
-            //System.out.println("b=" + valueBuilder.toString());
 
             //Read and return
             return new Component<>(readSimple(lines, key.getIndex() + spacesBeforeValue, spaces, valueBuilder), -1, new Value(valueBuilder));

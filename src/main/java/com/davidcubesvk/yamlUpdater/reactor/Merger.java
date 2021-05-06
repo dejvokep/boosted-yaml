@@ -33,12 +33,10 @@ public class Merger {
         for (Map.Entry<String, Object> entry : latestSection.getMappings().entrySet()) {
             //If a block
             if (entry.getValue() instanceof Section) {
-                System.out.println("SECTION " + entry.getKey());
                 //The section
                 Section section = (Section) entry.getValue();
                 //If there is not such a key in the current map
                 if (currentSection == null || currentSection.getMappings() == null || !currentSection.getMappings().containsKey(entry.getKey())) {
-                    System.out.println("SECTION2 " + entry.getKey());
                     //Append
                     appendBlock(builder, depth, indentationSpaces, section);
                     appendSection(builder, depth, indentationSpaces, (Map<Object, Object>) latestMap.get(entry.getKey()), section);
@@ -49,10 +47,8 @@ public class Merger {
                 Block currentBlock = (Block) currentSection.getMappings().get(entry.getKey());
                 //Append
                 appendBlock(builder, depth, indentationSpaces, currentBlock);
-                System.out.println("SECTION7 " + entry.getKey());
                 //If a section
                 if (currentBlock instanceof Section) {
-                    System.out.println("SECTION3 " + entry.getKey());
                     //Create a new map
                     Map<Object, Object> map = new HashMap<>();
                     //Update the map
@@ -68,10 +64,8 @@ public class Merger {
 
             //The block
             Block latestBlock = (Block) entry.getValue();
-            System.out.println("APPEND " + latestBlock.getKey() + " " + latestBlock.getValue() + " " + depth);
             //If there is not such a key in the current map
             if (currentSection == null || currentSection.getMappings() == null || !currentSection.getMappings().containsKey(entry.getKey())) {
-                System.out.println("APPEND2 " + latestBlock.getKey() + " " + latestBlock.getValue() + " " + depth);
                 //Append
                 appendBlock(builder, depth, indentationSpaces, latestBlock);
                 continue;
@@ -81,7 +75,6 @@ public class Merger {
             Block currentBlock = (Block) currentSection.getMappings().get(entry.getKey());
             //If a block
             if (currentBlock instanceof Section) {
-                System.out.println("APPEND3 " + latestBlock.getKey() + " " + latestBlock.getValue() + " " + depth);
                 //Append
                 appendBlock(builder, depth, indentationSpaces, currentBlock);
                 //Create a new map
@@ -91,8 +84,6 @@ public class Merger {
                 //Append
                 appendSection(builder, depth, indentationSpaces, map, (Section) currentBlock);
             } else {
-
-                System.out.println("APPEND4 " + latestBlock.getKey() + " " + latestBlock.getValue() + " " + depth);
                 //Update the map
                 latestMap.put(entry.getKey(), YAML.load(currentBlock.getValue().toString().trim().substring(1)));
                 //Append
@@ -125,7 +116,6 @@ public class Merger {
     }
 
     private void appendBlock(StringBuilder builder, int depth, int indentationSpaces, Block block) {
-        System.out.println("APPEND5 " + block.getKey() + " " + block.getValue() + " " + depth);
         //Calculate spaces
         int spaces = depth * indentationSpaces;
         //Append comments

@@ -33,8 +33,6 @@ public class FileReader {
         while (index < lines.size()) {
             //Load
             Block block = BLOCK_READER.read(lines, index, keySeparator);
-            //System.out.println("block size =" + block.getSize());
-            //System.out.println("i2=" + index);
 
             //If dangling comment block at the end
             if (block.isComment()) {
@@ -53,7 +51,6 @@ public class FileReader {
 
             //Increment
             index += block.getSize() + 1;
-            //System.out.println("i=" + index);
 
             //If section value block is set
             if (section != null) {
@@ -91,7 +88,6 @@ public class FileReader {
                 LinkedHashMap<String, Object> map = new LinkedHashMap<>();
                 //Put
                 mappings.put(block.getFormattedKey(), new Section(block, map));
-                //System.out.println(lines.get(index));
                 //Load
                 index += loadSection(lines.subList(index, lines.size()), fullKey, map, sectionValues, keySeparator);
             }
@@ -102,30 +98,6 @@ public class FileReader {
 
         //Finished to the end
         return lines.size();
-    }
-
-    private void setFullKey(ArrayList<Block> sections, Block block, char keySeparator) {
-        String section = findSection(sections, block.getIndents());
-        if (section.length() == 0)
-            block.setFullKey(block.getFormattedKey());
-        else
-            block.setFullKey(section + keySeparator + block.getFormattedKey());
-    }
-
-    private String findSection(ArrayList<Block> sections, int indents) {
-        //Go through all sections
-        for (Block section : sections) {
-            //If more indents
-            if (section.getIndents() >= indents)
-                //Remove
-                sections.remove(sections.size() - 1);
-            else
-                //Return
-                return section.getFullKey();
-        }
-
-        //Main file section
-        return "";
     }
 
 }

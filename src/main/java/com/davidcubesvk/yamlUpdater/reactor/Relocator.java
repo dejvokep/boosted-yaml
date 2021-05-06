@@ -60,7 +60,6 @@ public class Relocator {
         Map<String, Object> upper = map.getUpperMap(from);
         String lastKey = getLastKey(from);
         Object block = upper.get(lastKey);
-        System.out.println("APPLY " + to + block);
         //If null
         if (to == null || block == null)
             return;
@@ -78,10 +77,7 @@ public class Relocator {
             create(map, to.contains(".") ? to.split("\\.") : new String[]{to}, 0);
         }
         //Relocate
-        System.out.println(map.getUpperMap(to).toString());
         map.getUpperMap(to).put(getLastKey(to), block);
-        //Relocate
-        System.out.println(map.getUpperMap(to).get("d"));
     }
 
     private String getLastKey(String fullKey) {
@@ -106,7 +102,6 @@ public class Relocator {
 
         Section subSection = (Section) section.getMappings().get(path[index]);
         removeIfEmpty(subSection, path, index + 1);
-        System.out.println("REMOVE " + subSection.getMappings().size());
         if (subSection.getMappings().size() == 0) {
             section.getMappings().remove(path[index]);
         }

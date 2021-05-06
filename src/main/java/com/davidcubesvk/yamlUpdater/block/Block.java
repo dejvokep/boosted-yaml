@@ -10,7 +10,7 @@ public class Block {
 
     private Type type;
 
-    private String comments, key, formattedKey, fullKey = null;
+    private String comments, key, formattedKey;
     private StringBuilder value;
     private int size, indents;
 
@@ -80,10 +80,6 @@ public class Block {
         return formattedKey;
     }
 
-    public String getFullKey() {
-        return fullKey;
-    }
-
     public StringBuilder getValue() {
         return value;
     }
@@ -94,10 +90,6 @@ public class Block {
 
     public int getIndents() {
         return indents;
-    }
-
-    public void setFullKey(String fullKey) {
-        this.fullKey = fullKey;
     }
 
     public boolean isComment() {
