@@ -2,28 +2,94 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Artifact data -->
     <parent>
-        <artifactId>YamlUpdater</artifactId>
+        <artifactId>yamlupdater</artifactId>
         <groupId>com.davidcubesvk</groupId>
         <version>1.0</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
+    <artifactId>yamlupdater-backend</artifactId>
+    <description>A professional updater for YAML configuration files - for backend servers powered by Spigot and forks.</description>
+    <packaging>jar</packaging>
 
-    <artifactId>backend</artifactId>
+    <!-- Build configuration -->
+    <build>
+        <directory>../target</directory>
+        <finalName>${project.artifactId}-${project.parent.version}</finalName>
+        <resources>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>true</filtering>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+                <version>3.8.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
 
+                <!-- Module shading -->
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>com.davidcubesvk:yamlupdater-core</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+
+                <!-- MANIFEST.MF file exclusion -->
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>com.davidcubesvk:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Repositories -->
     <repositories>
+        <!-- Spigot -->
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
     </repositories>
 
+    <!-- Dependencies -->
     <dependencies>
+        <!-- Core module -->
         <dependency>
             <groupId>com.davidcubesvk</groupId>
             <artifactId>yamlupdater-core</artifactId>
             <version>1.0</version>
         </dependency>
+        <!-- Spigot API -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
@@ -31,10 +97,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-    </properties>
 
 </project>

@@ -4,8 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Artifact data -->
     <groupId>com.davidcubesvk</groupId>
-    <artifactId>YamlUpdater</artifactId>
+    <artifactId>yamlupdater</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
     <modules>
@@ -13,18 +14,22 @@
         <module>yamlupdater-proxy</module>
         <module>yamlupdater-backend</module>
     </modules>
+    <name>YamlUpdater</name>
+    <description>A professional updater for YAML configuration files - for backend servers powered by Spigot and proxy servers powered by BungeeCord.</description>
+    <developers>
+        <developer>
+            <name>davidcubesvk</name>
+            <email>davidcubesvkdev@gmail.com</email>
+            <timezone>CET</timezone>
+            <url>https://davidcubesvk.com</url>
+        </developer>
+    </developers>
 
+    <!-- Properties -->
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.21</version>
-        </dependency>
-    </dependencies>
 
 </project>
