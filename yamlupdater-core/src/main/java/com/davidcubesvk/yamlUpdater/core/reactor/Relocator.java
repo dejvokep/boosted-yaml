@@ -72,7 +72,7 @@ public class Relocator {
 
         //Relocate to
         apply(relocations, keyIterator, to);
-        ((Block) block).setKey(getLastKey(to));
+        ((Block) block).setRawKey(getLastKey(to));
         if (map.getUpperMap(to) == null) {
             create(map, to.contains(".") ? to.split("\\.") : new String[]{to}, 0);
         }

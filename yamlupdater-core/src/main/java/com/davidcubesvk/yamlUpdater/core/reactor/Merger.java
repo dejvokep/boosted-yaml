@@ -125,7 +125,7 @@ public class Merger {
             return;
 
         //Append key
-        appendSequence(builder, block.getKey(), spaces);
+        appendSequence(builder, block.getRawKey(), spaces);
         //Append value
         appendSequence(builder, block.getValue(), spaces);
     }
