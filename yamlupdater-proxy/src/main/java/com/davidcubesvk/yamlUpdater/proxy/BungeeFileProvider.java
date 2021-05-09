@@ -32,6 +32,6 @@ public class BungeeFileProvider implements FileProvider<Configuration> {
     @Override
     public Configuration convert(UpdatedFile<Configuration> file) throws ReflectiveOperationException, ClassCastException {
         //Create a new instance
-        return DEFAULTS_CONSTRUCTOR.newInstance(file.getDiskMap(), DEFAULTS_CONSTRUCTOR.newInstance(file.getResourceMap(), null));
+        return DEFAULTS_CONSTRUCTOR.newInstance(file.getMap(), DEFAULTS_CONSTRUCTOR.newInstance(file.getResourceMap(), null));
     }
 }

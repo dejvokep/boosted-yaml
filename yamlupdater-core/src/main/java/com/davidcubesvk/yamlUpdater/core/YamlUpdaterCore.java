@@ -10,7 +10,7 @@ import java.io.File;
 /**
  * The main API class used to access settings and update configuration files. The class should not be accessed
  * (initialized) directly, only from a superclass - please use any appropriate updater classes.
- * @param <T> the type of the file provider
+ * @param <T> the type of the file returned by the {@link FileProvider}
  */
 public class YamlUpdaterCore<T> {
 

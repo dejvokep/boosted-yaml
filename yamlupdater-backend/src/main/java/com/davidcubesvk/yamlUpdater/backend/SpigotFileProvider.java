@@ -56,7 +56,7 @@ public class SpigotFileProvider implements FileProvider<YamlConfiguration> {
             configuration.options().header(header);
 
         //Convert
-        CONVERT_METHOD.invoke(configuration, file.getDiskMap(), configuration);
+        CONVERT_METHOD.invoke(configuration, file.getMap(), configuration);
         //Return
         return configuration;
     }
