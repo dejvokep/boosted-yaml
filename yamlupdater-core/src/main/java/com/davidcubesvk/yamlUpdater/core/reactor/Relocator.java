@@ -2,30 +2,55 @@ package com.davidcubesvk.yamlUpdater.core.reactor;
 
 import com.davidcubesvk.yamlUpdater.core.block.Key;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
+import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.version.Version;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class Relocator {
 
-    private final File map;
-    private final Version current, latest;
+    //The disk file
+    private final File diskFile;
+    //Versions
+    private final Version diskVersion, resourceVersion;
+    //The separator
+    private final String separator, escapedSeparator;
 
-    public Relocator(File map, Version current, Version latest) {
-        this.map = map;
-        this.current = current;
-        this.latest = latest;
+    /**
+     * Initializes the relocator with the given disk file and file versions.
+     *
+     * @param diskFile        the disk file
+     * @param diskVersion     version of the disk file
+     * @param resourceVersion version of the resource (latest) file
+     * @param separator       the key separator
+     */
+    public Relocator(File diskFile, Version diskVersion, Version resourceVersion, String separator) {
+        this.diskFile = diskFile;
+        this.diskVersion = diskVersion;
+        this.resourceVersion = resourceVersion;
+        this.separator = separator;
+        this.escapedSeparator = Pattern.quote(separator);
     }
 
+    /**
+     * Applies all the given relocations to the given disk file on initialization. The value of the given map should be
+     * of type {@link Map}, otherwise, an {@link IllegalArgumentException} is thrown. The key type is not restricted,
+     * but should be a {@link String}. Key and value specifications are objects only for convenience, when loading from
+     * an YAML settings file.
+     *
+     * @param relocations the relocations to apply (immediately)
+     * @throws IllegalArgumentException if the given map's value type is not an instance of {@link Map}
+     */
     public void apply(Map<Object, Object> relocations) throws IllegalArgumentException {
         //Copy
-        Version current = this.current.copy();
+        Version current = this.diskVersion.copy();
         //Move to the next version
         current.next();
         //While not at the latest version
-        while (current.compareTo(latest) <= 0) {
+        while (current.compareTo(resourceVersion) <= 0) {
             //Relocation
             Object relocation = relocations.get(current.asString());
             //Move to the next version
@@ -37,51 +62,67 @@ public class Relocator {
             if (!(relocation instanceof Map))
                 throw new IllegalArgumentException();
 
-            //Apply relocations for this version
-            applyVersion((Map<?, ?>) relocation);
+            //The iterator
+            Iterator<?> iterator = relocations.keySet().iterator();
+            //Go through all entries
+            while (iterator.hasNext())
+                //Apply
+                apply(relocations, iterator, iterator.next().toString());
         }
     }
 
-    private void applyVersion(Map<?, ?> relocations) {
-        //The iterator
-        Iterator<?> iterator = relocations.keySet().iterator();
-        //Go through all entries
-        while (iterator.hasNext())
-            //Apply
-            apply(relocations, iterator, iterator.next().toString());
-    }
-
+    /**
+     * Applies a relocation (specified by the <code>from</code> parameter). This method also checks if there are any
+     * relocations for the to (target) path and if yes, relocates that first. Cyclic relocations are also patched. If
+     * there is no element at the from path, no relocation is executed.
+     *
+     * @param relocations all the relocations
+     * @param keyIterator iterator used to remove applied relocation(s)
+     * @param from        from where to relocate
+     */
     private void apply(Map<?, ?> relocations, Iterator<?> keyIterator, String from) {
+        //If there is no relocation
         if (from == null || !relocations.containsKey(from))
             return;
         //To
         String to = relocations.get(from).toString();
-        //Block
-        Map<String, Object> upper = map.getUpperMap(from);
-        String lastKey = getLastKey(from);
-        Object block = upper.get(lastKey);
+        //The upper map (never null)
+        Map<String, Object> upper = diskFile.getUpperMap(from);
+        //The from key
+        String[] fromKey = splitKey(from);
+        //The block
+        Object block = upper.get(fromKey[fromKey.length - 1]);
         //If null
-        if (to == null || block == null)
+        if (block == null)
+            //Nothing to relocate
             return;
 
         //Remove
         keyIterator.remove();
-        //Remove the block to free up the space
-        upper.remove(lastKey);
-        removeIfEmpty(map, from.contains(".") ? from.split("\\.") : new String[]{from}, 0);
+        //Remove the block to free up the space for another possible relocation
+        upper.remove(fromKey[fromKey.length - 1]);
+        //Remove sections if empty
+        removeIfEmpty(diskFile, fromKey, 0);
 
         //Relocate to
         apply(relocations, keyIterator, to);
-        ((Block) block).setRawKey(getLastKey(to));
-        if (map.getUpperMap(to) == null) {
-            create(map, to.contains(".") ? to.split("\\.") : new String[]{to}, 0);
-        }
-        //Relocate
-        map.getUpperMap(to).put(getLastKey(to), block);
-    }
 
-    private String getLastKey(String fullKey) {
-        return fullKey.contains(".") ? fullKey.substring(fullKey.lastIndexOf('.') + 1) : fullKey;
+        //The to key
+        String[] toKey = splitKey(to);
+        //The block
+        Block blockObj = (Block) block;
+        //Reset keys
+        blockObj.setRawKey(toKey[toKey.length - 1]);
+        //Format the key
+        blockObj.setFormattedKey(Constants.YAML.load(blockObj.getRawKey()).toString());
+
+        //If there is no section created
+        if (diskFile.getUpperMap(to) == null)
+            //Create
+            create(diskFile, toKey, 0);
+
+        //Relocate
+        diskFile.getUpperMap(to).put(toKey[toKey.length - 1], block);
     }
 
     private void create(Section section, String[] path, int index) {
@@ -105,6 +146,10 @@ public class Relocator {
         if (subSection.getMappings().size() == 0) {
             section.getMappings().remove(path[index]);
         }
+    }
+
+    private String[] splitKey(String key) {
+        return key.contains(separator) ? key.split(escapedSeparator) : new String[]{key};
     }
 
 }

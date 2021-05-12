@@ -1,10 +1,14 @@
 package com.davidcubesvk.yamlUpdater.core.utils;
 
+import org.yaml.snakeyaml.Yaml;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class Constants {
 
+    public static final String EMPTY_STRING = "";
+    public static final StringBuilder EMPTY_STRING_BUILDER = new StringBuilder();
     public static final String COMMENT_START = " #";
     public static final char COMMENT = '#';
     public static final char ESCAPE = '\\';
@@ -22,6 +26,7 @@ public class Constants {
     public static final char SQUARE_BRACKET_CLOSING = ']';
     public static final char CURLY_BRACKET_OPENING = '{';
     public static final char CURLY_BRACKET_CLOSING = '}';
+    public static final Yaml YAML = new Yaml();
 
     public static final Map<Character, String> STRING_SURROUNDING_REPRESENTATIONS = new HashMap<Character, String>() {{
         put(STRING_QUOTE_SURROUNDING, "" + STRING_QUOTE_SURROUNDING + STRING_QUOTE_SURROUNDING + STRING_QUOTE_SURROUNDING);

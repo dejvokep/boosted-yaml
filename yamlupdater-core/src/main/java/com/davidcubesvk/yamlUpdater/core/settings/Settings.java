@@ -25,8 +25,6 @@ public class Settings {
     private final Map<String, Set<String>> sectionValues = new HashMap<>();
 
     private SettingsFile settingsFile = new SettingsFile(this);
-
-    public Settings() {}
     public Settings(YamlUpdaterCore updater) {
         this.folder = updater.getDiskFolder();
         this.classLoader = updater.getClassLoader();
@@ -114,10 +112,9 @@ public class Settings {
             this.relocations.put(entry.getKey(), entry.getValue());
         return this;
     }
-    Settings setRelocationsFromConfig(Map<?, ?> relocations) {
+    void setRelocationsFromConfig(Map<?, ?> relocations) {
         for (Map.Entry<?, ?> entry : relocations.entrySet())
             this.relocations.put(entry.getKey(), entry.getValue());
-        return this;
     }
     public Settings setRelocations(String version, Map<String, String> relocations) {
         this.relocations.put(version, relocations);

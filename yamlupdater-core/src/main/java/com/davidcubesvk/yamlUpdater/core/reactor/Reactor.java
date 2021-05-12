@@ -1,25 +1,51 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
 import com.davidcubesvk.yamlUpdater.core.files.FileProvider;
-import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
-import com.davidcubesvk.yamlUpdater.core.settings.Settings;
 import com.davidcubesvk.yamlUpdater.core.files.UpdatedFile;
-import org.yaml.snakeyaml.Yaml;
+import com.davidcubesvk.yamlUpdater.core.settings.Settings;
+import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.davidcubesvk.yamlUpdater.core.utils.Constants.YAML;
+
+/**
+ * Class responsible for reacting everything together.
+ */
 public class Reactor {
 
+    /**
+     * An empty string set used if there are no relocations present.
+     */
     private static final Set<String> EMPTY_STRING_SET = new HashSet<>();
-    private static final Yaml YAML = new Yaml();
 
-    public static <T> UpdatedFile<T> react(Settings settings, FileProvider<T> fileProvider) throws ParseException, UnsupportedOperationException, NullPointerException, IOException, ClassCastException, ClassNotFoundException {
+    /**
+     * Reacts and updates a file per the given settings object. Full reacting consists of:
+     * <ol>
+     *     <li>loading (or creating if does not exist) the disk file,</li>
+     *     <li>parsing both files using SnakeYAML,</li>
+     *     <li>getting file versions from the files,</li>
+     *     <li>parsing both files,</li>
+     *     <li>applying relocations (see {@link Relocator}),</li>
+     *     <li>merging together (see {@link Merger}),</li>
+     * </ol>
+     *
+     * @param settings     the settings
+     * @param fileProvider the file provider
+     * @param <T>          type of the returned file and file provider simultaneously
+     * @return the updated file
+     * @throws ParseException         if failed to internally parse any of the files (usually compatibility problem)
+     * @throws NullPointerException   if disk or resource file path is not set
+     * @throws IOException            if any IO operation (reading and saving from/to files)
+     * @throws ClassCastException     if an object failed to cast (usually compatibility problem)
+     * @throws ClassNotFoundException if class was not found (usually compatibility problem)
+     */
+    public static <T> UpdatedFile<T> react(Settings settings, FileProvider<T> fileProvider) throws ParseException, NullPointerException, IOException, ClassCastException, ClassNotFoundException {
         if (settings.getDiskFile() == null || settings.getResourceFile() == null)
             throw new NullPointerException();
 
@@ -27,13 +53,15 @@ public class Reactor {
         Map<Object, Object> resourceMap = YAML.load(new FileReader(settings.getResourceFile()));
 
         //If the file does not exist
-        if (!settings.getDiskFile().exists() && settings.isUpdateDiskFile()) {
-            //Create directories
-            if (settings.getDiskFile().getParentFile() != null)
-                settings.getDiskFile().getParentFile().mkdirs();
-            settings.getDiskFile().createNewFile();
-            //Copy
-            Files.copy(settings.getResourceFile().toPath(), settings.getDiskFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+        if (!settings.getDiskFile().exists()) {
+            if (settings.isUpdateDiskFile()) {
+                //Create directories
+                if (settings.getDiskFile().getParentFile() != null)
+                    settings.getDiskFile().getParentFile().mkdirs();
+                settings.getDiskFile().createNewFile();
+                //Copy
+                Files.copy(settings.getResourceFile().toPath(), settings.getDiskFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             new ObjectOutputStream(outputStream).writeObject(outputStream);
             //Read and return
