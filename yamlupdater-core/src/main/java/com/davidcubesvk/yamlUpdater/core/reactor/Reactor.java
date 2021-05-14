@@ -54,15 +54,19 @@ public class Reactor {
 
         //If the file does not exist
         if (!settings.getDiskFile().exists()) {
+            //If updating the disk file is enabled
             if (settings.isUpdateDiskFile()) {
                 //Create directories
                 if (settings.getDiskFile().getParentFile() != null)
                     settings.getDiskFile().getParentFile().mkdirs();
+                //Create the file
                 settings.getDiskFile().createNewFile();
                 //Copy
                 Files.copy(settings.getResourceFile().toPath(), settings.getDiskFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
+            //Create the output stream
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            //Write the object
             new ObjectOutputStream(outputStream).writeObject(outputStream);
             //Read and return
             return new UpdatedFile<>(settings, fileProvider, resourceMap,
@@ -75,7 +79,7 @@ public class Reactor {
         //If the current version is not set
         if (settings.getDiskFileVersion() == null && settings.getVersionPath() != null) {
             //The object
-            Object version = File.get(diskMap, settings.getVersionPath(), settings.getSeparatorString());
+            Object version = File.get(diskMap, settings.getVersionPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
             //If not null
             if (version != null)
                 //Set
@@ -85,7 +89,7 @@ public class Reactor {
         //If the latest version is not set
         if (settings.getResourceFileVersion() == null && settings.getVersionPath() != null) {
             //The object
-            Object version = File.get(resourceMap, settings.getVersionPath(), settings.getSeparatorString());
+            Object version = File.get(resourceMap, settings.getVersionPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
             //If not null
             if (version != null)
                 //Set
@@ -95,9 +99,9 @@ public class Reactor {
 
         //Load both the files
         File currentFile = new File(new FileReader(settings.getDiskFile()), settings.getDiskFileVersion() != null ?
-                settings.getSectionValues().getOrDefault(settings.getDiskFileVersion(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings.getSeparator()),
+                settings.getSectionValues().getOrDefault(settings.getDiskFileVersion(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings),
                 latestFile = new File(new FileReader(settings.getResourceFile()), settings.getResourceFileVersion() != null ?
-                        settings.getSectionValues().getOrDefault(settings.getResourceFileVersion(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings.getSeparator());
+                        settings.getSectionValues().getOrDefault(settings.getResourceFileVersion(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings);
 
         //If both versions are set
         if (settings.getDiskFileVersion() != null && settings.getResourceFileVersion() != null) {
@@ -105,7 +109,8 @@ public class Reactor {
             Relocator relocator = new Relocator(
                     currentFile,
                     settings.getVersionPattern().getVersion(settings.getDiskFileVersion()),
-                    settings.getVersionPattern().getVersion(settings.getResourceFileVersion()));
+                    settings.getVersionPattern().getVersion(settings.getResourceFileVersion()),
+                    settings.getSeparatorString(), settings.getEscapedSeparator());
             //Apply all
             relocator.apply(settings.getRelocations());
         }
@@ -114,8 +119,11 @@ public class Reactor {
         String merged = Merger.merge(currentFile, latestFile, resourceMap, settings.getIndentSpaces());
         //If file update is enabled
         if (settings.isUpdateDiskFile()) {
+            //Overwrite
             FileWriter writer = new FileWriter(settings.getDiskFile(), false);
+            //Write
             writer.write(merged);
+            //Close
             writer.close();
         }
         //Return

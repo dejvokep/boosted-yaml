@@ -9,11 +9,11 @@ class Position {
         this.index = index;
     }
 
-    public int getLine() {
+    int getLine() {
         return line;
     }
 
-    public int getIndex() {
+    int getIndex() {
         return index;
     }
 }

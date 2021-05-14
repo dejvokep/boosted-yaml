@@ -22,12 +22,13 @@ public class BlockReader {
      * thrown.
      *
      * @param lines  lines to read from (must be representing a valid YAML configuration), there must not be an EOL
-     *               {@link Constants#NEW_LINE} character at the end of each line
+     *               {@link Constants#NEW_LINE} character at the end of lines
      * @param offset index of the first line to read
      * @return the configuration block
-     * @throws ParseException if the given YAML is invalid, or invalid offset was specified
+     * @throws ParseException if the given YAML is invalid
+     * @throws ArrayIndexOutOfBoundsException if invalid offset was specified
      */
-    public Block read(List<String> lines, int offset, char keySeparator) throws ParseException {
+    public Block read(List<String> lines, int offset) throws ParseException, ArrayIndexOutOfBoundsException {
         //Comments, key and value
         Component<StringBuilder> comments = getComments(lines.subList(offset, lines.size()));
         //If at the end

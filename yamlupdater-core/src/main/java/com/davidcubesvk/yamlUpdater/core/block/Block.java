@@ -39,8 +39,7 @@ public class Block {
      * the end of the file (that means, type is {@link Type#COMMENT}).
      *
      * @param comments the comments
-     * @param size     the amount of lines needed to skip to get to the end of the block from the first line (e.g. actual
-     *                 block size minus 1)
+     * @param size     the amount of lines occupied by the block
      */
     public Block(String comments, int size) {
         this.comments = comments;
@@ -55,8 +54,7 @@ public class Block {
      * @param comments the comments, or an empty string if none
      * @param key      the key object
      * @param value    the value
-     * @param size     the amount of lines needed to skip to get to the end of the block from the first line (e.g. actual
-     *                 block size minus 1)
+     * @param size     the amount of lines occupied by the block
      * @param section  whether this block is a section or mapping, see {@link Type}
      */
     public Block(String comments, Key key, StringBuilder value, int size, boolean section) {
@@ -177,10 +175,9 @@ public class Block {
     }
 
     /**
-     * Returns the line size of this block <code>- 1</code> - actually returns the amount of lines needed to skip to get
-     * to the last character of the block.
+     * Returns the amount of lines occupied by the block.
      *
-     * @return the line size of this block <code>- 1</code>
+     * @return the amount of lines occupied by the block
      */
     public int getSize() {
         return size;

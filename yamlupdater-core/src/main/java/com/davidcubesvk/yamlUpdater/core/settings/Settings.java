@@ -162,6 +162,8 @@ public class Settings {
         return String.valueOf(separator);
     }
 
+    public String getEscapedSeparator() {}
+
     public int getIndentSpaces() {
         return indentSpaces;
     }

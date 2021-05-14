@@ -1,14 +1,15 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
+import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Key;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.version.Version;
-import com.davidcubesvk.yamlUpdater.core.block.Block;
 import org.yaml.snakeyaml.Yaml;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Relocator {
 
@@ -22,17 +23,18 @@ public class Relocator {
     /**
      * Initializes the relocator with the given disk file and file versions.
      *
-     * @param diskFile        the disk file
-     * @param diskVersion     version of the disk file
-     * @param resourceVersion version of the resource (latest) file
-     * @param separator       the key separator
+     * @param diskFile            the disk file
+     * @param diskVersion         version of the disk file
+     * @param resourceVersion     version of the resource (latest) file
+     * @param keySeparator        the key separator
+     * @param escapedKeySeparator the escaped key separator
      */
-    public Relocator(File diskFile, Version diskVersion, Version resourceVersion, String separator) {
+    public Relocator(File diskFile, Version diskVersion, Version resourceVersion, String keySeparator, String escapedKeySeparator) {
         this.diskFile = diskFile;
         this.diskVersion = diskVersion;
         this.resourceVersion = resourceVersion;
-        this.separator = separator;
-        this.escapedSeparator = Pattern.quote(separator);
+        this.separator = keySeparator;
+        this.escapedSeparator = escapedKeySeparator;
     }
 
     /**
@@ -86,10 +88,14 @@ public class Relocator {
             return;
         //To
         String to = relocations.get(from).toString();
-        //The upper map (never null)
+        //The upper map
         Map<String, Object> upper = diskFile.getUpperMap(from);
+        //If null
+        if (upper == null)
+            //Nothing to relocate
+            return;
         //The from key
-        String[] fromKey = splitKey(from);
+        String[] fromKey = File.splitKey(from, separator, escapedSeparator);
         //The block
         Object block = upper.get(fromKey[fromKey.length - 1]);
         //If null
@@ -108,7 +114,7 @@ public class Relocator {
         apply(relocations, keyIterator, to);
 
         //The to key
-        String[] toKey = splitKey(to);
+        String[] toKey = File.splitKey(to, separator, escapedSeparator);
         //The block
         Block blockObj = (Block) block;
         //Reset keys
@@ -117,39 +123,67 @@ public class Relocator {
         blockObj.setFormattedKey(Constants.YAML.load(blockObj.getRawKey()).toString());
 
         //If there is no section created
-        if (diskFile.getUpperMap(to) == null)
+        if (diskFile.getUpperMap(toKey) == null)
             //Create
-            create(diskFile, toKey, 0);
+            createSection(diskFile, toKey, 0);
 
         //Relocate
-        diskFile.getUpperMap(to).put(toKey[toKey.length - 1], block);
+        diskFile.getUpperMap(toKey).put(toKey[toKey.length - 1], block);
     }
 
-    private void create(Section section, String[] path, int index) {
+    /**
+     * Creates a new section in the given section with key specified by the array, at the given index. Skips directly to
+     * the subsection if an object at the key exists and it is an instance of {@link Section} (in both situations where
+     * it does not exist, or it is a block, it is overwritten).
+     *
+     * @param section the section to create in
+     * @param path    the full path
+     * @param index   the index at which we are in the path array
+     */
+    private void createSection(Section section, String[] path, int index) {
+        //If at the last key
         if (index + 1 == path.length)
             return;
-        if (!section.getMappings().containsKey(path[index])) {
+
+        //The object at the path
+        Object object = section.getMappings().get(path[index]);
+        //If null or not a section
+        if (!(object instanceof Section)) {
+            //Create new section
             Section newSection = new Section("", new Key(path[index], new Yaml().load(path[index]).toString(), -1), new StringBuilder(":\n"), new LinkedHashMap<>(), 0);
+            //Put
             section.getMappings().put(path[index], newSection);
-            create(section, path, index + 1);
-        } else {
-            create((Section) section.getMappings().get(path[index]), path, index + 1);
+            //Create subsection
+            createSection(newSection, path, index + 1);
+            return;
         }
+
+        //Create subsection
+        createSection((Section) section.getMappings().get(path[index]), path, index + 1);
     }
 
+    /**
+     * Traces all the keys in the given path (starting from the given index) and from the end removes sections that are
+     * empty. Traces all the keys in the array except the last one, which is considered to be the key of the relocated
+     * component.
+     *
+     * @param section the section removing from
+     * @param path    the full path to the element that was relocated
+     * @param index   the index at which we are in the path array
+     */
     private void removeIfEmpty(Section section, String[] path, int index) {
+        //If at the last key
         if (index + 1 == path.length)
             return;
 
+        //The subsection
         Section subSection = (Section) section.getMappings().get(path[index]);
+        //Remove if empty
         removeIfEmpty(subSection, path, index + 1);
-        if (subSection.getMappings().size() == 0) {
+        //If empty now
+        if (subSection.getMappings().size() == 0)
+            //Remove
             section.getMappings().remove(path[index]);
-        }
-    }
-
-    private String[] splitKey(String key) {
-        return key.contains(separator) ? key.split(escapedSeparator) : new String[]{key};
     }
 
 }
