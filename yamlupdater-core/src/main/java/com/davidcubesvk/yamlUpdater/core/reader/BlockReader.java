@@ -6,15 +6,15 @@ import com.davidcubesvk.yamlUpdater.core.block.Value;
 import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 import com.davidcubesvk.yamlUpdater.core.utils.Primitive;
-import org.yaml.snakeyaml.Yaml;
 
 import java.util.List;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
 
+/**
+ * Covers reading one YAML block. Read more about all the parsing mechanics at the wiki page.
+ */
 public class BlockReader {
-
-    private static final Yaml YAML = new Yaml();
 
     /**
      * Reads one configuration block. It must be guaranteed the given YAML is valid and that the first configuration
@@ -22,13 +22,17 @@ public class BlockReader {
      * thrown.
      *
      * @param lines  lines to read from (must be representing a valid YAML configuration), there must not be an EOL
-     *               {@link Constants#NEW_LINE} character at the end of lines
+     *               ({@link Constants#NEW_LINE}) character at the end of lines
      * @param offset index of the first line to read
      * @return the configuration block
-     * @throws ParseException if the given YAML is invalid
+     * @throws ParseException                 if the given YAML is invalid
      * @throws ArrayIndexOutOfBoundsException if invalid offset was specified
      */
     public Block read(List<String> lines, int offset) throws ParseException, ArrayIndexOutOfBoundsException {
+        //If invalid offset
+        if (offset >= lines.size())
+            throw new ArrayIndexOutOfBoundsException(String.format("Invalid offset %d for lines list size of %d!", offset, lines.size()));
+
         //Comments, key and value
         Component<StringBuilder> comments = getComments(lines.subList(offset, lines.size()));
         //If at the end
@@ -468,27 +472,58 @@ public class BlockReader {
         //The value
         StringBuilder valueBuilder = new StringBuilder().append(line, spaces + key.getComponent().getRaw().length(), line.length()).append(NEW_LINE);
 
-        //If is a configuration
-        if (isConfiguration(line, key.getIndex())) {
-            //Count spaces between the key and value
-            int spacesBeforeValue = countSpaces(line, key.getIndex());
-            //Remove the appended content (value part only)
-            valueBuilder.setLength(key.getIndex() - key.getComponent().getRaw().length() - spaces + spacesBeforeValue);
+        //While loop only to be able to return and run the code after the loop
+        while (true) {
+            //If is a configuration
+            if (isConfiguration(line, key.getIndex())) {
+                //Count spaces between the key and value
+                int spacesBeforeValue = countSpaces(line, key.getIndex());
+                //The additional offset (in case of a tag present) and value start offset
+                int tagOffset = -1, valueOffset = key.getIndex() + spacesBeforeValue;
+                //If there is an exclamation mark
+                if (line.charAt(key.getIndex() + spacesBeforeValue) == TAG_INDICATOR) {
+                    //Next space index
+                    int nextSpace = line.indexOf(SPACE, key.getIndex() + spacesBeforeValue + 1);
+                    //If not found
+                    if (nextSpace == -1)
+                        nextSpace = line.length();
 
-            //If is enclosed
-            if (isEnclosedComponent(line.charAt(key.getIndex() + spacesBeforeValue))) {
-                //Read
-                Position position = readEnclosed(lines, key.getIndex() + spacesBeforeValue, spaces, valueBuilder);
-                //If null
-                if (position == null)
-                    throw new ParseException("Failed to parse enclosed value. Is everything closed properly? Check quotes, apostrophes, square and curly brackets.");
+                    //If there is any configuration after
+                    if (isConfiguration(line, nextSpace))
+                        //Set
+                        tagOffset = nextSpace;
+                    else
+                        break;
+                }
 
-                //Return
-                return new Component<>(position.getLine(), -1, new Value(valueBuilder));
+                //Remove the appended content (so only the actual value part remains)
+                valueBuilder.setLength(key.getIndex() - key.getComponent().getRaw().length() - spaces + spacesBeforeValue);
+                //If there is a tag
+                if (tagOffset != -1) {
+                    //Append
+                    valueBuilder.append(line, valueOffset, tagOffset);
+                    //Set the new value offset
+                    valueOffset = tagOffset + countSpaces(line, tagOffset);
+                }
+
+                //If is enclosed
+                if (isEnclosedComponent(line.charAt(valueOffset))) {
+                    //Read
+                    Position position = readEnclosed(lines, valueOffset, spaces, valueBuilder);
+                    //If null
+                    if (position == null)
+                        throw new ParseException("Failed to parse enclosed value. Is everything closed properly? Check quotes, apostrophes, square and curly brackets.");
+
+                    //Return
+                    return new Component<>(position.getLine(), -1, new Value(valueBuilder));
+                }
+
+                //Read and return
+                return new Component<>(readSimple(lines, valueOffset, spaces, valueBuilder), -1, new Value(valueBuilder));
             }
 
-            //Read and return
-            return new Component<>(readSimple(lines, key.getIndex() + spacesBeforeValue, spaces, valueBuilder), -1, new Value(valueBuilder));
+            //Break
+            break;
         }
 
         //If at the end
@@ -497,10 +532,31 @@ public class BlockReader {
 
         //Next configuration
         Component<String> nextConfiguration = nextConfiguration(lines.subList(1, lines.size()));
+        //The line
+        line = nextConfiguration.getComponent();
         //Current spaces
-        int currentSpaces = countSpaces(nextConfiguration.getComponent());
+        int currentSpaces = countSpaces(line);
+        //If there is an exclamation mark
+        if (line.charAt(currentSpaces) == TAG_INDICATOR) {
+            //Next space index
+            int nextSpace = line.indexOf(SPACE, currentSpaces + 1);
+            //If not found
+            if (nextSpace == -1)
+                nextSpace = line.length();
+
+            //If there is any configuration after
+            if (isConfiguration(line, nextSpace)) {
+                //Set
+                line = line.substring(nextSpace + countSpaces(line, nextSpace));
+            } else {
+                //Next configuration
+                nextConfiguration = nextConfiguration(lines.subList(2, lines.size()));
+                //The line
+                line = nextConfiguration.getComponent();
+            }
+        }
         //If a key
-        if (getKey(nextConfiguration.getComponent()) != null) {
+        if (getKey(line) != null) {
             //If less or equal spaces
             if (currentSpaces <= spaces)
                 //Null value
@@ -516,9 +572,6 @@ public class BlockReader {
         for (index = 1; index < nextConfiguration.getLine(); index++)
             //Append
             valueBuilder.append(trim(lines.get(index), spaces)).append(NEW_LINE);
-
-        //The line
-        line = nextConfiguration.getComponent();
 
         //If is enclosed
         if (isEnclosedComponent(line.charAt(currentSpaces))) {

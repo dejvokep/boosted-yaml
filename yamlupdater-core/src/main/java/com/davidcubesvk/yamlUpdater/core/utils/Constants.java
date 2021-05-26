@@ -15,6 +15,7 @@ public class Constants {
     public static final char SPACE = ' ';
     public static final char EMPTY_LINE = '\n', NEW_LINE = EMPTY_LINE;
     public static final char KEY_SEPARATOR = '.';
+    public static final char TAG_INDICATOR = '!';
     public static final String MAPPING_SEPARATOR = ": ";
     public static final char MAPPING_SEPARATOR_COLON = ':';
     public static final String MAPPING_SEPARATOR_LINE_END = ":\n";
