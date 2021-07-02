@@ -29,9 +29,4 @@ public class Constants {
     public static final char CURLY_BRACKET_CLOSING = '}';
     public static final Yaml YAML = new Yaml();
 
-    public static final Map<Character, String> STRING_SURROUNDING_REPRESENTATIONS = new HashMap<Character, String>() {{
-        put(STRING_QUOTE_SURROUNDING, "" + STRING_QUOTE_SURROUNDING + STRING_QUOTE_SURROUNDING + STRING_QUOTE_SURROUNDING);
-        put(STRING_APOSTROPHE_SURROUNDING, get(STRING_QUOTE_SURROUNDING).replace(STRING_QUOTE_SURROUNDING, STRING_APOSTROPHE_SURROUNDING));
-    }};
-
 }

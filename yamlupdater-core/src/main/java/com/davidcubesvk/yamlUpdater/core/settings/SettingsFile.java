@@ -1,7 +1,9 @@
 package com.davidcubesvk.yamlUpdater.core.settings;
 
+import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.version.Pattern;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.InputStream;
 import java.util.*;
@@ -22,16 +24,28 @@ public class SettingsFile {
     private static final String PATH_RELOCATIONS = "relocations";
     private static final String PATH_SECTION_VALUES = "section-values";
 
-    private static final Yaml YAML = new Yaml();
+    //Settings to load
     private final Settings settings;
 
+    /**
+     * Initializes the file loader with the given super settings object.
+     *
+     * @param settings the super-object
+     */
     public SettingsFile(Settings settings) {
         this.settings = settings;
     }
 
-    public void load(InputStream stream) {
+    /**
+     * Loads all settings from the given stream. It must be a valid YAML.
+     *
+     * @param stream the stream to load from
+     * @throws YAMLException            if the YAML is invalidly formatted
+     * @throws IllegalArgumentException if the settings are invalidly formatted
+     */
+    public void load(InputStream stream) throws YAMLException, IllegalArgumentException {
         //Load
-        Map<String, Object> baseMap = YAML.load(stream);
+        Map<String, Object> baseMap = Constants.YAML.load(stream);
         //Load all
         loadFiles(baseMap);
         loadGeneral(baseMap);
@@ -40,6 +54,12 @@ public class SettingsFile {
         loadSectionValues(baseMap);
     }
 
+    /**
+     * Loads file paths from the given base (main file) map.
+     *
+     * @param baseMap the base (main) file map
+     * @throws IllegalArgumentException if anything was specified invalidly
+     */
     private void loadFiles(Map<String, Object> baseMap) throws IllegalArgumentException {
         //If does not contain the section
         if (!baseMap.containsKey(PATH_FILES))
@@ -49,7 +69,7 @@ public class SettingsFile {
         Object pathsObject = baseMap.get(PATH_FILES);
         //If not a map
         if (!(pathsObject instanceof Map))
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Object at " + PATH_FILES + " is not a map!");
         //The map
         Map<?, ?> paths = (Map<?, ?>) baseMap.get(PATH_FILES);
 
@@ -63,6 +83,11 @@ public class SettingsFile {
             settings.setDiskFile(paths.get(PATH_FILES_RESOURCE).toString());
     }
 
+    /**
+     * Loads general data (separator and indent spaces) from the given base (main file) map.
+     *
+     * @param baseMap the base (main) file map
+     */
     private void loadGeneral(Map<String, Object> baseMap) {
         //If contains the separator
         if (baseMap.containsKey(PATH_SEPARATOR))
@@ -74,7 +99,13 @@ public class SettingsFile {
             settings.setIndentSpaces((Integer) baseMap.get(PATH_INDENT_SPACES));
     }
 
-    private void loadVersion(Map<String, Object> baseMap) {
+    /**
+     * Loads file versions, version path and version pattern from the given base (main file) map.
+     *
+     * @param baseMap the base (main) file map
+     * @throws IllegalArgumentException if anything was specified invalidly
+     */
+    private void loadVersion(Map<String, Object> baseMap) throws IllegalArgumentException {
         //If does not contain the section
         if (!baseMap.containsKey(PATH_VERSION))
             return;
@@ -83,9 +114,9 @@ public class SettingsFile {
         Object versionObject = baseMap.get(PATH_VERSION);
         //If not a map
         if (!(versionObject instanceof Map))
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Object at " + PATH_VERSION + " is not a map!");
         //The map
-        Map<?, ?> version = (Map<?, ?>) baseMap.get(PATH_VERSION);
+        Map<?, ?> version = (Map<?, ?>) versionObject;
 
         //If contains the pattern
         if (version.containsKey(PATH_VERSION_PATTERN)) {
@@ -93,7 +124,7 @@ public class SettingsFile {
             Object patternObject = version.get(PATH_VERSION_PATTERN);
             //If not a list
             if (!(patternObject instanceof List))
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Version pattern is not a list!");
             //The list
             List<?> patternList = (List<?>) patternObject;
             //The pattern parts
@@ -133,7 +164,7 @@ public class SettingsFile {
                     continue;
                 }
 
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Version pattern element must be a string or an array!");
             }
 
             //Set
@@ -151,9 +182,9 @@ public class SettingsFile {
             Object fileVersionsObject = version.get(PATH_VERSION_FILE_VERSIONS);
             //If not a map
             if (!(fileVersionsObject instanceof Map))
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("File versions section must be a map!");
             //The map
-            Map<?, ?> fileVersions = (Map<?, ?>) version.get(PATH_VERSION_FILE_VERSIONS);
+            Map<?, ?> fileVersions = (Map<?, ?>) fileVersionsObject;
 
             //If contains the disk file version
             if (fileVersions.containsKey(PATH_VERSION_FILE_VERSIONS_DISK))
@@ -166,7 +197,13 @@ public class SettingsFile {
         }
     }
 
-    private void loadRelocations(Map<String, Object> baseMap) {
+    /**
+     * Loads relocations from the given base (main file) map.
+     *
+     * @param baseMap the base (main) file map
+     * @throws IllegalArgumentException if anything was specified invalidly
+     */
+    private void loadRelocations(Map<String, Object> baseMap) throws IllegalArgumentException {
         //If does not contain the section
         if (!baseMap.containsKey(PATH_RELOCATIONS))
             return;
@@ -175,12 +212,18 @@ public class SettingsFile {
         Object versionObject = baseMap.get(PATH_RELOCATIONS);
         //If not a map
         if (!(versionObject instanceof Map))
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Relocations must be specified as a map!");
         //Set
         settings.setRelocationsFromConfig((Map<?, ?>) baseMap.get(PATH_VERSION));
     }
 
-    private void loadSectionValues(Map<String, Object> baseMap) {
+    /**
+     * Loads section values from the given base (main file) map.
+     *
+     * @param baseMap the base (main) file map
+     * @throws IllegalArgumentException if anything was specified invalidly
+     */
+    private void loadSectionValues(Map<String, Object> baseMap) throws IllegalArgumentException {
         //If does not contain the section
         if (!baseMap.containsKey(PATH_SECTION_VALUES))
             return;
@@ -189,13 +232,13 @@ public class SettingsFile {
         Object versionObject = baseMap.get(PATH_SECTION_VALUES);
         //If not a map
         if (!(versionObject instanceof Map))
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Section values must be specified as a map!");
 
         //Go through all entries
         for (Map.Entry<?, ?> entry : ((Map<?, ?>) versionObject).entrySet()) {
             //If not a list
-            if (!(entry.getValue() instanceof List))
-                throw new IllegalArgumentException();
+            if (!(entry.getValue() instanceof Collection))
+                throw new IllegalArgumentException("Each version must have it's own section values specified in a list (set)!");
             //Set
             settings.setSectionValues(entry.getKey().toString(), new HashSet<>((List<String>) entry.getValue()));
         }

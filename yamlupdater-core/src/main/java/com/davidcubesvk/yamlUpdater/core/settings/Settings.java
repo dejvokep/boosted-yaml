@@ -1,193 +1,535 @@
 package com.davidcubesvk.yamlUpdater.core.settings;
 
 import com.davidcubesvk.yamlUpdater.core.YamlUpdaterCore;
+import com.davidcubesvk.yamlUpdater.core.files.UpdatedFile;
 import com.davidcubesvk.yamlUpdater.core.version.Pattern;
+import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class Settings {
 
+    public static final char DEFAULT_SEPARATOR = '.';
+    public static final String DEFAULT_STRING_SEPARATOR = String.valueOf(DEFAULT_SEPARATOR);
+    public static final String DEFAULT_ESCAPED_SEPARATOR = java.util.regex.Pattern.quote(DEFAULT_STRING_SEPARATOR);
+    public static final int DEFAULT_INDENTATION = 2;
+    public static final boolean DEFAULT_COPY_HEADER = true;
+    public static final boolean DEFAULT_UPDATE_DISK_FILE = true;
+
+    //The class loader
     private ClassLoader classLoader;
+    //Folder and files
     private File folder, diskFile, resourceFile;
-    private char separator = '.';
-    private int indentSpaces = 2;
-    private boolean copyHeader = true;
-    private boolean updateDiskFile = true;
+    //The separator
+    private char separator = DEFAULT_SEPARATOR;
+    //The string and quotes separator
+    private String stringSeparator = DEFAULT_STRING_SEPARATOR, escapedSeparator = DEFAULT_ESCAPED_SEPARATOR;
+    //Indentation spaces
+    private int indentSpaces = DEFAULT_INDENTATION;
+    //If to copy header
+    private boolean copyHeader = DEFAULT_COPY_HEADER;
+    //If to update disk file
+    private boolean updateDiskFile = DEFAULT_UPDATE_DISK_FILE;
+    //The version pattern
     private Pattern versionPattern;
+    //Path to the version and version strings
     private String versionPath = "", diskFileVersion, resourceFileVersion;
+    //Relocations
     private final Map<Object, Object> relocations = new HashMap<>();
+    //Section values
     private final Map<String, Set<String>> sectionValues = new HashMap<>();
 
-    private SettingsFile settingsFile = new SettingsFile(this);
-    public Settings(YamlUpdaterCore updater) {
+    //The file loader
+    private final SettingsFile settingsFile = new SettingsFile(this);
+
+    /**
+     * Initializes the settings with data (to be more specific, disk folder and class loader) from the given main class.
+     *
+     * @param updater the main updater class
+     */
+    public Settings(YamlUpdaterCore<?> updater) {
+        //Set
         this.folder = updater.getDiskFolder();
         this.classLoader = updater.getClassLoader();
     }
 
-    public Settings fromFile(String path) throws IOException {
-        if (folder == null)
-            throw new IllegalStateException();
-        File file = new File(folder, path);
+    /**
+     * Loads all settings from <strong>resource</strong> (packaged into the plugin) file at the given path. To read the
+     * file, class loader given on initialization is used. The file does not need to be an YAML-type file (ending with
+     * <code>.yml</code>), however, it must contain a valid YAML.
+     *
+     * @param path the path to the file
+     * @return this settings object (to allow builder-like structure)
+     * @throws URISyntaxException       if the URL cannot be converted to URI (used to identify the file), please refer to
+     *                                  {@link URL#toURI()} for more information
+     * @throws IOException              if an IO error occurred
+     * @throws IllegalArgumentException if the file at the specified path is not a file (is a folder), or the settings
+     * specification itself is invalid (YAML is valid, but the specification is not)
+     * @throws YAMLException            if the YAML in the file is not valid
+     */
+    public Settings fromFile(String path) throws URISyntaxException, IOException, IllegalArgumentException, YAMLException {
+        //The file
+        File file = new File(classLoader.getResource(path).toURI());
+        //If not a file
         if (!file.isFile())
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Given path does not point to a file!");
+        //Load
         settingsFile.load(new FileInputStream(file));
         return this;
     }
 
+    /**
+     * Sets the given class loader as loader used to load resource files. Does not affect already loaded files (for
+     * example, after calling {@link #setResourceFile(String)}, the resource file is loaded). To reset those, call
+     * desired methods again.
+     *
+     * @param classLoader the new class loader
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setClassLoader(ClassLoader classLoader) {
+        //Set
         this.classLoader = classLoader;
         return this;
     }
 
-    public Settings setDiskFolder(File folder) {
+    /**
+     * Sets the given disk file folder as folder used to load disk files. Does not affect already loaded files (for
+     * example, after calling {@link #setDiskFile(String)}, the disk file is loaded). To reset those, call desired
+     * methods again.
+     *
+     * @param folder the new folder
+     * @return this settings object (to allow builder-like structure)
+     * @throws IllegalArgumentException if the given folder is not a directory
+     */
+    public Settings setDiskFolder(File folder) throws IllegalArgumentException {
+        //If not a directory
         if (!folder.isDirectory())
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Given path does not point to a directory!");
+        //Set
         this.folder = folder;
         return this;
     }
 
-    public Settings setDiskFile(String path) {
+    /**
+     * Loads the file from associated disk folder at the specified path from the disk.
+     *
+     * @param path the path inside the disk folder to the given file
+     * @return this settings object (to allow builder-like structure)
+     * @throws IllegalStateException    if {@link #getDiskFolder()} returns <code>null</code>
+     * @throws IllegalArgumentException if disk file in the disk folder at the specified path is not a file (is a
+     *                                  directory)
+     */
+    public Settings setDiskFile(String path) throws IllegalStateException, IllegalArgumentException {
+        //If folder is null
         if (folder == null)
-            throw new IllegalStateException();
+            throw new IllegalStateException("Folder has not been set yet! Could not load the file.");
+        //The file
         File file = new File(folder, path);
+        //If not a file
         if (!file.isFile())
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Given path does not point to a file!");
+        //Set
         this.diskFile = file;
         return this;
     }
+
+    /**
+     * Loads the resource file at the specified path (resource file is a file bundled with the plugin) using associated
+     * class loader.
+     *
+     * @param path the path inside the resource folder (in plugin source) to the given file
+     * @return this settings object (to allow builder-like structure)
+     * @throws IllegalStateException    if {@link #getClassLoader()} returns <code>null</code>
+     * @throws IllegalArgumentException if disk file in the disk folder at the specified path is not a file (is a
+     *                                  directory)
+     */
     public Settings setResourceFile(String path) throws URISyntaxException {
+        //If class loader is null
         if (classLoader == null)
-            throw new IllegalStateException();
+            throw new IllegalStateException("Class loader is null! Could not load the file.");
+        //The file
         File file = new File(classLoader.getResource(path).toURI());
+        //If not a file
         if (!file.isFile())
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Given path does not point to a file!");
+        //Set
         this.resourceFile = file;
         return this;
     }
 
-    public void setCopyHeader(boolean copyHeader) {
+    /**
+     * Sets whether to copy the header of the file. This can only be used while on a Spigot (or any other fork) server,
+     * where the value configured here is forwarded to YAML configuration options when converting the updated YAML file
+     * in {@link UpdatedFile#toFile()}.
+     *
+     * @param copyHeader if to copy header
+     * @return this settings object (to allow builder-like structure)
+     * @see <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/configuration/file/YamlConfigurationOptions.html#copyHeader(boolean)">the main Spigot API method</a>
+     * for more information about this setting
+     */
+    public Settings setCopyHeader(boolean copyHeader) {
+        //Set
         this.copyHeader = copyHeader;
+        return this;
     }
 
+    /**
+     * Sets whether the disk file content should automatically be replaced with the updated content (after successful
+     * update).
+     *
+     * @param updateDiskFile if to update the disk file automatically
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setUpdateDiskFile(boolean updateDiskFile) {
+        //Set
         this.updateDiskFile = updateDiskFile;
         return this;
     }
 
+    /**
+     * Sets a new path separator. A path separator is a special character which separates keys and sub-keys in a path
+     * (e.g. path <code>a.b</code> refers to <code>b</code> located in <code>a</code>). Paths given in
+     * {@link #setRelocations(Map)} and {@link #setSectionValues(Map)} (or similar, other path-related methods) must be
+     * constructed with keys separated by this separator.<br>The set separator is also forwarded to YAML configuration
+     * options when converting the updated YAML file in {@link UpdatedFile#toFile()} (available only while on a Spigot
+     * server).
+     *
+     * @param separator the new separator
+     * @return this settings object (to allow builder-like structure)
+     * @see <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/configuration/file/YamlConfigurationOptions.html#pathSeparator(char)">the main Spigot API method</a>
+     * for more information about this setting
+     */
     public Settings setSeparator(char separator) {
+        //Set
         this.separator = separator;
+        this.stringSeparator = String.valueOf(separator);
+        this.escapedSeparator = java.util.regex.Pattern.quote(stringSeparator);
         return this;
     }
+
+    /**
+     * Sets amount of spaces which form one indent. The disk file (before updating) does not need to have indents formed
+     * from the set amount of spaces; this setting is used when outputting the updated file.<br>The set indentation is
+     * also forwarded to YAML configuration options when converting the updated YAML file in
+     * {@link UpdatedFile#toFile()} (available only while on a Spigot server).
+     *
+     * @param spaces the amount of spaces per one indent level
+     * @return this settings object (to allow builder-like structure)
+     * @see <a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/configuration/file/YamlConfigurationOptions.html#indent(int)">the main Spigot API method</a>
+     * for more information about this setting
+     */
     public Settings setIndentSpaces(int spaces) {
+        //Set
         this.indentSpaces = spaces;
         return this;
     }
+
+    /**
+     * Sets the version pattern. The pattern must be followed by both file versions ({@link #setDiskFileVersion(String)}
+     * and {@link #setResourceFileVersion(String)}), otherwise unexpected behaviour might occur.
+     *
+     * @param pattern the file version pattern
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setVersionPattern(Pattern pattern) {
+        //Set
         this.versionPattern = pattern;
         return this;
     }
+
+    /**
+     * Sets the path at which, in both (resource and disk) files, version of that certain file can be found. Version at
+     * that path must follow the version pattern (see {@link #setVersionPattern(Pattern)}).<br>
+     * This is just a backup source of file versions, which can be overridden by methods
+     * {@link #setDiskFileVersion(String)} (or {@link #setResourceFileVersion(String)}). That means, when the disk
+     * file's version is needed during the update process, result of {@link #getDiskFileVersion()} is used. If not set,
+     * version is obtained directly from the file, from the path set here.
+     *
+     * @param versionPath the path in a file, where version of that certain file can be found (must apply to both disk
+     *                    and resource file)
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setVersionPath(String versionPath) {
+        //Set
         this.versionPath = versionPath;
         return this;
     }
 
+    /**
+     * Sets the version of the disk file. If not set, the version is obtained directly from the file -
+     * {@link #setVersionPath(String)} must be called.
+     *
+     * @param diskFileVersion the disk file version
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setDiskFileVersion(String diskFileVersion) {
+        //Set
         this.diskFileVersion = diskFileVersion;
         return this;
     }
 
+    /**
+     * Sets the version of the resource file. If not set, the version is obtained directly from the file -
+     * {@link #setVersionPath(String)} must be called.
+     *
+     * @param resourceFileVersion the resource file version
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setResourceFileVersion(String resourceFileVersion) {
+        //Set
         this.resourceFileVersion = resourceFileVersion;
         return this;
     }
 
+    /**
+     * Sets all relocations from the given map, where the key is the version string (following the
+     * {@link #getVersionPattern()}), when the relocations have been made) to which the relocations (specified by the
+     * value) belong. The value map has structure: relocate from key to value path.<br>
+     * If there is a version string, which already has relocations assigned and is also in the given map, it's
+     * relocations are overwritten with given ones. <strong>Please read the API wiki or see
+     * {@link #setRelocations(String, Map)} for more information.</strong>
+     *
+     * @param relocations map containing new relocations
+     * @return this settings object (to allow builder-like structure)
+     * @see #setRelocations(String, Map) for more detailed and easier explanation
+     */
     public Settings setRelocations(Map<String, Map<String, String>> relocations) {
-        for (Map.Entry<String, Map<String, String>> entry : relocations.entrySet())
-            this.relocations.put(entry.getKey(), entry.getValue());
+        //Put
+        this.relocations.putAll(relocations);
         return this;
     }
+
+    /**
+     * Sets all relocations. Used only by the settings file loader.
+     *
+     * @param relocations the relocations to set
+     * @see #setRelocations(Map) for more detailed information
+     */
     void setRelocationsFromConfig(Map<?, ?> relocations) {
+        //Put
         for (Map.Entry<?, ?> entry : relocations.entrySet())
             this.relocations.put(entry.getKey(), entry.getValue());
     }
+
+    /**
+     * Sets relocations (represented by mappings, where the key indicates from which and value to which path to
+     * relocate) which occurred in the given version. Relocations are generally useful when some setting(s) moved from
+     * one path to another (within the file).<br>
+     * If some setting was located at path <code>a</code> in version <code>1.0</code>, but in version <code>1.1</code>
+     * at path <code>b</code>, the setting is taken as moved in version <code>1.1</code> and therefore, specify that
+     * version with the relocation map formatted like <code>{"a": "b"}</code>.<br>
+     * If there are already relocations for this version, they are overwritten. <strong>Please read the API wiki for
+     * more information.</strong>
+     *
+     * @param version     the version when the relocations occurred
+     * @param relocations the relocations
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setRelocations(String version, Map<String, String> relocations) {
+        //Put
         this.relocations.put(version, relocations);
         return this;
     }
+
+    /**
+     * Sets all paths (identified by the version in which they were present) to section values. A section value is a
+     * configuration section in YAML terminology, which is not used as a section containing the actual settings
+     * (mappings), but itself is a mapping. Please refer to the wiki for more information.<br>
+     * The given map must have a version string as the key (following the {@link #getVersionPattern()}) and all section
+     * value paths as the value. This essentially means <i>"at this file version, there were/are these paths to load as
+     * section values"</i>.<br>
+     * If there is a version string, which already has section values assigned and is also in the given map, it's
+     * section values are overwritten with given ones. <strong>Please read the API wiki or see
+     * {@link #setSectionValues(String, Set)} for more information.</strong>
+     *
+     * @param sectionValues the section values by versions in which they are present
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setSectionValues(Map<String, Set<String>> sectionValues) {
-        for (Map.Entry<String, Set<String>> entry : sectionValues.entrySet())
-            this.sectionValues.put(entry.getKey(), entry.getValue());
+        //Put
+        this.sectionValues.putAll(sectionValues);
         return this;
     }
+
+    /**
+     * Sets all paths which to load as section values (for the given version). A section value is a configuration
+     * section in YAML terminology, which is not used as a section containing the actual settings (mappings), but itself
+     * is a mapping. Please refer to the wiki for more information.<br>
+     * Version should be the version (following the {@link #getVersionPattern()}) at which there were section values
+     * present at the given paths. That means, if at file version <code>1.2</code> there were <code>a.b</code> and
+     * <code>a.c</code> section values (their paths), use <code>setSectionValues("1.2", set{"a.b", "a.c"})</code>.<br>
+     * If there are already section values for this version, they are overwritten. <strong>Please read the API wiki for
+     * more information.</strong>
+     *
+     * @param version       the version to which the section values correspond
+     * @param sectionValues the paths of sections to load as section values
+     * @return this settings object (to allow builder-like structure)
+     */
     public Settings setSectionValues(String version, Set<String> sectionValues) {
+        //Put
         this.sectionValues.put(version, sectionValues);
         return this;
     }
 
+    /**
+     * Returns the class loader associated with these settings. See {@link #setClassLoader(ClassLoader)} for more
+     * information.
+     *
+     * @return the class loader
+     */
     public ClassLoader getClassLoader() {
         return classLoader;
     }
 
+    /**
+     * Returns the disk folder associated with these settings. See {@link #setDiskFolder(File)} for more information.
+     *
+     * @return the disk folder
+     */
     public File getDiskFolder() {
         return folder;
     }
 
+    /**
+     * Returns the disk file (to be updated) associated with these settings. See {@link #setDiskFile(String)} for more
+     * information.
+     *
+     * @return the disk file to be updated
+     */
     public File getDiskFile() {
         return diskFile;
     }
 
+    /**
+     * Returns the resource file (the latest file) associated with these settings. See {@link #setResourceFile(String)}
+     * for more information.
+     *
+     * @return the resource file, the latest file version
+     */
     public File getResourceFile() {
         return resourceFile;
     }
 
+    /**
+     * Returns whether to automatically update the disk file after successful update. See
+     * {@link #setUpdateDiskFile(boolean)} for more information.
+     *
+     * @return if to update the disk file automatically when finished
+     */
     public boolean isUpdateDiskFile() {
         return updateDiskFile;
     }
 
+    /**
+     * Returns whether to copy file header. See {@link #setCopyHeader(boolean)} for more information.
+     *
+     * @return whether to copy file header
+     */
     public boolean isCopyHeader() {
         return copyHeader;
     }
 
+    /**
+     * Returns the key separator associated with these settings. See {@link #setSeparator(char)} for more information.
+     *
+     * @return the key separator
+     */
     public char getSeparator() {
         return separator;
     }
 
+    /**
+     * Returns the key separator (in string format) associated with these settings.
+     *
+     * @return the key separator in string format
+     * @see #getSeparator() to get the separator character
+     */
     public String getSeparatorString() {
-        return String.valueOf(separator);
+        return stringSeparator;
     }
 
-    public String getEscapedSeparator() {}
+    /**
+     * Returns the escaped key separator associated with these settings.
+     *
+     * @return the escaped key separator
+     * @see #getSeparator() to get the separator character
+     */
+    public String getEscapedSeparator() {
+        return escapedSeparator;
+    }
 
+    /**
+     * Returns how much spaces to use to form one indent (indentation level). See {@link #setIndentSpaces(int)} for more
+     * information.
+     *
+     * @return how much spaces to use for one indentation level
+     */
     public int getIndentSpaces() {
         return indentSpaces;
     }
 
+    /**
+     * Returns the version pattern associated with these settings. See {@link #setVersionPattern(Pattern)} for more
+     * information.
+     *
+     * @return the version pattern
+     */
     public Pattern getVersionPattern() {
         return versionPattern;
     }
 
+    /**
+     * Returns the version path associated with these settings. See {@link #setVersionPath(String)} for more
+     * information.
+     *
+     * @return the version path
+     */
     public String getVersionPath() {
         return versionPath;
     }
 
+    /**
+     * Returns the disk file version associated with these settings, set using {@link #setDiskFileVersion(String)}.
+     *
+     * @return the disk file version
+     */
     public String getDiskFileVersion() {
         return diskFileVersion;
     }
 
+    /**
+     * Returns the resource file version associated with these settings, set using
+     * {@link #setResourceFileVersion(String)}.
+     *
+     * @return the resource file version
+     */
     public String getResourceFileVersion() {
         return resourceFileVersion;
     }
 
+    /**
+     * Returns the complete map of relocations associated with these settings. Can be mutated. See
+     * {@link #setRelocations(Map)} for more information.
+     *
+     * @return the map of relocations
+     */
     public Map<Object, Object> getRelocations() {
         return relocations;
     }
 
+    /**
+     * Returns the complete map of section values associated with these settings. Can be mutated. See
+     * {@link #setSectionValues(Map)} for more information.
+     *
+     * @return the map of section values
+     */
     public Map<String, Set<String>> getSectionValues() {
         return sectionValues;
     }

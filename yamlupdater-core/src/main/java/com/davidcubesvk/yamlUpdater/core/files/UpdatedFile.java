@@ -65,7 +65,10 @@ public class UpdatedFile<T> {
     }
 
     /**
-     * Converts and returns the updated file as a standard configuration object (per the type).
+     * Converts and returns the updated file as a standard configuration object (per the type), as per the settings
+     * given before updating. This is to save some milliseconds - average YAML config takes up to 60ms to load. As this
+     * API does not provide covering for all YAML loading options, you may want to load the updated file yourself (only
+     * if necessary).
      *
      * @return the standard configuration object
      * @throws ReflectiveOperationException if anything went wrong during converting operation, which involves
