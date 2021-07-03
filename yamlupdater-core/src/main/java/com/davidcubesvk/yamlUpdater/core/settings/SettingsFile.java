@@ -2,26 +2,70 @@ package com.davidcubesvk.yamlUpdater.core.settings;
 
 import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.version.Pattern;
-import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * Settings file loader.
+ */
 public class SettingsFile {
 
+    /**
+     * Path to the file paths section.
+     */
     private static final String PATH_FILES = "files";
+    /**
+     * Path to the disk file path (under {@link #PATH_FILES}).
+     */
     private static final String PATH_FILES_DISK = "disk";
+    /**
+     * Path to the resource file path (under {@link #PATH_FILES}).
+     */
     private static final String PATH_FILES_RESOURCE = "resource";
+    /**
+     * Path to the key separator.
+     */
     private static final String PATH_SEPARATOR = "separator";
+    /**
+     * Path to the amount of spaces per indentation level.
+     */
     private static final String PATH_INDENT_SPACES = "indent-spaces";
+    /**
+     * Path to the file versioning properties section.
+     */
     private static final String PATH_VERSION = "version";
+    /**
+     * Path to the versioning pattern (under {@link #PATH_VERSION}).
+     */
     private static final String PATH_VERSION_PATTERN = "pattern";
+    /**
+     * Path to the file path of each file's version (under {@link #PATH_VERSION}).
+     */
     private static final String PATH_VERSION_PATH = "file-path";
+    /**
+     * Path to the file versions section.
+     */
     private static final String PATH_VERSION_FILE_VERSIONS = "file-versions";
+    /**
+     * Path to the disk file version (under {@link #PATH_VERSION_FILE_VERSIONS}).
+     */
     private static final String PATH_VERSION_FILE_VERSIONS_DISK = "disk";
+    /**
+     * Path to the resource file version (under {@link #PATH_VERSION_FILE_VERSIONS}).
+     */
     private static final String PATH_VERSION_FILE_VERSIONS_RESOURCE = "resource";
+    /**
+     * Path to the relocations.
+     */
     private static final String PATH_RELOCATIONS = "relocations";
+    /**
+     * Path to the section values.
+     */
     private static final String PATH_SECTION_VALUES = "section-values";
 
     //Settings to load

@@ -1,6 +1,5 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
-import com.davidcubesvk.yamlUpdater.core.block.Key;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.reader.FileReader;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
@@ -32,7 +31,7 @@ public class File extends Section {
      * @throws ParseException if something failed to parse correctly
      */
     public File(InputStreamReader streamReader, Set<String> sectionValues, Settings settings) throws ParseException {
-        super(EMPTY_STRING, new Key(EMPTY_STRING, EMPTY_STRING, 0), EMPTY_STRING_BUILDER, FileReader.load(new BufferedReader(streamReader).lines().collect(Collectors.toCollection(ArrayList::new)), sectionValues, settings.getSeparator()), -1);
+        super(EMPTY_STRING, EMPTY_KEY, EMPTY_STRING_BUILDER, FileReader.load(new BufferedReader(streamReader).lines().collect(Collectors.toCollection(ArrayList::new)), sectionValues, settings.getSeparator()), -1);
         this.separator = settings.getSeparatorString();
         this.escapedSeparator = settings.getEscapedSeparator();
     }

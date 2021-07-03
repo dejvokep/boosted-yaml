@@ -2,22 +2,50 @@ package com.davidcubesvk.yamlUpdater.core.version;
 
 import java.util.stream.IntStream;
 
+/**
+ * Class used to specify file versioning pattern. It is strongly recommended to see the API wiki for more information
+ * and explanations on this topic.
+ */
 public class Pattern {
 
+    /**
+     * Stream generating endless zeros, used to fill strings to desired length.
+     */
     private static final IntStream ZERO_FILL_STREAM = IntStream.generate(() -> 0);
 
+    //Parts of the pattern
     private Part[] parts;
 
+    /**
+     * Initializes the pattern with the given parts. The given parts must be ordered from left to right, as specified in
+     * an example version string (e.g. <code>1.2</code>).
+     *
+     * @param parts the parts, ordered from left (most-significant) to right (less-significant)
+     */
     public Pattern(Part[] parts) {
         this.parts = parts;
     }
 
+    /**
+     * Returns a part at the given index of this pattern.
+     *
+     * @param index the index to get
+     * @return the part at the given index
+     */
     public Part getPart(int index) {
         return parts[index];
     }
 
-    public Version getVersion(String version) {
-        //Copy
+    /**
+     * Parses and returns a version object from the given version string. The given version string must match the
+     * pattern, otherwise, unexpected results may occur.
+     *
+     * @param version the version string
+     * @return the version object
+     * @throws IllegalArgumentException if failed to parse the string (does not match the pattern)
+     */
+    public Version getVersion(String version) throws IllegalArgumentException {
+        //Copy reference
         String edited = version;
         //The cursors
         int[] cursors = new int[parts.length];
@@ -38,7 +66,7 @@ public class Pattern {
     public static class Part {
 
         /**
-         * The maximal length of the ordered sequence.
+         * The max length of the ordered sequence.
          */
         public static final int MAX_SEQUENCE_LENGTH = 1000;
 
@@ -47,10 +75,15 @@ public class Pattern {
 
         /**
          * Initializes the part by the given elements. These elements should be ordered by the order they are changed
-         * when version changes. Please see {@link #Part(int, int)} for more details.
+         * when version changes (when for example releasing new version of the plugin), starting from the first element
+         * in the first version, till the last element (after which the next version will use the first element again).
+         * <br>For example, assuming we have the first version string (which has ever been used) <code>1.A</code>, next
+         * <code>1.B</code>... till <code>1.E</code>, where next version is <code>2.A</code>, for the letters we would
+         * create a part using <code>{"A", "B", "C", "D", "E"}</code>. <strong>Please see the API wiki or
+         * {@link #Part(int, int)} for more details.</strong>
          *
          * @param elements all possible values this part can mean, ordered from the first one to last
-         * @throws IllegalArgumentException if the given array is longer than {@link #MAX_SEQUENCE_LENGTH}
+         * @throws IllegalArgumentException if the given length of varargs is longer than {@link #MAX_SEQUENCE_LENGTH}
          * @see #Part(int, int, int) for more information
          */
         public Part(String... elements) throws IllegalArgumentException {
@@ -96,8 +129,8 @@ public class Pattern {
          * @param from   the first integer in the ordered sequence
          * @param to     the (exclusive) last integer
          * @param fillTo indicates how many digits must a number have in string form, or <code>0</code> to disable
-         * @throws IllegalArgumentException if <code>fillTo</code> parameter is less than <code>0</code> or greater than
-         *                                  and a number generated from the given boundaries has more digits than the
+         * @throws IllegalArgumentException if <code>fillTo</code> parameter is less than <code>0</code> or a number
+         *                                  generated from the given boundaries has more digits than the
          *                                  <code>fillTo</code> permits, or the generated sequence is longer than
          *                                  {@link #MAX_SEQUENCE_LENGTH}
          */
@@ -127,8 +160,8 @@ public class Pattern {
 
         /**
          * Parses the given version. Finds the first element in the part's element sequence for which applies: the given
-         * version must start with that element, or {@link String#startsWith(String)} called on the version with the
-         * element as parameter must return <code>true</code>.
+         * version must start with that element to whose call to {@link String#startsWith(String)} (as parameter)
+         * returns <code>true</code>.
          *
          * @param version the version to parse
          * @return the first found element which is also contained in the start of the version string
@@ -149,6 +182,7 @@ public class Pattern {
         public String getElement(int index) {
             return elements[index];
         }
+
         public int length() {
             return elements.length;
         }

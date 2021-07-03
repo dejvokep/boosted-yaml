@@ -14,13 +14,35 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A class covering all the update settings. Looking at the API wiki is strongly advised. Mainly, if you are working
+ * with relocations and section values.
+ */
 public class Settings {
 
+    /**
+     * The default path (key) separator.
+     */
     public static final char DEFAULT_SEPARATOR = '.';
+    /**
+     * The string form of the default separator.
+     */
     public static final String DEFAULT_STRING_SEPARATOR = String.valueOf(DEFAULT_SEPARATOR);
+    /**
+     * The escaped form (for regex compatibility at all time) of the default separator.
+     */
     public static final String DEFAULT_ESCAPED_SEPARATOR = java.util.regex.Pattern.quote(DEFAULT_STRING_SEPARATOR);
+    /**
+     * Default amount of spaces per one indentation level.
+     */
     public static final int DEFAULT_INDENTATION = 2;
+    /**
+     * Default value for copy-header option.
+     */
     public static final boolean DEFAULT_COPY_HEADER = true;
+    /**
+     * Default value for automatically updating disk file option.
+     */
     public static final boolean DEFAULT_UPDATE_DISK_FILE = true;
 
     //The class loader
