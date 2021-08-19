@@ -11,8 +11,8 @@
     <version>1.0</version>
     <modules>
         <module>yamlupdater-core</module>
-        <module>yamlupdater-proxy</module>
-        <module>yamlupdater-backend</module>
+        <module>yamlupdater-bungeecord</module>
+        <module>yamlupdater-spigot</module>
     </modules>
     <name>YamlUpdater</name>
     <description>A professional updater for YAML configuration files - for backend servers powered by Spigot and proxy servers powered by BungeeCord.</description>
