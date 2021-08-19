@@ -2,6 +2,9 @@ package com.davidcubesvk.yamlUpdater.core.version;
 
 import java.util.Arrays;
 
+/**
+ * Represents file version IDs, while providing methods to shift to the next ID, or to compare two.
+ */
 public class Version implements Comparable<Version> {
 
     //Pattern
