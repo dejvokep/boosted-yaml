@@ -44,6 +44,10 @@ public class Settings {
      * Default value for automatically updating disk file option.
      */
     public static final boolean DEFAULT_UPDATE_DISK_FILE = true;
+    /**
+     * Default value for keeping former directives option.
+     */
+    public static final boolean DEFAULT_KEEP_FORMER_DIRECTIVES = true;
 
     //The class loader
     private ClassLoader classLoader;
@@ -59,6 +63,8 @@ public class Settings {
     private boolean copyHeader = DEFAULT_COPY_HEADER;
     //If to update disk file
     private boolean updateDiskFile = DEFAULT_UPDATE_DISK_FILE;
+    //If to preserve former directives
+    private boolean keepFormerDirectives = DEFAULT_KEEP_FORMER_DIRECTIVES;
     //The version pattern
     private Pattern versioningPattern;
     //Path to the version and version strings
@@ -264,6 +270,19 @@ public class Settings {
         //Set
         this.indentSpaces = spaces;
         return this;
+    }
+
+    /**
+     * Sets whether to keep former (inside the disk file) directive values in priority to the newer ones (inside the
+     * resource file), when in both files there is:
+     * <ul>
+     *     <li><code>%YAML</code> directive,</li>
+     *     <li><code>%TAG</code> directive with the same ID (<code>%TAG !ID! ...</code>),</li>
+     * </ul>
+     * @param keepFormerDirectives if to keep former directive values in priority to the newer ones
+     */
+    public void setKeepFormerDirectives(boolean keepFormerDirectives) {
+        this.keepFormerDirectives = keepFormerDirectives;
     }
 
     /**
@@ -509,6 +528,15 @@ public class Settings {
      */
     public int getIndentSpaces() {
         return indentSpaces;
+    }
+
+    /**
+     * Returns whether to keep former directives in priority to the newer ones. See
+     * {@link #setKeepFormerDirectives(boolean)} for more information.
+     * @return whether to keep former directives in priority to the newer ones
+     */
+    public boolean isKeepFormerDirectives() {
+        return keepFormerDirectives;
     }
 
     /**

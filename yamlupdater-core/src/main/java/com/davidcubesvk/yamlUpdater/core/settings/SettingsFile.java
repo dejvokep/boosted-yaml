@@ -39,7 +39,11 @@ public class SettingsFile {
     /**
      * Path to the setting if to copy header.
      */
-    private static final String PATH_COPY_HEADER = "separator";
+    private static final String PATH_COPY_HEADER = "copy-header";
+    /**
+     * Path to the setting if to keep former directives.
+     */
+    private static final String PATH_KEEP_FORMER_DIRECTIVES = "keep-former-directives";
     /**
      * Path to the file versioning properties section.
      */
@@ -155,6 +159,10 @@ public class SettingsFile {
         if (baseMap.containsKey(PATH_COPY_HEADER))
             //Set
             settings.setCopyHeader((Boolean) baseMap.get(PATH_COPY_HEADER));
+        //If contains the keep former directives setting
+        if (baseMap.containsKey(PATH_KEEP_FORMER_DIRECTIVES))
+            //Set
+            settings.setKeepFormerDirectives((Boolean) baseMap.get(PATH_KEEP_FORMER_DIRECTIVES));
     }
 
     /**

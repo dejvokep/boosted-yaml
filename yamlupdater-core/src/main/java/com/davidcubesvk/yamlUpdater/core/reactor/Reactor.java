@@ -1,5 +1,6 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
+import com.davidcubesvk.yamlUpdater.core.files.File;
 import com.davidcubesvk.yamlUpdater.core.files.FileProvider;
 import com.davidcubesvk.yamlUpdater.core.files.UpdatedFile;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
@@ -98,9 +99,9 @@ public class Reactor {
 
 
         //Load both the files
-        File currentFile = new File(new FileReader(settings.getDiskFile()), settings.getDiskFileVersionId() != null ?
+        File currentFile = com.davidcubesvk.yamlUpdater.core.reader.FileReader.load(new FileReader(settings.getDiskFile()), settings.getDiskFileVersionId() != null ?
                 settings.getSectionValues().getOrDefault(settings.getDiskFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings),
-                latestFile = new File(new FileReader(settings.getResourceFile()), settings.getResourceFileVersionId() != null ?
+                latestFile = com.davidcubesvk.yamlUpdater.core.reader.FileReader.load(new FileReader(settings.getResourceFile()), settings.getResourceFileVersionId() != null ?
                         settings.getSectionValues().getOrDefault(settings.getResourceFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings);
 
         //If both versions are set
@@ -116,7 +117,7 @@ public class Reactor {
         }
 
         //Merge
-        String merged = Merger.merge(currentFile, latestFile, resourceMap, settings.getIndentSpaces());
+        String merged = Merger.merge(currentFile, latestFile, resourceMap, settings.getIndentSpaces(), settings.isKeepFormerDirectives());
         //If file update is enabled
         if (settings.isUpdateDiskFile()) {
             //Overwrite

@@ -6,7 +6,7 @@
     <version>1.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>yamlupdater-proxy</artifactId>
+  <artifactId>yamlupdater-bungeecord</artifactId>
   <description>A professional updater for YAML configuration files - for proxy servers powered by BungeeCord and forks.</description>
   <build>
     <resources>

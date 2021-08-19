@@ -42,8 +42,19 @@ public class BlockReader {
 
         //Try
         try {
+            //The line
+            String keyLine = lines.get(offset + comments.getLine());
+            //If there is no space and it is the document end
+            if (countSpaces(keyLine) == 0 && keyLine.startsWith(DOCUMENT_END) && !isConfiguration(keyLine, 3)) {
+                //Append the rest of the file
+                for (int i = offset + comments.getLine(); i < lines.size(); i++)
+                    comments.getComponent().append(lines.get(i));
+                //Return
+                return new Block(comments.getComponent().toString(), lines.size() - offset);
+            }
+
             //Key
-            Component<Key> key = getKey(lines.get(offset + comments.getLine()));
+            Component<Key> key = getKey(keyLine);
             //If null
             if (key == null)
                 //Throw exception
@@ -603,7 +614,7 @@ public class BlockReader {
      * @return if the given line contains any configuration
      * @see #isConfiguration(String, int)
      */
-    private boolean isConfiguration(String line) {
+    public boolean isConfiguration(String line) {
         return isConfiguration(line, 0);
     }
 
@@ -619,7 +630,7 @@ public class BlockReader {
      * @param offset the starting offset
      * @return if the given line starting from the offset contains any configuration
      */
-    private boolean isConfiguration(String line, int offset) {
+    public boolean isConfiguration(String line, int offset) {
         //If the length is the offset
         if (line.length() == offset)
             return false;
@@ -663,7 +674,7 @@ public class BlockReader {
      * @return amount of spaces at the start of the given string
      * @see #countSpaces(String, int)
      */
-    private int countSpaces(String line) {
+    public int countSpaces(String line) {
         return countSpaces(line, 0);
     }
 
@@ -674,7 +685,7 @@ public class BlockReader {
      * @param line the string to count in
      * @return amount of spaces at the start of the given string
      */
-    private int countSpaces(String line, int offset) {
+    public int countSpaces(String line, int offset) {
         //If the length is the offset
         if (line.length() == offset)
             return 0;

@@ -1,16 +1,11 @@
-package com.davidcubesvk.yamlUpdater.core.reactor;
+package com.davidcubesvk.yamlUpdater.core.files;
 
+import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.reader.FileReader;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
-import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
 
@@ -19,21 +14,35 @@ import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
  */
 public class File extends Section {
 
+    //The header
+    private List<Object> header;
     //The key separator
     private final String separator, escapedSeparator;
 
     /**
-     * Initializes and loads the file from the given stream, section values and key separator.
+     * Initializes the file from the given header, mappings and key separator.
      *
-     * @param streamReader  stream to read from
-     * @param sectionValues section values for the current file version
-     * @param settings      settings this file will be loaded with, used to get the key separators
-     * @throws ParseException if something failed to parse correctly
+     * @param header   the header of the file, or <code>null</code> if not any
+     * @param mappings mappings inside the file
+     * @param settings settings this file will be loaded with, used to get the key separators
      */
-    public File(InputStreamReader streamReader, Set<String> sectionValues, Settings settings) throws ParseException {
-        super(EMPTY_STRING, EMPTY_KEY, EMPTY_STRING_BUILDER, FileReader.load(new BufferedReader(streamReader).lines().collect(Collectors.toCollection(ArrayList::new)), sectionValues, settings.getSeparator()), -1);
+    public File(List<Object> header, Map<String, Block> mappings, Settings settings) {
+        super(EMPTY_STRING, EMPTY_KEY, EMPTY_STRING_BUILDER, mappings, -1);
+        this.header = header;
         this.separator = settings.getSeparatorString();
         this.escapedSeparator = settings.getEscapedSeparator();
+    }
+
+    /**
+     * Returns the header of the file. If there is not any, returns <code>null</code>. If there is, it is guaranteed
+     * that all elements are of type {@link com.davidcubesvk.yamlUpdater.core.reader.Directive}, except the last one
+     * which is of type {@link String} and represents the
+     * {@link com.davidcubesvk.yamlUpdater.core.utils.Constants#DOCUMENT_START} character sequence with belonged
+     * comments.
+     * @return the header of the file
+     */
+    public List<Object> getHeader() {
+        return header;
     }
 
     /**
@@ -42,7 +51,7 @@ public class File extends Section {
      * @param path the path to search the upper map for with keys separated by the given key separator
      * @return the upper map, or <code>null</code> if does not exist
      */
-    public Map<String, Object> getUpperMap(String path) {
+    public Map<String, Block> getUpperMap(String path) {
         return getUpperMap(splitKey(path, separator, escapedSeparator));
     }
 
@@ -52,7 +61,7 @@ public class File extends Section {
      * @param path the path to search the upper map for
      * @return the upper map, or <code>null</code> if does not exist
      */
-    public Map<String, Object> getUpperMap(String[] path) {
+    public Map<String, Block> getUpperMap(String[] path) {
         //If not a direct key
         if (path.length > 1) {
             //Get the section at the super path

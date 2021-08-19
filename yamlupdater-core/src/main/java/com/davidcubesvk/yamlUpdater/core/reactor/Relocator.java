@@ -3,6 +3,7 @@ package com.davidcubesvk.yamlUpdater.core.reactor;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Key;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
+import com.davidcubesvk.yamlUpdater.core.files.File;
 import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.version.Version;
 import org.yaml.snakeyaml.Yaml;
@@ -89,7 +90,7 @@ public class Relocator {
         //To
         String to = relocations.get(from).toString();
         //The upper map
-        Map<String, Object> upper = diskFile.getUpperMap(from);
+        Map<String, Block> upper = diskFile.getUpperMap(from);
         //If null
         if (upper == null)
             //Nothing to relocate
@@ -97,7 +98,7 @@ public class Relocator {
         //The from key
         String[] fromKey = File.splitKey(from, separator, escapedSeparator);
         //The block
-        Object block = upper.get(fromKey[fromKey.length - 1]);
+        Block block = upper.get(fromKey[fromKey.length - 1]);
         //If null
         if (block == null)
             //Nothing to relocate
@@ -115,12 +116,10 @@ public class Relocator {
 
         //The to key
         String[] toKey = File.splitKey(to, separator, escapedSeparator);
-        //The block
-        Block blockObj = (Block) block;
         //Reset keys
-        blockObj.setRawKey(toKey[toKey.length - 1]);
+        block.setRawKey(toKey[toKey.length - 1]);
         //Format the key
-        blockObj.setFormattedKey(Constants.YAML.load(blockObj.getRawKey()).toString());
+        block.setFormattedKey(Constants.YAML.load(block.getRawKey()).toString());
 
         //If there is no section created
         if (diskFile.getUpperMap(toKey) == null)

@@ -22,9 +22,17 @@ public class Constants {
      */
     public static final StringBuilder EMPTY_STRING_BUILDER = new StringBuilder();
     /**
-     * A comment start character sequence.
+     * The comment start character sequence.
      */
     public static final String COMMENT_START = " #";
+    /**
+     * The document start character sequence.
+     */
+    public static final String DOCUMENT_START = "---";
+    /**
+     * The document end character sequence.
+     */
+    public static final String DOCUMENT_END = "...";
     /**
      * Character defining a comment.
      */
@@ -45,6 +53,18 @@ public class Constants {
      * YAML tag indicator.
      */
     public static final char TAG_INDICATOR = '!';
+    /**
+     * YAML directive indicator.
+     */
+    public static final char DIRECTIVE_INDICATOR = '%';
+    /**
+     * YAML TAG directive.
+     */
+    public static final String TAG_DIRECTIVE = "%TAG";
+    /**
+     * YAML YAML directive.
+     */
+    public static final String YAML_DIRECTIVE = "%YAML";
     /**
      * YAML mapping separator character sequence.
      */

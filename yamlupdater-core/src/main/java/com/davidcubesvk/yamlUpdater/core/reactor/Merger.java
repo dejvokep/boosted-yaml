@@ -2,8 +2,12 @@ package com.davidcubesvk.yamlUpdater.core.reactor;
 
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
+import com.davidcubesvk.yamlUpdater.core.files.File;
+import com.davidcubesvk.yamlUpdater.core.reader.Directive;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
@@ -27,11 +31,13 @@ public class Merger {
      * @param indents     amount of indents (spaces) per each hierarchy level
      * @return the merged file as a string
      */
-    public static String merge(File disk, File resource, Map<Object, Object> resourceMap, int indents) {
+    public static String merge(File disk, File resource, Map<Object, Object> resourceMap, int indents, boolean keepFormerDirectives) {
         //The builder
         StringBuilder builder = new StringBuilder();
         //Remove both dangling comments
-        Block diskDangling = (Block) disk.getMappings().remove(null), resourceDangling = (Block) resource.getMappings().remove(null);
+        Block diskDangling = disk.getMappings().remove(null), resourceDangling = resource.getMappings().remove(null);
+        //Merge header
+        MERGER.mergeHeader(builder, disk.getHeader(), resource.getHeader(), keepFormerDirectives);
         //Merge all
         MERGER.iterate(resource, resourceMap, disk, builder, 0, indents);
         //If there is a dangling comment
@@ -42,6 +48,51 @@ public class Merger {
         //Return as string
         return builder.toString();
     }
+
+    private void mergeHeader(StringBuilder builder, List<Object> diskHeader, List<Object> resourceHeader, boolean keepFormerDirectives) {
+        //Go through all directives inside the resource file
+        outer:
+        for (int i = 0; i < resourceHeader.size() - 1; i++) {
+            //The directive
+            Directive directive = (Directive) resourceHeader.get(i);
+
+            //The iterator
+            Iterator<Object> iterator = diskHeader.iterator();
+            //The index
+            int directiveIndex = 0;
+            //Go through all directives
+            while (iterator.hasNext()) {
+                //If the last
+                if (directiveIndex + 2 >= diskHeader.size())
+                    break;
+
+                //The former directive
+                Directive formerDirective = (Directive) iterator.next();
+                //If the same
+                if ((!directive.isTagDirective() && !formerDirective.isTagDirective()) || (directive.isTagDirective() && formerDirective.isTagDirective() && directive.getId().equals(formerDirective.getId()))) {
+                    //Append
+                    builder.append(keepFormerDirectives ? formerDirective.getFormatted() : directive.getFormatted());
+
+                    //Remove
+                    iterator.remove();
+                    continue outer;
+                }
+            }
+
+            //Append
+            builder.append(directive.getFormatted());
+        }
+
+        //Go through all remaining former directives
+        for (int i = 0; i < diskHeader.size() - 1; i++)
+            //Append
+            builder.append(((Directive) diskHeader.get(i)).getFormatted());
+        //If there is anything remaining
+        if (diskHeader.size() == 1)
+            //Append
+            builder.append(diskHeader.get(0).toString());
+    }
+
 
     /**
      * Iterates and appends all key-value pairs, iterating from the view of the resource file, to the given builder.
@@ -73,7 +124,7 @@ public class Merger {
      */
     private void iterate(Section resourceSection, Map<Object, Object> resourceMap, Section diskSection, StringBuilder builder, int depth, int indents) {
         //Go through all entries
-        for (Map.Entry<String, Object> entry : resourceSection.getMappings().entrySet()) {
+        for (Map.Entry<String, Block> entry : resourceSection.getMappings().entrySet()) {
             //If a block
             if (entry.getValue() instanceof Section) {
                 //The section
@@ -86,7 +137,7 @@ public class Merger {
                 }
 
                 //Disk object
-                Block diskBlock = (Block) diskSection.getMappings().get(entry.getKey());
+                Block diskBlock = diskSection.getMappings().get(entry.getKey());
                 //Append
                 appendBlock(builder, depth, indents, diskBlock);
                 //If a section
@@ -104,7 +155,7 @@ public class Merger {
             }
 
             //The block
-            Block resourceBlock = (Block) entry.getValue();
+            Block resourceBlock = entry.getValue();
             //If there is not such a key in the current map
             if (diskSection == null || diskSection.getMappings() == null || !diskSection.getMappings().containsKey(entry.getKey())) {
                 //Append
@@ -113,7 +164,7 @@ public class Merger {
             }
 
             //Disk object
-            Block diskBlock = (Block) diskSection.getMappings().get(entry.getKey());
+            Block diskBlock = diskSection.getMappings().get(entry.getKey());
             //If a block
             if (diskBlock instanceof Section) {
                 //Create a new map
@@ -149,7 +200,11 @@ public class Merger {
         //Append
         appendBlock(builder, depth, indents, section);
         //Go through all entries
-        for (Map.Entry<String, Object> entry : section.getMappings().entrySet()) {
+        for (Map.Entry<String, Block> entry : section.getMappings().entrySet()) {
+            //If null
+            if (entry.getValue() == null)
+                throw new IllegalArgumentException(String.format("Object at path ...%s is not a block object. Please report the problem to our support.", entry.getKey()));
+
             //If a section
             if (entry.getValue() instanceof Section) {
                 //Create a new map
@@ -158,13 +213,12 @@ public class Merger {
                 map.put(entry.getKey(), newMap);
                 //Append
                 appendSection(builder, depth + 1, indents, newMap, (Section) entry.getValue());
-            } else if (entry.getValue() instanceof Block) {
+            } else {
                 //Update the map
-                map.put(entry.getKey(), YAML.load(((Block) entry.getValue()).getValue().toString().trim().substring(1)));
+                map.put(entry.getKey(), YAML.load(entry.getValue().getValue().toString().trim().substring(1)));
                 //Append
-                appendBlock(builder, depth + 1, indents, (Block) entry.getValue());
-            } else
-                throw new IllegalArgumentException(String.format("Key object %s at path ...%s is not a block object. Please report the problem to our support.", entry.getValue().toString(), entry.getKey()));
+                appendBlock(builder, depth + 1, indents, entry.getValue());
+            }
         }
     }
 
