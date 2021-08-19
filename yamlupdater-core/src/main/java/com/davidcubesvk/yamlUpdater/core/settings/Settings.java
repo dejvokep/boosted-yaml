@@ -60,9 +60,9 @@ public class Settings {
     //If to update disk file
     private boolean updateDiskFile = DEFAULT_UPDATE_DISK_FILE;
     //The version pattern
-    private Pattern versionPattern;
+    private Pattern versioningPattern;
     //Path to the version and version strings
-    private String versionPath = "", diskFileVersion, resourceFileVersion;
+    private String versionIdPath = "", diskFileVersionId, resourceFileVersionId;
     //Relocations
     private final Map<Object, Object> relocations = new HashMap<>();
     //Section values
@@ -267,67 +267,68 @@ public class Settings {
     }
 
     /**
-     * Sets the version pattern. The pattern must be followed by both file versions ({@link #setDiskFileVersion(String)}
-     * and {@link #setResourceFileVersion(String)}), otherwise unexpected behaviour might occur.
+     * Sets the versioning pattern. The pattern must be followed by both file version IDs
+     * ({@link #setDiskFileVersionId(String)} and {@link #setResourceFileVersionId(String)}), otherwise unexpected behaviour
+     * might occur.
      *
      * @param pattern the file version pattern
      * @return this settings object (to allow builder-like structure)
      */
-    public Settings setVersionPattern(Pattern pattern) {
+    public Settings setVersioningPattern(Pattern pattern) {
         //Set
-        this.versionPattern = pattern;
+        this.versioningPattern = pattern;
         return this;
     }
 
     /**
-     * Sets the path at which, in both (resource and disk) files, version of that certain file can be found. Version at
-     * that path must follow the version pattern (see {@link #setVersionPattern(Pattern)}).<br>
-     * This is just a backup source of file versions, which can be overridden by methods
-     * {@link #setDiskFileVersion(String)} (or {@link #setResourceFileVersion(String)}). That means, when the disk
-     * file's version is needed during the update process, result of {@link #getDiskFileVersion()} is used. If not set,
-     * version is obtained directly from the file, from the path set here.
+     * Sets the path at which, in both (resource and disk) files, version ID of that certain file can be found. ID at
+     * that path must follow the version pattern (see {@link #setVersioningPattern(Pattern)}).<br>
+     * This can be overridden by methods {@link #setDiskFileVersionId(String)}
+     * (or {@link #setResourceFileVersionId(String)}). That means, when the disk file's version ID is needed during the
+     * update process, result of {@link #getDiskFileVersionId()} is used. If not set, the ID is obtained directly from the
+     * file, from the path set here.
      *
-     * @param versionPath the path in a file, where version of that certain file can be found (must apply to both disk
-     *                    and resource file)
+     * @param versionIdPath the path in a file, where version ID of that certain file can be found (must apply to both
+     *                    disk and resource file)
      * @return this settings object (to allow builder-like structure)
      */
-    public Settings setVersionPath(String versionPath) {
+    public Settings setFileVersionIdPath(String versionIdPath) {
         //Set
-        this.versionPath = versionPath;
+        this.versionIdPath = versionIdPath;
         return this;
     }
 
     /**
-     * Sets the version of the disk file. If not set, the version is obtained directly from the file -
-     * {@link #setVersionPath(String)} must be called.
+     * Sets the version ID of the disk file. If not set, the version is obtained directly from the file -
+     * {@link #setFileVersionIdPath(String)} must be called.
      *
-     * @param diskFileVersion the disk file version
+     * @param versionId the disk file version ID
      * @return this settings object (to allow builder-like structure)
      */
-    public Settings setDiskFileVersion(String diskFileVersion) {
+    public Settings setDiskFileVersionId(String versionId) {
         //Set
-        this.diskFileVersion = diskFileVersion;
+        this.diskFileVersionId = versionId;
         return this;
     }
 
     /**
-     * Sets the version of the resource file. If not set, the version is obtained directly from the file -
-     * {@link #setVersionPath(String)} must be called.
+     * Sets the version ID of the resource file. If not set, the version is obtained directly from the file -
+     * {@link #setFileVersionIdPath(String)} must be called.
      *
-     * @param resourceFileVersion the resource file version
+     * @param versionId the resource file version ID
      * @return this settings object (to allow builder-like structure)
      */
-    public Settings setResourceFileVersion(String resourceFileVersion) {
+    public Settings setResourceFileVersionId(String versionId) {
         //Set
-        this.resourceFileVersion = resourceFileVersion;
+        this.resourceFileVersionId = versionId;
         return this;
     }
 
     /**
-     * Sets all relocations from the given map, where the key is the version string (following the
-     * {@link #getVersionPattern()}), when the relocations have been made) to which the relocations (specified by the
+     * Sets all relocations from the given map, where the key is the file version ID (following the
+     * {@link #getVersioningPattern()}), when the relocations have been made) to which the relocations (specified by the
      * value) belong. The value map has structure: relocate from key to value path.<br>
-     * If there is a version string, which already has relocations assigned and is also in the given map, it's
+     * If there is a version ID, which already has relocations assigned and is also in the given map, it's
      * relocations are overwritten with given ones. <strong>Please read the API wiki or see
      * {@link #setRelocations(String, Map)} for more information.</strong>
      *
@@ -355,36 +356,36 @@ public class Settings {
 
     /**
      * Sets relocations (represented by mappings, where the key indicates from which and value to which path to
-     * relocate) which occurred in the given version. Relocations are generally useful when some setting(s) moved from
-     * one path to another (within the file).<br>
-     * If some setting was located at path <code>a</code> in version <code>1.0</code>, but in version <code>1.1</code>
+     * relocate) which occurred at the given file version ID. Relocations are generally useful when some setting(s)
+     * moved from one path to another (within the file).<br>
+     * If some setting was located at path <code>a</code> at version ID <code>1.0</code>, but at ID <code>1.1</code>
      * at path <code>b</code>, the setting is taken as moved in version <code>1.1</code> and therefore, specify that
      * version with the relocation map formatted like <code>{"a": "b"}</code>.<br>
-     * If there are already relocations for this version, they are overwritten. <strong>Please read the API wiki for
+     * If there are already relocations for this version ID, they are overwritten. <strong>Please read the API wiki for
      * more information.</strong>
      *
-     * @param version     the version when the relocations occurred
+     * @param versionId     the version ID when the relocations occurred
      * @param relocations the relocations
      * @return this settings object (to allow builder-like structure)
      */
-    public Settings setRelocations(String version, Map<String, String> relocations) {
+    public Settings setRelocations(String versionId, Map<String, String> relocations) {
         //Put
-        this.relocations.put(version, relocations);
+        this.relocations.put(versionId, relocations);
         return this;
     }
 
     /**
-     * Sets all paths (identified by the version in which they were present) to section values. A section value is a
-     * configuration section in YAML terminology, which is not used as a section containing the actual settings
+     * Sets all paths (identified by the file version ID in which they were present) to section values. A section value
+     * is a configuration section in YAML terminology, which is not used as a section containing the actual settings
      * (mappings), but itself is a mapping. Please refer to the wiki for more information.<br>
-     * The given map must have a version string as the key (following the {@link #getVersionPattern()}) and all section
-     * value paths as the value. This essentially means <i>"at this file version, there were/are these paths to load as
+     * The given map must have a version ID as the key (following the {@link #getVersioningPattern()}) and all section
+     * value paths as the value. This essentially means <i>"at this file version ID, there were/are these paths to load as
      * section values"</i>.<br>
-     * If there is a version string, which already has section values assigned and is also in the given map, it's
+     * If there is a version ID, which already has section values assigned and is also in the given map, it's
      * section values are overwritten with given ones. <strong>Please read the API wiki or see
      * {@link #setSectionValues(String, Set)} for more information.</strong>
      *
-     * @param sectionValues the section values by versions in which they are present
+     * @param sectionValues the section values by file version IDs in which they are present
      * @return this settings object (to allow builder-like structure)
      */
     public Settings setSectionValues(Map<String, Set<String>> sectionValues) {
@@ -394,22 +395,22 @@ public class Settings {
     }
 
     /**
-     * Sets all paths which to load as section values (for the given version). A section value is a configuration
-     * section in YAML terminology, which is not used as a section containing the actual settings (mappings), but itself
-     * is a mapping. Please refer to the wiki for more information.<br>
-     * Version should be the version (following the {@link #getVersionPattern()}) at which there were section values
-     * present at the given paths. That means, if at file version <code>1.2</code> there were <code>a.b</code> and
+     * Sets all paths which to load as section values (for the given file version ID). A section value is a
+     * configuration section in YAML terminology, but it's contents are meant to be changed (e.g. <b>direct</b> mappings
+     * added/removed) Please refer to the wiki for more information.<br>
+     * Version ID should be the ID (following the {@link #getVersioningPattern()}) at which there were section values
+     * present at the given paths. That means, if at file version ID <code>1.2</code> there were <code>a.b</code> and
      * <code>a.c</code> section values (their paths), use <code>setSectionValues("1.2", set{"a.b", "a.c"})</code>.<br>
-     * If there are already section values for this version, they are overwritten. <strong>Please read the API wiki for
-     * more information.</strong>
+     * If there are already section values for this version ID, they are overwritten. <strong>Please read the API wiki
+     * for more information.</strong>
      *
-     * @param version       the version to which the section values correspond
+     * @param versionId       the file version ID at which the section values were present
      * @param sectionValues the paths of sections to load as section values
      * @return this settings object (to allow builder-like structure)
      */
-    public Settings setSectionValues(String version, Set<String> sectionValues) {
+    public Settings setSectionValues(String versionId, Set<String> sectionValues) {
         //Put
-        this.sectionValues.put(version, sectionValues);
+        this.sectionValues.put(versionId, sectionValues);
         return this;
     }
 
@@ -511,42 +512,42 @@ public class Settings {
     }
 
     /**
-     * Returns the version pattern associated with these settings. See {@link #setVersionPattern(Pattern)} for more
+     * Returns the version pattern associated with these settings. See {@link #setVersioningPattern(Pattern)} for more
      * information.
      *
      * @return the version pattern
      */
-    public Pattern getVersionPattern() {
-        return versionPattern;
+    public Pattern getVersioningPattern() {
+        return versioningPattern;
     }
 
     /**
-     * Returns the version path associated with these settings. See {@link #setVersionPath(String)} for more
+     * Returns the version path associated with these settings. See {@link #setFileVersionIdPath(String)} for more
      * information.
      *
      * @return the version path
      */
-    public String getVersionPath() {
-        return versionPath;
+    public String getVersionIdPath() {
+        return versionIdPath;
     }
 
     /**
-     * Returns the disk file version associated with these settings, set using {@link #setDiskFileVersion(String)}.
+     * Returns the disk file version associated with these settings, set using {@link #setDiskFileVersionId(String)}.
      *
      * @return the disk file version
      */
-    public String getDiskFileVersion() {
-        return diskFileVersion;
+    public String getDiskFileVersionId() {
+        return diskFileVersionId;
     }
 
     /**
      * Returns the resource file version associated with these settings, set using
-     * {@link #setResourceFileVersion(String)}.
+     * {@link #setResourceFileVersionId(String)}.
      *
      * @return the resource file version
      */
-    public String getResourceFileVersion() {
-        return resourceFileVersion;
+    public String getResourceFileVersionId() {
+        return resourceFileVersionId;
     }
 
     /**

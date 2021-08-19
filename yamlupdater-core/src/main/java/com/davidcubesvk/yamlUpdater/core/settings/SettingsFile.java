@@ -15,15 +15,15 @@ public class SettingsFile {
     /**
      * Path to the file paths section.
      */
-    private static final String PATH_FILE_PATH = "file-path";
+    private static final String PATH_FILE_PATHS = "file-paths";
     /**
-     * Path to the disk file path (under {@link #PATH_FILE_PATH}).
+     * Path to the disk file path (under {@link #PATH_FILE_PATHS}).
      */
-    private static final String PATH_FILE_PATH_DISK = "disk";
+    private static final String PATH_FILE_PATHS_DISK = "disk";
     /**
-     * Path to the resource file path (under {@link #PATH_FILE_PATH}).
+     * Path to the resource file path (under {@link #PATH_FILE_PATHS}).
      */
-    private static final String PATH_FILE_PATH_RESOURCE = "resource";
+    private static final String PATH_FILE_PATHS_RESOURCE = "resource";
     /**
      * Path to the setting if to update the disk file after the update is done.
      */
@@ -111,25 +111,25 @@ public class SettingsFile {
      */
     private void loadFiles(Map<String, Object> baseMap) throws ClassCastException {
         //If does not contain the section
-        if (!baseMap.containsKey(PATH_FILE_PATH))
+        if (!baseMap.containsKey(PATH_FILE_PATHS))
             return;
 
         //Object
-        Object pathsObject = baseMap.get(PATH_FILE_PATH);
+        Object pathsObject = baseMap.get(PATH_FILE_PATHS);
         //If not a map
         if (!(pathsObject instanceof Map))
-            throw new ClassCastException("Object at " + PATH_FILE_PATH + " is not a map!");
+            throw new ClassCastException("Object at " + PATH_FILE_PATHS + " is not a map!");
         //The map
-        Map<?, ?> paths = (Map<?, ?>) baseMap.get(PATH_FILE_PATH);
+        Map<?, ?> paths = (Map<?, ?>) baseMap.get(PATH_FILE_PATHS);
 
         //If contains the disk file path
-        if (paths.containsKey(PATH_FILE_PATH_DISK))
+        if (paths.containsKey(PATH_FILE_PATHS_DISK))
             //Set
-            settings.setDiskFile(paths.get(PATH_FILE_PATH_DISK).toString());
+            settings.setDiskFile(paths.get(PATH_FILE_PATHS_DISK).toString());
         //If contains the resource file path
-        if (paths.containsKey(PATH_FILE_PATH_RESOURCE))
+        if (paths.containsKey(PATH_FILE_PATHS_RESOURCE))
             //Set
-            settings.setDiskFile(paths.get(PATH_FILE_PATH_RESOURCE).toString());
+            settings.setDiskFile(paths.get(PATH_FILE_PATHS_RESOURCE).toString());
     }
 
     /**
@@ -226,13 +226,13 @@ public class SettingsFile {
             }
 
             //Set
-            settings.setVersionPattern(new Pattern(parts));
+            settings.setVersioningPattern(new Pattern(parts));
         }
 
         //If contains the file path
         if (versioning.containsKey(PATH_VERSIONING_FILE_VERSION_ID_PATH))
             //Set
-            settings.setVersionPath(versioning.get(PATH_VERSIONING_FILE_VERSION_ID_PATH).toString());
+            settings.setFileVersionIdPath(versioning.get(PATH_VERSIONING_FILE_VERSION_ID_PATH).toString());
 
         //If contains the version section
         if (!baseMap.containsKey(PATH_VERSIONING_FILE_VERSION_IDS)) {
@@ -247,11 +247,11 @@ public class SettingsFile {
             //If contains the disk file version
             if (fileVersionIds.containsKey(PATH_VERSIONING_FILE_VERSION_IDS_DISK))
                 //Set
-                settings.setDiskFileVersion(fileVersionIds.get(PATH_VERSIONING_FILE_VERSION_IDS_DISK).toString());
+                settings.setDiskFileVersionId(fileVersionIds.get(PATH_VERSIONING_FILE_VERSION_IDS_DISK).toString());
             //If contains the resource file version
             if (fileVersionIds.containsKey(PATH_VERSIONING_FILE_VERSION_IDS_RESOURCE))
                 //Set
-                settings.setResourceFileVersion(fileVersionIds.get(PATH_VERSIONING_FILE_VERSION_IDS_RESOURCE).toString());
+                settings.setResourceFileVersionId(fileVersionIds.get(PATH_VERSIONING_FILE_VERSION_IDS_RESOURCE).toString());
         }
     }
 

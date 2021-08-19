@@ -77,39 +77,39 @@ public class Reactor {
         Map<Object, Object> diskMap = YAML.load(new FileReader(settings.getDiskFile()));
 
         //If the current version is not set
-        if (settings.getDiskFileVersion() == null && settings.getVersionPath() != null) {
+        if (settings.getDiskFileVersionId() == null && settings.getVersionIdPath() != null) {
             //The object
-            Object version = File.get(diskMap, settings.getVersionPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
+            Object version = File.get(diskMap, settings.getVersionIdPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
             //If not null
             if (version != null)
                 //Set
-                settings.setResourceFileVersion(version.toString());
+                settings.setResourceFileVersionId(version.toString());
         }
 
         //If the latest version is not set
-        if (settings.getResourceFileVersion() == null && settings.getVersionPath() != null) {
+        if (settings.getResourceFileVersionId() == null && settings.getVersionIdPath() != null) {
             //The object
-            Object version = File.get(resourceMap, settings.getVersionPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
+            Object version = File.get(resourceMap, settings.getVersionIdPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
             //If not null
             if (version != null)
                 //Set
-                settings.setResourceFileVersion(version.toString());
+                settings.setResourceFileVersionId(version.toString());
         }
 
 
         //Load both the files
-        File currentFile = new File(new FileReader(settings.getDiskFile()), settings.getDiskFileVersion() != null ?
-                settings.getSectionValues().getOrDefault(settings.getDiskFileVersion(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings),
-                latestFile = new File(new FileReader(settings.getResourceFile()), settings.getResourceFileVersion() != null ?
-                        settings.getSectionValues().getOrDefault(settings.getResourceFileVersion(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings);
+        File currentFile = new File(new FileReader(settings.getDiskFile()), settings.getDiskFileVersionId() != null ?
+                settings.getSectionValues().getOrDefault(settings.getDiskFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings),
+                latestFile = new File(new FileReader(settings.getResourceFile()), settings.getResourceFileVersionId() != null ?
+                        settings.getSectionValues().getOrDefault(settings.getResourceFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings);
 
         //If both versions are set
-        if (settings.getDiskFileVersion() != null && settings.getResourceFileVersion() != null) {
+        if (settings.getDiskFileVersionId() != null && settings.getResourceFileVersionId() != null) {
             //Initialize relocator
             Relocator relocator = new Relocator(
                     currentFile,
-                    settings.getVersionPattern().getVersion(settings.getDiskFileVersion()),
-                    settings.getVersionPattern().getVersion(settings.getResourceFileVersion()),
+                    settings.getVersioningPattern().getVersion(settings.getDiskFileVersionId()),
+                    settings.getVersioningPattern().getVersion(settings.getResourceFileVersionId()),
                     settings.getSeparatorString(), settings.getEscapedSeparator());
             //Apply all
             relocator.apply(settings.getRelocations());
