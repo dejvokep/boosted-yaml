@@ -18,7 +18,7 @@ public class Pattern {
 
     /**
      * Initializes the pattern with the given parts. The given parts must be ordered from left to right, as specified in
-     * an example version string (e.g. <code>1.2</code>).
+     * an example version ID (e.g. <code>1.2</code>).
      *
      * @param parts the parts, ordered from left (most-significant) to right (less-significant)
      */
@@ -37,16 +37,16 @@ public class Pattern {
     }
 
     /**
-     * Parses and returns a version object from the given version string. The given version string must match the
-     * pattern, otherwise, unexpected results may occur.
+     * Parses and returns a version object from the given version ID. The given ID must match the pattern, otherwise,
+     * unexpected results may occur.
      *
-     * @param version the version string
+     * @param versionId the version ID
      * @return the version object
      * @throws IllegalArgumentException if failed to parse the string (does not match the pattern)
      */
-    public Version getVersion(String version) throws IllegalArgumentException {
+    public Version getVersion(String versionId) throws IllegalArgumentException {
         //Copy reference
-        String edited = version;
+        String edited = versionId;
         //The cursors
         int[] cursors = new int[parts.length];
         //Go through all parts
@@ -57,7 +57,7 @@ public class Pattern {
             edited = edited.substring(parts[index].getElement(cursors[index]).length());
         }
 
-        return new Version(version, this, cursors);
+        return new Version(versionId, this, cursors);
     }
 
     /**
@@ -75,8 +75,8 @@ public class Pattern {
 
         /**
          * Initializes the part by the given elements. These elements should be ordered by the order they are changed
-         * when version changes (when for example releasing new version of the plugin), starting from the first element
-         * in the first version, till the last element (after which the next version will use the first element again).
+         * when version ID changes, starting from the first element in the first version, till the last element (after
+         * which the next version ID will use the first element again).
          * <br>For example, assuming we have the first version string (which has ever been used) <code>1.A</code>, next
          * <code>1.B</code>... till <code>1.E</code>, where next version is <code>2.A</code>, for the letters we would
          * create a part using <code>{"A", "B", "C", "D", "E"}</code>. <strong>Please see the API wiki or
@@ -98,14 +98,13 @@ public class Pattern {
          * Initializes the part by the given integer boundaries (from - inclusive, to - exclusive). All the integers
          * within this range will each be taken as a value this part can represent, ordered from the first one to last.<br>
          * Please note that <code>from</code> does not necessarily have to be less than <code>to</code> (otherwise, the
-         * ordered sequence will just <b>descend</b> one-by-one).
+         * ordered sequence will just <b>descend</b> one-by-one). The constructor actually creates a string array
+         * representing this range (from the first to the last number), which if used irresponsibly, will occupy a lot
+         * of environment's memory (RAM). Therefore, there is a limit enforced - {@link #MAX_SEQUENCE_LENGTH}.
          *
          * @param from the first integer in the ordered sequence
          * @param to   the (exclusive) last integer
-         * @throws IllegalArgumentException if <code>fillTo</code> parameter is less than <code>0</code> or greater than
-         *                                  and a number generated from the given boundaries has more digits than the
-         *                                  <code>fillTo</code> permits, or the generated sequence is longer than
-         *                                  {@link #MAX_SEQUENCE_LENGTH}
+         * @throws IllegalArgumentException if the generated sequence is longer than {@link #MAX_SEQUENCE_LENGTH}
          * @see #Part(int, int, int) for more information
          */
         public Part(int from, int to) throws IllegalArgumentException {
@@ -117,14 +116,15 @@ public class Pattern {
          * within this range will each be taken as a value this part can represent, ordered from the first one to last.<br>
          * Please note that <code>from</code> does not necessarily have to be less than <code>to</code> (otherwise, the
          * ordered sequence will just <b>descend</b> one-by-one).<br>
-         * The fill-to parameter indicates how much digits each number must have. If some number has amount of digits
-         * less than the value of fill-to, additional <code>0</code>s will be appended before, so the number has
-         * the specified number of digits (without changing the order of integers). Please note that appending
-         * <code>0</code> before numbers in math is completely useless, but here integers are stored as a string with
-         * filling used to ensure that each of them (strings) is at exactly that long. If any of the numbers generated
-         * from the given boundaries already have more digits than fill-to value, or the boundaries given represent a
-         * sequence longer than {@link #MAX_SEQUENCE_LENGTH}, an {@link IllegalArgumentException} will be thrown. To not
-         * use the filling feature, set it to <code>0</code>.
+         * The constructor actually creates a string array representing this range (from the first to the last number),
+         * which if used irresponsibly, will occupy a lot of environment's memory (RAM). Therefore, there is a limit
+         * enforced - {@link #MAX_SEQUENCE_LENGTH}.<br>
+         * The fill-to parameter indicates <b>exactly</b> how much digits each number must have. If some number has
+         * amount of digits less than the value of fill-to, additional <code>0</code>s will be appended before, so the
+         * number has the specified number of digits (without changing the mathematical value of the number).<br>
+         * If any of the numbers generated from the given boundaries already have more digits than fill-to value, or the
+         * boundaries given represent a sequence longer than {@link #MAX_SEQUENCE_LENGTH}, an
+         * {@link IllegalArgumentException} will be thrown. To not use the filling feature, set it to <code>0</code>.
          *
          * @param from   the first integer in the ordered sequence
          * @param to     the (exclusive) last integer
@@ -159,30 +159,39 @@ public class Pattern {
         }
 
         /**
-         * Parses the given version. Finds the first element in the part's element sequence for which applies: the given
-         * version must start with that element to whose call to {@link String#startsWith(String)} (as parameter)
+         * Parses the given version ID. Finds the first element in the part's element sequence for which applies: the
+         * given ID must start with that element to whose call to {@link String#startsWith(String)} (as parameter)
          * returns <code>true</code>.
          *
-         * @param version the version to parse
-         * @return the first found element which is also contained in the start of the version string
+         * @param versionId the version ID to parse
+         * @return the first found element which is also contained in the start of the version ID
          * @throws IllegalArgumentException if no element matches the version string
          */
-        private int parse(String version) throws IllegalArgumentException {
+        private int parse(String versionId) throws IllegalArgumentException {
             //Go through all indexes
             for (int index = 0; index < elements.length; index++) {
                 //If the same
-                if (version.startsWith(elements[index]))
+                if (versionId.startsWith(elements[index]))
                     //Set
                     return index;
             }
             //Not found
-            throw new IllegalArgumentException("The given version part \"" + version + "\" does not suit any of this part's possible variations!");
+            throw new IllegalArgumentException("The given version part \"" + versionId + "\" does not suit any of this part's possible variations!");
         }
 
+        /**
+         * Returns n-th part element. It must apply that <code>0 <= i < length()</code>.
+         * @param index the index
+         * @return the element at that index
+         */
         public String getElement(int index) {
             return elements[index];
         }
 
+        /**
+         * The length of the element array.
+         * @return the length of the elements
+         */
         public int length() {
             return elements.length;
         }

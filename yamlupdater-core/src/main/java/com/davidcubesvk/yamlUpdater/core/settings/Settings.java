@@ -89,19 +89,26 @@ public class Settings {
      *
      * @param path the path to the file
      * @return this settings object (to allow builder-like structure)
-     * @throws URISyntaxException       if the URL cannot be converted to URI (used to identify the file), please refer to
-     *                                  {@link URL#toURI()} for more information
+     * @throws URISyntaxException       if the URL cannot be converted to URI (used to identify the file), please refer
+     *                                  to {@link URL#toURI()} for more information
      * @throws IOException              if an IO error occurred
-     * @throws IllegalArgumentException if the file at the specified path is not a file (is a folder), or the settings
-     * specification itself is invalid (YAML is valid, but the specification is not)
+     * @throws IllegalArgumentException if the file at the specified path is not a file (is a folder)
      * @throws YAMLException            if the YAML in the file is not valid
+     * @throws ClassCastException       if the settings specification itself is invalid (YAML is valid, but the
+     *                                  specification is not)
      */
     public Settings fromFile(String path) throws URISyntaxException, IOException, IllegalArgumentException, YAMLException {
+        //The URL
+        URL resourceURL = classLoader.getResource(path);
+        //If null
+        if (resourceURL == null)
+            throw new IllegalArgumentException("Resource at path \"" + path + "\" could not be loaded!");
+
         //The file
-        File file = new File(classLoader.getResource(path).toURI());
+        File file = new File(resourceURL.toURI());
         //If not a file
         if (!file.isFile())
-            throw new IllegalArgumentException("Given path does not point to a file!");
+            throw new IllegalArgumentException("Resource at path \"" + path + "\" is not a file!");
         //Load
         settingsFile.load(new FileInputStream(file));
         return this;
@@ -133,7 +140,7 @@ public class Settings {
     public Settings setDiskFolder(File folder) throws IllegalArgumentException {
         //If not a directory
         if (!folder.isDirectory())
-            throw new IllegalArgumentException("Given path does not point to a directory!");
+            throw new IllegalArgumentException("Given disk path \"" + folder.getAbsolutePath() + "\" does not point to a directory!");
         //Set
         this.folder = folder;
         return this;
@@ -151,12 +158,12 @@ public class Settings {
     public Settings setDiskFile(String path) throws IllegalStateException, IllegalArgumentException {
         //If folder is null
         if (folder == null)
-            throw new IllegalStateException("Folder has not been set yet! Could not load the file.");
+            throw new IllegalStateException("Disk folder has not been set yet! Could not load the file.");
         //The file
         File file = new File(folder, path);
         //If not a file
         if (!file.isFile())
-            throw new IllegalArgumentException("Given path does not point to a file!");
+            throw new IllegalArgumentException("Given disk file path \"" + file.getAbsolutePath() + "\" does not point to a file!");
         //Set
         this.diskFile = file;
         return this;
@@ -176,11 +183,17 @@ public class Settings {
         //If class loader is null
         if (classLoader == null)
             throw new IllegalStateException("Class loader is null! Could not load the file.");
+        //The URL
+        URL resourceURL = classLoader.getResource(path);
+        //If null
+        if (resourceURL == null)
+            throw new IllegalArgumentException("Resource file at path \"" + path + "\" could not be loaded!");
+
         //The file
-        File file = new File(classLoader.getResource(path).toURI());
+        File file = new File(resourceURL.toURI());
         //If not a file
         if (!file.isFile())
-            throw new IllegalArgumentException("Given path does not point to a file!");
+            throw new IllegalArgumentException("Given resource file path \"" + path + "\" does not point to a file!");
         //Set
         this.resourceFile = file;
         return this;

@@ -9,18 +9,18 @@ public class Version implements Comparable<Version> {
     //Cursor indexes
     private int[] cursors;
     //Version string
-    private String version;
+    private String id;
 
     /**
-     * Initializes the version object with the given version string, pattern part cursors, both following the given
+     * Initializes the version object with the given version ID, pattern part cursors, both following the given
      * pattern.
      *
-     * @param version the version string
+     * @param id the version string
      * @param pattern the pattern
      * @param cursors the cursor indexes
      */
-    Version(String version, Pattern pattern, int[] cursors) {
-        this.version = version;
+    Version(String id, Pattern pattern, int[] cursors) {
+        this.id = id;
         this.pattern = pattern;
         this.cursors = cursors;
     }
@@ -46,9 +46,9 @@ public class Version implements Comparable<Version> {
     }
 
     /**
-     * Moves to the next version (as per the specified pattern). More formally, shifts the cursor index of the least
+     * Moves to the next version ID (as per the specified pattern). More formally, shifts the cursor index of the least
      * significant (on the right) version part. If it is the last element in the part's sequence, shifts the cursor of
-     * 2nd least significant part (just next to it to the left), etc. Updates the version string.<br>
+     * 2nd least significant part (just next to it to the left), etc. Updates the version ID string stored.<br>
      * For example, <code>1.2</code> > <code>1.3</code>.
      */
     public void next() {
@@ -77,16 +77,16 @@ public class Version implements Comparable<Version> {
             //Append
             builder.append(pattern.getPart(index).getElement(cursors[index]));
         //Set
-        version = builder.toString();
+        id = builder.toString();
     }
 
     /**
-     * Returns the version as string - according to the current part cursors.
+     * Returns the version as an ID - according to the current part cursors.
      *
-     * @return the version as string
+     * @return the version as an ID
      */
-    public String asString() {
-        return version;
+    public String asID() {
+        return id;
     }
 
     /**
@@ -96,7 +96,7 @@ public class Version implements Comparable<Version> {
      * @return the new, copied version object
      */
     public Version copy() {
-        return new Version(version, pattern, Arrays.copyOf(cursors, cursors.length));
+        return new Version(id, pattern, Arrays.copyOf(cursors, cursors.length));
     }
 
 }

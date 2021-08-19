@@ -5,10 +5,7 @@ import com.davidcubesvk.yamlUpdater.core.version.Pattern;
 import org.yaml.snakeyaml.error.YAMLException;
 
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Settings file loader.
@@ -18,47 +15,55 @@ public class SettingsFile {
     /**
      * Path to the file paths section.
      */
-    private static final String PATH_FILES = "files";
+    private static final String PATH_FILE_PATH = "file-path";
     /**
-     * Path to the disk file path (under {@link #PATH_FILES}).
+     * Path to the disk file path (under {@link #PATH_FILE_PATH}).
      */
-    private static final String PATH_FILES_DISK = "disk";
+    private static final String PATH_FILE_PATH_DISK = "disk";
     /**
-     * Path to the resource file path (under {@link #PATH_FILES}).
+     * Path to the resource file path (under {@link #PATH_FILE_PATH}).
      */
-    private static final String PATH_FILES_RESOURCE = "resource";
+    private static final String PATH_FILE_PATH_RESOURCE = "resource";
     /**
-     * Path to the key separator.
+     * Path to the setting if to update the disk file after the update is done.
      */
-    private static final String PATH_SEPARATOR = "separator";
+    private static final String PATH_UPDATE_DISK_FILE = "update-disk-file";
     /**
      * Path to the amount of spaces per indentation level.
      */
     private static final String PATH_INDENT_SPACES = "indent-spaces";
     /**
+     * Path to the key separator.
+     */
+    private static final String PATH_SEPARATOR = "separator";
+    /**
+     * Path to the setting if to copy header.
+     */
+    private static final String PATH_COPY_HEADER = "separator";
+    /**
      * Path to the file versioning properties section.
      */
-    private static final String PATH_VERSION = "version";
+    private static final String PATH_VERSIONING = "versioning";
     /**
-     * Path to the versioning pattern (under {@link #PATH_VERSION}).
+     * Path to the versioning pattern (under {@link #PATH_VERSIONING}).
      */
-    private static final String PATH_VERSION_PATTERN = "pattern";
+    private static final String PATH_VERSIONING_PATTERN = "pattern";
     /**
-     * Path to the file path of each file's version (under {@link #PATH_VERSION}).
+     * Path to the file path of each file's version (under {@link #PATH_VERSIONING}).
      */
-    private static final String PATH_VERSION_PATH = "file-path";
+    private static final String PATH_VERSIONING_FILE_VERSION_ID_PATH = "file-version-id-path";
     /**
-     * Path to the file versions section.
+     * Path to the file versions section (under {@link #PATH_VERSIONING}).
      */
-    private static final String PATH_VERSION_FILE_VERSIONS = "file-versions";
+    private static final String PATH_VERSIONING_FILE_VERSION_IDS = "file-version-ids";
     /**
-     * Path to the disk file version (under {@link #PATH_VERSION_FILE_VERSIONS}).
+     * Path to the disk file version (under {@link #PATH_VERSIONING_FILE_VERSION_IDS}).
      */
-    private static final String PATH_VERSION_FILE_VERSIONS_DISK = "disk";
+    private static final String PATH_VERSIONING_FILE_VERSION_IDS_DISK = "disk";
     /**
-     * Path to the resource file version (under {@link #PATH_VERSION_FILE_VERSIONS}).
+     * Path to the resource file version (under {@link #PATH_VERSIONING_FILE_VERSION_IDS}).
      */
-    private static final String PATH_VERSION_FILE_VERSIONS_RESOURCE = "resource";
+    private static final String PATH_VERSIONING_FILE_VERSION_IDS_RESOURCE = "resource";
     /**
      * Path to the relocations.
      */
@@ -85,9 +90,9 @@ public class SettingsFile {
      *
      * @param stream the stream to load from
      * @throws YAMLException            if the YAML is invalidly formatted
-     * @throws IllegalArgumentException if the settings are invalidly formatted
+     * @throws ClassCastException       if the settings are invalidly formatted
      */
-    public void load(InputStream stream) throws YAMLException, IllegalArgumentException {
+    public void load(InputStream stream) throws YAMLException, ClassCastException {
         //Load
         Map<String, Object> baseMap = Constants.YAML.load(stream);
         //Load all
@@ -102,37 +107,42 @@ public class SettingsFile {
      * Loads file paths from the given base (main file) map.
      *
      * @param baseMap the base (main) file map
-     * @throws IllegalArgumentException if anything was specified invalidly
+     * @throws ClassCastException if anything was specified invalidly
      */
-    private void loadFiles(Map<String, Object> baseMap) throws IllegalArgumentException {
+    private void loadFiles(Map<String, Object> baseMap) throws ClassCastException {
         //If does not contain the section
-        if (!baseMap.containsKey(PATH_FILES))
+        if (!baseMap.containsKey(PATH_FILE_PATH))
             return;
 
         //Object
-        Object pathsObject = baseMap.get(PATH_FILES);
+        Object pathsObject = baseMap.get(PATH_FILE_PATH);
         //If not a map
         if (!(pathsObject instanceof Map))
-            throw new IllegalArgumentException("Object at " + PATH_FILES + " is not a map!");
+            throw new ClassCastException("Object at " + PATH_FILE_PATH + " is not a map!");
         //The map
-        Map<?, ?> paths = (Map<?, ?>) baseMap.get(PATH_FILES);
+        Map<?, ?> paths = (Map<?, ?>) baseMap.get(PATH_FILE_PATH);
 
         //If contains the disk file path
-        if (paths.containsKey(PATH_FILES_DISK))
+        if (paths.containsKey(PATH_FILE_PATH_DISK))
             //Set
-            settings.setDiskFile(paths.get(PATH_FILES_DISK).toString());
+            settings.setDiskFile(paths.get(PATH_FILE_PATH_DISK).toString());
         //If contains the resource file path
-        if (paths.containsKey(PATH_FILES_RESOURCE))
+        if (paths.containsKey(PATH_FILE_PATH_RESOURCE))
             //Set
-            settings.setDiskFile(paths.get(PATH_FILES_RESOURCE).toString());
+            settings.setDiskFile(paths.get(PATH_FILE_PATH_RESOURCE).toString());
     }
 
     /**
      * Loads general data (separator and indent spaces) from the given base (main file) map.
      *
      * @param baseMap the base (main) file map
+     * @throws ClassCastException if anything was specified invalidly
      */
-    private void loadGeneral(Map<String, Object> baseMap) {
+    private void loadGeneral(Map<String, Object> baseMap) throws ClassCastException {
+        //If contains the update disk file setting
+        if (baseMap.containsKey(PATH_UPDATE_DISK_FILE))
+            //Set
+            settings.setUpdateDiskFile((Boolean) baseMap.get(PATH_UPDATE_DISK_FILE));
         //If contains the separator
         if (baseMap.containsKey(PATH_SEPARATOR))
             //Set
@@ -141,34 +151,38 @@ public class SettingsFile {
         if (baseMap.containsKey(PATH_INDENT_SPACES))
             //Set
             settings.setIndentSpaces((Integer) baseMap.get(PATH_INDENT_SPACES));
+        //If contains the copy header setting
+        if (baseMap.containsKey(PATH_COPY_HEADER))
+            //Set
+            settings.setCopyHeader((Boolean) baseMap.get(PATH_COPY_HEADER));
     }
 
     /**
      * Loads file versions, version path and version pattern from the given base (main file) map.
      *
      * @param baseMap the base (main) file map
-     * @throws IllegalArgumentException if anything was specified invalidly
+     * @throws ClassCastException if anything was specified invalidly
      */
-    private void loadVersion(Map<String, Object> baseMap) throws IllegalArgumentException {
+    private void loadVersion(Map<String, Object> baseMap) throws ClassCastException {
         //If does not contain the section
-        if (!baseMap.containsKey(PATH_VERSION))
+        if (!baseMap.containsKey(PATH_VERSIONING))
             return;
 
         //Object
-        Object versionObject = baseMap.get(PATH_VERSION);
+        Object versioningObject = baseMap.get(PATH_VERSIONING);
         //If not a map
-        if (!(versionObject instanceof Map))
-            throw new IllegalArgumentException("Object at " + PATH_VERSION + " is not a map!");
+        if (!(versioningObject instanceof Map))
+            throw new ClassCastException("Object at " + PATH_VERSIONING + " is not a map!");
         //The map
-        Map<?, ?> version = (Map<?, ?>) versionObject;
+        Map<?, ?> versioning = (Map<?, ?>) versioningObject;
 
         //If contains the pattern
-        if (version.containsKey(PATH_VERSION_PATTERN)) {
+        if (versioning.containsKey(PATH_VERSIONING_PATTERN)) {
             //Object
-            Object patternObject = version.get(PATH_VERSION_PATTERN);
+            Object patternObject = versioning.get(PATH_VERSIONING_PATTERN);
             //If not a list
             if (!(patternObject instanceof List))
-                throw new IllegalArgumentException("Version pattern is not a list!");
+                throw new ClassCastException("Version pattern is not a list!");
             //The list
             List<?> patternList = (List<?>) patternObject;
             //The pattern parts
@@ -208,7 +222,7 @@ public class SettingsFile {
                     continue;
                 }
 
-                throw new IllegalArgumentException("Version pattern element must be a string or an array!");
+                throw new ClassCastException("Versioning pattern element must be a string (for integer range specification) or an array (for string elements)!");
             }
 
             //Set
@@ -216,28 +230,28 @@ public class SettingsFile {
         }
 
         //If contains the file path
-        if (version.containsKey(PATH_VERSION_PATH))
+        if (versioning.containsKey(PATH_VERSIONING_FILE_VERSION_ID_PATH))
             //Set
-            settings.setVersionPath(version.get(PATH_VERSION_PATH).toString());
+            settings.setVersionPath(versioning.get(PATH_VERSIONING_FILE_VERSION_ID_PATH).toString());
 
         //If contains the version section
-        if (!baseMap.containsKey(PATH_VERSION_FILE_VERSIONS)) {
+        if (!baseMap.containsKey(PATH_VERSIONING_FILE_VERSION_IDS)) {
             //Object
-            Object fileVersionsObject = version.get(PATH_VERSION_FILE_VERSIONS);
+            Object fileVersionIdsObject = versioning.get(PATH_VERSIONING_FILE_VERSION_IDS);
             //If not a map
-            if (!(fileVersionsObject instanceof Map))
-                throw new IllegalArgumentException("File versions section must be a map!");
+            if (!(fileVersionIdsObject instanceof Map))
+                throw new ClassCastException("File versions section must be a map!");
             //The map
-            Map<?, ?> fileVersions = (Map<?, ?>) fileVersionsObject;
+            Map<?, ?> fileVersionIds = (Map<?, ?>) fileVersionIdsObject;
 
             //If contains the disk file version
-            if (fileVersions.containsKey(PATH_VERSION_FILE_VERSIONS_DISK))
+            if (fileVersionIds.containsKey(PATH_VERSIONING_FILE_VERSION_IDS_DISK))
                 //Set
-                settings.setDiskFileVersion(fileVersions.get(PATH_VERSION_FILE_VERSIONS_DISK).toString());
+                settings.setDiskFileVersion(fileVersionIds.get(PATH_VERSIONING_FILE_VERSION_IDS_DISK).toString());
             //If contains the resource file version
-            if (fileVersions.containsKey(PATH_VERSION_FILE_VERSIONS_RESOURCE))
+            if (fileVersionIds.containsKey(PATH_VERSIONING_FILE_VERSION_IDS_RESOURCE))
                 //Set
-                settings.setResourceFileVersion(fileVersions.get(PATH_VERSION_FILE_VERSIONS_RESOURCE).toString());
+                settings.setResourceFileVersion(fileVersionIds.get(PATH_VERSIONING_FILE_VERSION_IDS_RESOURCE).toString());
         }
     }
 
@@ -245,46 +259,59 @@ public class SettingsFile {
      * Loads relocations from the given base (main file) map.
      *
      * @param baseMap the base (main) file map
-     * @throws IllegalArgumentException if anything was specified invalidly
+     * @throws ClassCastException if anything was specified invalidly
      */
-    private void loadRelocations(Map<String, Object> baseMap) throws IllegalArgumentException {
+    private void loadRelocations(Map<String, Object> baseMap) throws ClassCastException {
         //If does not contain the section
         if (!baseMap.containsKey(PATH_RELOCATIONS))
             return;
 
         //Object
-        Object versionObject = baseMap.get(PATH_RELOCATIONS);
+        Object relocationsObject = baseMap.get(PATH_RELOCATIONS);
         //If not a map
-        if (!(versionObject instanceof Map))
-            throw new IllegalArgumentException("Relocations must be specified as a map!");
+        if (!(relocationsObject instanceof Map))
+            throw new ClassCastException("Relocations must be specified as a map!");
         //Set
-        settings.setRelocationsFromConfig((Map<?, ?>) baseMap.get(PATH_VERSION));
+        settings.setRelocationsFromConfig((Map<?, ?>) baseMap.get(PATH_VERSIONING));
     }
 
     /**
      * Loads section values from the given base (main file) map.
      *
      * @param baseMap the base (main) file map
-     * @throws IllegalArgumentException if anything was specified invalidly
+     * @throws ClassCastException if anything was specified invalidly
      */
-    private void loadSectionValues(Map<String, Object> baseMap) throws IllegalArgumentException {
+    private void loadSectionValues(Map<String, Object> baseMap) throws ClassCastException {
         //If does not contain the section
         if (!baseMap.containsKey(PATH_SECTION_VALUES))
             return;
 
         //Object
-        Object versionObject = baseMap.get(PATH_SECTION_VALUES);
+        Object sectionValuesObject = baseMap.get(PATH_SECTION_VALUES);
         //If not a map
-        if (!(versionObject instanceof Map))
-            throw new IllegalArgumentException("Section values must be specified as a map!");
+        if (!(sectionValuesObject instanceof Map))
+            throw new ClassCastException("Section values must be specified as a map!");
 
         //Go through all entries
-        for (Map.Entry<?, ?> entry : ((Map<?, ?>) versionObject).entrySet()) {
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) sectionValuesObject).entrySet()) {
             //If not a list
             if (!(entry.getValue() instanceof Collection))
-                throw new IllegalArgumentException("Each version must have it's own section values specified in a list (set)!");
+                throw new ClassCastException("Each version must have it's own section values specified in a list (set) of strings!");
+
+            //The set
+            Set<String> paths = new HashSet<>();
+            //Go through all elements
+            for (Object pathObject : (Collection<?>) entry.getValue()) {
+                //If not a string
+                if (!(pathObject instanceof String))
+                    throw new ClassCastException("Each version must have it's own section values specified in a list (set) of strings!");
+
+                //Add
+                paths.add(pathObject.toString());
+            }
+
             //Set
-            settings.setSectionValues(entry.getKey().toString(), new HashSet<>((List<String>) entry.getValue()));
+            settings.setSectionValues(entry.getKey().toString(), paths);
         }
     }
 

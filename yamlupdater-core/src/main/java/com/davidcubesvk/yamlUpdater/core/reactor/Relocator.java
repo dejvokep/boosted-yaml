@@ -54,7 +54,7 @@ public class Relocator {
         //While not at the latest version
         while (current.compareTo(resourceVersion) <= 0) {
             //Relocation
-            Object relocation = relocations.get(current.asString());
+            Object relocation = relocations.get(current.asID());
             //Move to the next version
             current.next();
             //If there is not any
