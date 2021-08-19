@@ -483,59 +483,11 @@ public class BlockReader {
         //The value
         StringBuilder valueBuilder = new StringBuilder().append(line, spaces + key.getComponent().getRaw().length(), line.length()).append(NEW_LINE);
 
-        //While loop only to be able to return and run the code after the loop
-        while (true) {
-            //If is a configuration
-            if (isConfiguration(line, key.getIndex())) {
-                //Count spaces between the key and value
-                int spacesBeforeValue = countSpaces(line, key.getIndex());
-                //The additional offset (in case of a tag present) and value start offset
-                int tagOffset = -1, valueOffset = key.getIndex() + spacesBeforeValue;
-                //If there is an exclamation mark
-                if (line.charAt(key.getIndex() + spacesBeforeValue) == TAG_INDICATOR) {
-                    //Next space index
-                    int nextSpace = line.indexOf(SPACE, key.getIndex() + spacesBeforeValue + 1);
-                    //If not found
-                    if (nextSpace == -1)
-                        nextSpace = line.length();
-
-                    //If there is any configuration after
-                    if (isConfiguration(line, nextSpace))
-                        //Set
-                        tagOffset = nextSpace;
-                    else
-                        break;
-                }
-
-                //Remove the appended content (so only the actual value part remains)
-                valueBuilder.setLength(key.getIndex() - key.getComponent().getRaw().length() - spaces + spacesBeforeValue);
-                //If there is a tag
-                if (tagOffset != -1) {
-                    //Append
-                    valueBuilder.append(line, valueOffset, tagOffset);
-                    //Set the new value offset
-                    valueOffset = tagOffset + countSpaces(line, tagOffset);
-                }
-
-                //If is enclosed
-                if (isEnclosedComponent(line.charAt(valueOffset))) {
-                    //Read
-                    Position position = readEnclosed(lines, valueOffset, spaces, valueBuilder);
-                    //If null
-                    if (position == null)
-                        throw new ParseException("Failed to parse enclosed value. Is everything closed properly? Check quotes, apostrophes, square and curly brackets.");
-
-                    //Return
-                    return new Component<>(position.getLine(), -1, new Value(valueBuilder));
-                }
-
-                //Read and return
-                return new Component<>(readSimple(lines, valueOffset, spaces, valueBuilder), -1, new Value(valueBuilder));
-            }
-
-            //Break
-            break;
-        }
+        //Read right after the key
+        Component<Value> afterKey = readValueAfterKey(lines, key, valueBuilder);
+        //If not null
+        if (afterKey != null)
+            return afterKey;
 
         //If at the end
         if (lines.size() == 1)
@@ -605,6 +557,75 @@ public class BlockReader {
 
         //Read and return
         return new Component<>(index + readSimple(lines.subList(index, lines.size()), currentSpaces, spaces, valueBuilder), -1, new Value(valueBuilder));
+    }
+
+    /**
+     * Reads the value starting right after the key. If there is no value to read in the same line where the key is,
+     * returns <code>null</code>. This is meant to be called from {@link #getValue(List, Component)}, with passing all
+     * the internal variables.
+     *
+     * @param lines        the lines to read from
+     * @param key          the key component
+     * @param valueBuilder the value builder
+     * @return the value or <code>null</code> if there is not any starting right after the key
+     * @throws ParseException if the value is an enclosed component and it was failed to be enclosed within the given
+     *                        line list
+     */
+    private Component<Value> readValueAfterKey(List<String> lines, Component<Key> key, StringBuilder valueBuilder) throws ParseException {
+        //The line
+        String line = lines.get(0);
+        //Spaces
+        int spaces = countSpaces(line);
+
+        //If is a configuration
+        if (isConfiguration(line, key.getIndex())) {
+            //Count spaces between the key and value
+            int spacesBeforeValue = countSpaces(line, key.getIndex());
+            //The additional offset (in case of a tag present) and value start offset
+            int tagOffset = -1, valueOffset = key.getIndex() + spacesBeforeValue;
+            //If there is an exclamation mark
+            if (line.charAt(key.getIndex() + spacesBeforeValue) == TAG_INDICATOR) {
+                //Next space index
+                int nextSpace = line.indexOf(SPACE, key.getIndex() + spacesBeforeValue + 1);
+                //If not found
+                if (nextSpace == -1)
+                    nextSpace = line.length();
+
+                //If there is any configuration after
+                if (isConfiguration(line, nextSpace))
+                    //Set
+                    tagOffset = nextSpace;
+                else
+                    return null;
+            }
+
+            //Remove the appended content (so only the actual value part remains)
+            valueBuilder.setLength(key.getIndex() - key.getComponent().getRaw().length() - spaces + spacesBeforeValue);
+            //If there is a tag
+            if (tagOffset != -1) {
+                //Append
+                valueBuilder.append(line, valueOffset, tagOffset);
+                //Set the new value offset
+                valueOffset = tagOffset + countSpaces(line, tagOffset);
+            }
+
+            //If is enclosed
+            if (isEnclosedComponent(line.charAt(valueOffset))) {
+                //Read
+                Position position = readEnclosed(lines, valueOffset, spaces, valueBuilder);
+                //If null
+                if (position == null)
+                    throw new ParseException("Failed to parse enclosed value. Is everything closed properly? Check quotes, apostrophes, square and curly brackets.");
+
+                //Return
+                return new Component<>(position.getLine(), -1, new Value(valueBuilder));
+            }
+
+            //Read and return
+            return new Component<>(readSimple(lines, valueOffset, spaces, valueBuilder), -1, new Value(valueBuilder));
+        }
+
+        return null;
     }
 
     /**
