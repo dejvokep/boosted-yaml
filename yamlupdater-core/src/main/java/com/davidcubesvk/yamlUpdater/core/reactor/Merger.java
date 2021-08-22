@@ -1,13 +1,14 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
-import com.davidcubesvk.yamlUpdater.core.block.Block;
+import com.davidcubesvk.yamlUpdater.core.block.DirectiveBlock;
+import com.davidcubesvk.yamlUpdater.core.block.DocumentBlock;
+import com.davidcubesvk.yamlUpdater.core.block.IndicatorBlock;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.files.File;
-import com.davidcubesvk.yamlUpdater.core.reader.Directive;
+import com.davidcubesvk.yamlUpdater.core.settings.Settings;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
@@ -31,47 +32,34 @@ public class Merger {
      * @param indents     amount of indents (spaces) per each hierarchy level
      * @return the merged file as a string
      */
-    public static String merge(File disk, File resource, Map<Object, Object> resourceMap, int indents, boolean keepFormerDirectives) {
+    public static String merge(File disk, File resource, Map<Object, Object> resourceMap, Settings settings) {
         //The builder
         StringBuilder builder = new StringBuilder();
-        //Remove both dangling comments
-        Block diskDangling = disk.getMappings().remove(null), resourceDangling = resource.getMappings().remove(null);
         //Merge header
-        MERGER.mergeHeader(builder, disk.getHeader(), resource.getHeader(), keepFormerDirectives);
-        //Merge all
-        MERGER.iterate(resource, resourceMap, disk, builder, 0, indents);
-        //If there is a dangling comment
-        if (diskDangling != null || resourceDangling != null)
-            //Append from the disk file or resource
-            MERGER.appendBlock(builder, 0, indents, diskDangling == null ? resourceDangling : diskDangling);
+        MERGER.mergeHeader(builder, disk, resource, settings.isKeepFormerDirectives());
+        //Merge document
+        MERGER.iterate(resource, resourceMap, disk, builder, 0, settings.getIndentSpaces());
+        //Merge footer
+        MERGER.mergeFooter(builder, disk, resource);
 
         //Return as string
         return builder.toString();
     }
 
-    private void mergeHeader(StringBuilder builder, List<Object> diskHeader, List<Object> resourceHeader, boolean keepFormerDirectives) {
+    private void mergeHeader(StringBuilder builder, File disk, File resource, boolean keepFormerDirectives) {
         //Go through all directives inside the resource file
         outer:
-        for (int i = 0; i < resourceHeader.size() - 1; i++) {
-            //The directive
-            Directive directive = (Directive) resourceHeader.get(i);
-
+        for (DirectiveBlock directive : resource.getDirectives()) {
             //The iterator
-            Iterator<Object> iterator = diskHeader.iterator();
-            //The index
-            int directiveIndex = 0;
+            Iterator<DirectiveBlock> iterator = disk.getDirectives().iterator();
             //Go through all directives
             while (iterator.hasNext()) {
-                //If the last
-                if (directiveIndex + 2 >= diskHeader.size())
-                    break;
-
                 //The former directive
-                Directive formerDirective = (Directive) iterator.next();
+                DirectiveBlock formerDirective = iterator.next();
                 //If the same
-                if ((!directive.isTagDirective() && !formerDirective.isTagDirective()) || (directive.isTagDirective() && formerDirective.isTagDirective() && directive.getId().equals(formerDirective.getId()))) {
+                if ((!directive.isTag() && !formerDirective.isTag()) || (directive.isTag() && formerDirective.isTag() && directive.getId().equals(formerDirective.getId()))) {
                     //Append
-                    builder.append(keepFormerDirectives ? formerDirective.getFormatted() : directive.getFormatted());
+                    builder.append(keepFormerDirectives ? formerDirective.getRaw() : directive.getRaw());
 
                     //Remove
                     iterator.remove();
@@ -80,17 +68,47 @@ public class Merger {
             }
 
             //Append
-            builder.append(directive.getFormatted());
+            builder.append(directive.getRaw());
         }
 
         //Go through all remaining former directives
-        for (int i = 0; i < diskHeader.size() - 1; i++)
+        for (DirectiveBlock directive : disk.getDirectives())
             //Append
-            builder.append(((Directive) diskHeader.get(i)).getFormatted());
-        //If there is anything remaining
-        if (diskHeader.size() == 1)
+            builder.append(directive.getRaw());
+
+        //Append indicator
+        appendIndicator(builder, disk.getDocumentStart(), resource.getDocumentStart());
+    }
+
+    private void mergeFooter(StringBuilder builder, File disk, File resource) {
+        //Append indicator
+        appendIndicator(builder, disk.getDocumentEnd(), resource.getDocumentEnd());
+
+        //If there are disk dangling comments
+        if (disk.getDanglingComments() != null) {
             //Append
-            builder.append(diskHeader.get(0).toString());
+            builder.append(disk.getDanglingComments().getComments());
+            return;
+        }
+
+        //If there are resource dangling comments
+        if (resource.getDanglingComments() != null)
+            //Append
+            builder.append(resource.getDanglingComments().getComments());
+    }
+
+    private void appendIndicator(StringBuilder builder, IndicatorBlock diskIndicator, IndicatorBlock resourceIndicator) {
+        //If disk indicator exists
+        if (diskIndicator != null) {
+            //Append
+            builder.append(diskIndicator.getComments()).append(diskIndicator.getSpecification());
+            return;
+        }
+
+        //If resource indicator exists
+        if (resourceIndicator != null)
+            //Append
+            builder.append(resourceIndicator.getComments()).append(resourceIndicator.getSpecification());
     }
 
 
@@ -120,11 +138,11 @@ public class Merger {
      *                        the same depth and full key)
      * @param builder         a builder to which will the function append
      * @param depth           the depth in (level of) the file's hierarchy
-     * @param indents         indents (spaces) differentiating each level (depth) of the hierarchy
+     * @param indentSpaces    spaces per each indent differentiating each level (depth) of the hierarchy
      */
-    private void iterate(Section resourceSection, Map<Object, Object> resourceMap, Section diskSection, StringBuilder builder, int depth, int indents) {
+    private void iterate(Section resourceSection, Map<Object, Object> resourceMap, Section diskSection, StringBuilder builder, int depth, int indentSpaces) {
         //Go through all entries
-        for (Map.Entry<String, Block> entry : resourceSection.getMappings().entrySet()) {
+        for (Map.Entry<String, DocumentBlock> entry : resourceSection.getMappings().entrySet()) {
             //If a block
             if (entry.getValue() instanceof Section) {
                 //The section
@@ -132,14 +150,14 @@ public class Merger {
                 //If there is not such a key in the current map
                 if (diskSection == null || diskSection.getMappings() == null || !diskSection.getMappings().containsKey(entry.getKey())) {
                     //Append
-                    appendSection(builder, depth, indents, (Map<Object, Object>) resourceMap.get(entry.getKey()), section);
+                    appendSection(builder, depth, indentSpaces, (Map<Object, Object>) resourceMap.get(entry.getKey()), section);
                     continue;
                 }
 
                 //Disk object
-                Block diskBlock = diskSection.getMappings().get(entry.getKey());
+                DocumentBlock diskBlock = diskSection.getMappings().get(entry.getKey());
                 //Append
-                appendBlock(builder, depth, indents, diskBlock);
+                appendBlock(builder, depth, indentSpaces, diskBlock);
                 //If a section
                 if (diskBlock instanceof Section) {
                     //Create a new map
@@ -147,7 +165,7 @@ public class Merger {
                     //Update the map
                     resourceMap.put(entry.getKey(), map);
                     //Iterate
-                    iterate(section, map, (Section) diskBlock, builder, depth + 1, indents);
+                    iterate(section, map, (Section) diskBlock, builder, depth + 1, indentSpaces);
                 } else
                     //Update the map
                     resourceMap.put(entry.getKey(), YAML.load(diskBlock.getValue().toString().trim().substring(1)));
@@ -155,16 +173,16 @@ public class Merger {
             }
 
             //The block
-            Block resourceBlock = entry.getValue();
+            DocumentBlock resourceBlock = entry.getValue();
             //If there is not such a key in the current map
             if (diskSection == null || diskSection.getMappings() == null || !diskSection.getMappings().containsKey(entry.getKey())) {
                 //Append
-                appendBlock(builder, depth, indents, resourceBlock);
+                appendBlock(builder, depth, indentSpaces, resourceBlock);
                 continue;
             }
 
             //Disk object
-            Block diskBlock = diskSection.getMappings().get(entry.getKey());
+            DocumentBlock diskBlock = diskSection.getMappings().get(entry.getKey());
             //If a block
             if (diskBlock instanceof Section) {
                 //Create a new map
@@ -172,12 +190,12 @@ public class Merger {
                 //Update the map
                 resourceMap.put(entry.getKey(), map);
                 //Append
-                appendSection(builder, depth, indents, map, (Section) diskBlock);
+                appendSection(builder, depth, indentSpaces, map, (Section) diskBlock);
             } else {
                 //Update the map
                 resourceMap.put(entry.getKey(), YAML.load(diskBlock.getValue().toString().trim().substring(1)));
                 //Append
-                appendBlock(builder, depth, indents, diskBlock);
+                appendBlock(builder, depth, indentSpaces, diskBlock);
             }
         }
     }
@@ -193,14 +211,14 @@ public class Merger {
      * @param indents indents (spaces) differentiating each level (depth) of the hierarchy
      * @param map     the YAML representation of the given section
      * @param section the section to append
-     * @throws IllegalArgumentException if there is not instance of type {@link Block} somewhere in the section's
+     * @throws IllegalArgumentException if there is not instance of type {@link DocumentBlock} somewhere in the section's
      *                                  mapping values
      */
     private void appendSection(StringBuilder builder, int depth, int indents, Map<Object, Object> map, Section section) throws IllegalArgumentException {
         //Append
         appendBlock(builder, depth, indents, section);
         //Go through all entries
-        for (Map.Entry<String, Block> entry : section.getMappings().entrySet()) {
+        for (Map.Entry<String, DocumentBlock> entry : section.getMappings().entrySet()) {
             //If null
             if (entry.getValue() == null)
                 throw new IllegalArgumentException(String.format("Object at path ...%s is not a block object. Please report the problem to our support.", entry.getKey()));
@@ -232,15 +250,11 @@ public class Merger {
      * @param indents indents (spaces) differentiating each level (depth) of the hierarchy
      * @param block   the block to append
      */
-    private void appendBlock(StringBuilder builder, int depth, int indents, Block block) {
+    private void appendBlock(StringBuilder builder, int depth, int indents, DocumentBlock block) {
         //Calculate spaces
         int spaces = depth * indents;
         //Append comments
         appendSequence(builder, block.getComments(), spaces);
-        //If is a comment
-        if (block.isComment())
-            return;
-
         //Append key
         appendSequence(builder, block.getRawKey(), spaces);
         //Append value

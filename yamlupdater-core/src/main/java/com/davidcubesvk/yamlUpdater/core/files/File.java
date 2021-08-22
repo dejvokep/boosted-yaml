@@ -1,9 +1,10 @@
 package com.davidcubesvk.yamlUpdater.core.files;
 
-import com.davidcubesvk.yamlUpdater.core.block.Block;
-import com.davidcubesvk.yamlUpdater.core.block.Section;
+import com.davidcubesvk.yamlUpdater.core.block.*;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,9 +15,15 @@ import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
  */
 public class File extends Section {
 
-    //The header
-    private List<Object> header;
-    //The key separator
+    //The directives
+    private List<DirectiveBlock> directives = new ArrayList<>();
+    //The document start and end blocks
+    private IndicatorBlock documentStart, documentEnd;
+    //Mappings
+    private Map<String, DocumentBlock> mappings = new HashMap<>();
+    //Dangling comments
+    private CommentBlock danglingComments;
+    //The key separators
     private final String separator, escapedSeparator;
 
     /**
@@ -26,23 +33,15 @@ public class File extends Section {
      * @param mappings mappings inside the file
      * @param settings settings this file will be loaded with, used to get the key separators
      */
-    public File(List<Object> header, Map<String, Block> mappings, Settings settings) {
+    public File(List<DirectiveBlock> directives, IndicatorBlock documentStart, Map<String, DocumentBlock> mappings, IndicatorBlock documentEnd, CommentBlock danglingComments, Settings settings) {
         super(EMPTY_STRING, EMPTY_KEY, EMPTY_STRING_BUILDER, mappings, -1);
-        this.header = header;
+        this.directives = directives;
+        this.documentStart = documentStart;
+        this.mappings = mappings;
+        this.documentEnd = documentEnd;
+        this.danglingComments = danglingComments;
         this.separator = settings.getSeparatorString();
         this.escapedSeparator = settings.getEscapedSeparator();
-    }
-
-    /**
-     * Returns the header of the file. If there is not any, returns <code>null</code>. If there is, it is guaranteed
-     * that all elements are of type {@link com.davidcubesvk.yamlUpdater.core.reader.Directive}, except the last one
-     * which is of type {@link String} and represents the
-     * {@link com.davidcubesvk.yamlUpdater.core.utils.Constants#DOCUMENT_START} character sequence with belonged
-     * comments.
-     * @return the header of the file
-     */
-    public List<Object> getHeader() {
-        return header;
     }
 
     /**
@@ -51,7 +50,7 @@ public class File extends Section {
      * @param path the path to search the upper map for with keys separated by the given key separator
      * @return the upper map, or <code>null</code> if does not exist
      */
-    public Map<String, Block> getUpperMap(String path) {
+    public Map<String, DocumentBlock> getUpperMap(String path) {
         return getUpperMap(splitKey(path, separator, escapedSeparator));
     }
 
@@ -61,7 +60,7 @@ public class File extends Section {
      * @param path the path to search the upper map for
      * @return the upper map, or <code>null</code> if does not exist
      */
-    public Map<String, Block> getUpperMap(String[] path) {
+    public Map<String, DocumentBlock> getUpperMap(String[] path) {
         //If not a direct key
         if (path.length > 1) {
             //Get the section at the super path
@@ -125,4 +124,24 @@ public class File extends Section {
         return key.contains(separator) ? key.split(escapedSeparator) : new String[]{key};
     }
 
+    public List<DirectiveBlock> getDirectives() {
+        return directives;
+    }
+
+    public IndicatorBlock getDocumentStart() {
+        return documentStart;
+    }
+
+    public IndicatorBlock getDocumentEnd() {
+        return documentEnd;
+    }
+
+    @Override
+    public Map<String, DocumentBlock> getMappings() {
+        return mappings;
+    }
+
+    public CommentBlock getDanglingComments() {
+        return danglingComments;
+    }
 }

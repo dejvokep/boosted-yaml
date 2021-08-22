@@ -1,8 +1,6 @@
 package com.davidcubesvk.yamlUpdater.core.reader;
 
-import com.davidcubesvk.yamlUpdater.core.block.Block;
-import com.davidcubesvk.yamlUpdater.core.block.Key;
-import com.davidcubesvk.yamlUpdater.core.block.Value;
+import com.davidcubesvk.yamlUpdater.core.block.*;
 import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 import com.davidcubesvk.yamlUpdater.core.utils.Primitive;
@@ -38,20 +36,22 @@ public class BlockReader {
         //If at the end
         if (offset + comments.getLine() >= lines.size())
             //Return
-            return new Block(comments.getComponent().toString(), comments.getLine());
+            return new CommentBlock(comments.getComponent().toString(), comments.getLine());
 
         //Try
         try {
             //The line
             String keyLine = lines.get(offset + comments.getLine());
-            //If there is no space and it is the document end
-            if (countSpaces(keyLine) == 0 && keyLine.startsWith(DOCUMENT_END) && !isConfiguration(keyLine, 3)) {
-                //Append the rest of the file
-                for (int i = offset + comments.getLine(); i < lines.size(); i++)
-                    comments.getComponent().append(lines.get(i));
-                //Return
-                return new Block(comments.getComponent().toString(), lines.size() - offset);
-            }
+            //Read directive
+            Block block = readDirective(comments, keyLine);
+            //If not null
+            if (block != null)
+                return block;
+            //Read indicator
+            block = readIndicator(comments, keyLine);
+            //If not null
+            if (block != null)
+                return block;
 
             //Key
             Component<Key> key = getKey(keyLine);
@@ -63,11 +63,80 @@ public class BlockReader {
             //Value
             Component<Value> value = getValue(lines.subList(offset + comments.getLine(), lines.size()), key);
             //Return
-            return new Block(comments.getComponent().toString(), key.getComponent(), value.getComponent().getValue(), comments.getLine() + value.getLine(), value.getComponent().isSection());
+            return new DocumentBlock(comments.getComponent().toString(), key.getComponent(), value.getComponent().getValue(), comments.getLine() + value.getLine(), value.getComponent().isSection());
         } catch (Exception ex) {
             //Throw wrapper exception
             throw new ParseException(String.format("Failed to parse configuration block starting at line %d. Is the YAML formatted properly?", offset + 1), ex);
         }
+    }
+
+    private Block readDirective(Component<StringBuilder> comments, String line) {
+        //If does not start with the indicator
+        if (line.length() < 4 || line.charAt(0) != DIRECTIVE_INDICATOR)
+            return null;
+
+        //If is a TAG directive
+        if (line.startsWith(TAG_DIRECTIVE)) {
+            //If there is not a space
+            if (line.length() < 5 || line.charAt(4) != SPACE)
+                return null;
+
+            //Count spaces
+            int spaces = countSpaces(line, 4);
+            //If the next character is not the tag indicator
+            if (line.length() == 4 + spaces || line.charAt(4 + spaces) != TAG_INDICATOR)
+                return null;
+
+            //The next space
+            int nextSpace = line.indexOf(SPACE, 4 + spaces + 1);
+            //If the next exclamation mark is not exactly before a space
+            if (line.indexOf(TAG_INDICATOR, 4 + spaces + 1) + 1 != nextSpace)
+                return null;
+
+            //The ID
+            String id = line.substring(4 + spaces, nextSpace);
+            //Count spaces
+            spaces = countSpaces(line, nextSpace);
+
+            //If there is nothing after the spaces
+            if (!isConfiguration(line, spaces + nextSpace))
+                return null;
+
+            //Return
+            return new DirectiveBlock(comments.getComponent().toString(), comments.getLine() + 1, line, true, id);
+        }
+
+        //If it is not a YAML directive
+        if (line.startsWith(YAML_DIRECTIVE))
+            return null;
+
+        //If there is not a space
+        if (line.length() < 6 || line.charAt(5) != SPACE)
+            return null;
+
+        //Count spaces
+        int spaces = countSpaces(line, 5);
+        //If there is something after the version
+        if (line.length() == 5 + spaces || isConfiguration(line, 5 + spaces + 3))
+            return null;
+
+        //Return
+        return new DirectiveBlock(comments.getComponent().toString(), comments.getLine() + 1, line, false, line.substring(5 + spaces, 5 + spaces + 3));
+    }
+
+    private Block readIndicator(Component<StringBuilder> comments, String line) {
+        //If there is no space, the line is at least 3 chars long and there is no configuration after 3 chars
+        if (countSpaces(line) == 0 && line.length() >= 3 && !isConfiguration(line, 3)) {
+            //If it starts with document start sequence
+            if (line.startsWith(DOCUMENT_START))
+                //Return
+                return new IndicatorBlock(comments.getComponent().toString(), comments.getLine() + 1, line);
+            else if (line.startsWith(DOCUMENT_END))
+                //Return
+                return new IndicatorBlock(comments.getComponent().toString(), comments.getLine() + 1, line);
+        }
+
+        return null;
     }
 
     /**

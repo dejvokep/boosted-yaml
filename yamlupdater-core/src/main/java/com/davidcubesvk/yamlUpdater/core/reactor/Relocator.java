@@ -1,6 +1,6 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
-import com.davidcubesvk.yamlUpdater.core.block.Block;
+import com.davidcubesvk.yamlUpdater.core.block.DocumentBlock;
 import com.davidcubesvk.yamlUpdater.core.block.Key;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.files.File;
@@ -90,7 +90,7 @@ public class Relocator {
         //To
         String to = relocations.get(from).toString();
         //The upper map
-        Map<String, Block> upper = diskFile.getUpperMap(from);
+        Map<String, DocumentBlock> upper = diskFile.getUpperMap(from);
         //If null
         if (upper == null)
             //Nothing to relocate
@@ -98,7 +98,7 @@ public class Relocator {
         //The from key
         String[] fromKey = File.splitKey(from, separator, escapedSeparator);
         //The block
-        Block block = upper.get(fromKey[fromKey.length - 1]);
+        DocumentBlock block = upper.get(fromKey[fromKey.length - 1]);
         //If null
         if (block == null)
             //Nothing to relocate

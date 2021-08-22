@@ -99,16 +99,16 @@ public class Reactor {
 
 
         //Load both the files
-        File currentFile = com.davidcubesvk.yamlUpdater.core.reader.FileReader.load(new FileReader(settings.getDiskFile()), settings.getDiskFileVersionId() != null ?
-                settings.getSectionValues().getOrDefault(settings.getDiskFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings),
-                latestFile = com.davidcubesvk.yamlUpdater.core.reader.FileReader.load(new FileReader(settings.getResourceFile()), settings.getResourceFileVersionId() != null ?
-                        settings.getSectionValues().getOrDefault(settings.getResourceFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings);
+        File diskFile = new com.davidcubesvk.yamlUpdater.core.reader.FileReader(new FileReader(settings.getDiskFile()), settings.getDiskFileVersionId() != null ?
+                settings.getSectionValues().getOrDefault(settings.getDiskFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings).load(),
+                resourceFile = new com.davidcubesvk.yamlUpdater.core.reader.FileReader(new FileReader(settings.getResourceFile()), settings.getResourceFileVersionId() != null ?
+                        settings.getSectionValues().getOrDefault(settings.getResourceFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings).load();
 
         //If both versions are set
         if (settings.getDiskFileVersionId() != null && settings.getResourceFileVersionId() != null) {
             //Initialize relocator
             Relocator relocator = new Relocator(
-                    currentFile,
+                    diskFile,
                     settings.getVersioningPattern().getVersion(settings.getDiskFileVersionId()),
                     settings.getVersioningPattern().getVersion(settings.getResourceFileVersionId()),
                     settings.getSeparatorString(), settings.getEscapedSeparator());
@@ -117,7 +117,7 @@ public class Reactor {
         }
 
         //Merge
-        String merged = Merger.merge(currentFile, latestFile, resourceMap, settings.getIndentSpaces(), settings.isKeepFormerDirectives());
+        String merged = Merger.merge(diskFile, resourceFile, resourceMap, settings);
         //If file update is enabled
         if (settings.isUpdateDiskFile()) {
             //Overwrite
