@@ -39,7 +39,7 @@ public class FileReader {
     //Reading index
     private int index = 0;
     //Temp block
-    private Block nextBlock = null;
+    private ReadBlock nextBlock = null;
 
     public FileReader(InputStreamReader streamReader, Set<String> sectionValues, Settings settings) {
         this.lines = new BufferedReader(streamReader).lines().collect(Collectors.toCollection(ArrayList::new));
@@ -66,9 +66,6 @@ public class FileReader {
      * </ul>
      * If there are any dangling comments at the end of the file, they are stored with <code>null</code> key.
      *
-     * @param streamReader  the stream reader (of the file)
-     * @param sectionValues section value paths
-     * @param settings      settings to use to load
      * @return the loaded file
      * @throws ParseException if the YAML is not formatted properly (see {@link BlockReader#read(List, int)} for more
      *                        information)
@@ -82,7 +79,7 @@ public class FileReader {
             throw new ParseException("No document content was found!");
 
         //If it is footer content
-        if (nextBlock.isFooterContent())
+        if (nextBlock.getBlock().isFooterContent())
             throw new ParseException("No document content was found!");
 
         //Load
@@ -102,26 +99,25 @@ public class FileReader {
      * Loads header of the file (including the line where
      * {@link com.davidcubesvk.yamlUpdater.core.utils.Constants#DOCUMENT_START} is).
      *
-     * @param lines the lines to read from
      * @return the header, or <code>null</code> if there is not any
      */
     public int loadHeader() throws ParseException {
         //The block
-        Block block = null;
+        ReadBlock block = null;
         //Index
         int index = this.index;
 
         //While there is something to read and it is part of the header
-        while (index < lines.size() && (block = BLOCK_READER.read(lines, index)).isHeaderContent()) {
+        while (index < lines.size() && (block = BLOCK_READER.read(lines, index)).getBlock().isHeaderContent()) {
             //If a directive
-            if (block.getType() == Block.Type.DIRECTIVE) {
+            if (block.getBlock().getType() == Block.Type.DIRECTIVE) {
                 //Add
-                directives.add((DirectiveBlock) block);
+                directives.add((DirectiveBlock) block.getBlock());
                 return index;
             }
 
             //Set
-            documentStart = (IndicatorBlock) block;
+            documentStart = (IndicatorBlock) block.getBlock();
             //Reset
             block = null;
         }
@@ -134,7 +130,7 @@ public class FileReader {
 
     public void loadFooter() throws ParseException {
         //The block
-        Block block = nextBlock;
+        ReadBlock block = nextBlock;
 
         //While there is something to read and it is part of the header
         while (block != null || index < lines.size()) {
@@ -146,12 +142,12 @@ public class FileReader {
             index += block.getSize();
 
             //If is an indicator
-            if (block.getType() == Block.Type.INDICATOR)
+            if (block.getBlock().getType() == Block.Type.INDICATOR)
                 //Set
-                documentEnd = (IndicatorBlock) block;
+                documentEnd = (IndicatorBlock) block.getBlock();
             else
                 //Set
-                danglingComments = (CommentBlock) block;
+                danglingComments = (CommentBlock) block.getBlock();
 
             //Reset
             block = null;
@@ -166,36 +162,40 @@ public class FileReader {
      * @param lines         the lines to read from (a valid YAML)
      * @param fullKey       the full key of this section
      * @param mappings      the map to load into
-     * @param sectionValues sections to be loaded as values, with keys separated with the given separator
-     * @param keySeparator  the separator for keying system
      * @return how many lines does this section occupy
      * @throws ParseException if the YAML is not formatted properly
      */
     private int loadSection(List<String> lines, StringBuilder fullKey, Map<String, DocumentBlock> mappings) throws ParseException {
         //The section value block
         MappingBlock section = null;
+        int sectionIndents = -1;
         //Index and spaces
         int index = 0, spaces = -1;
         //While not at the end of the file
         while (index < lines.size()) {
             //Load
             DocumentBlock block;
+            int size, indents;
             //If not loading the first block in the document
             if (nextBlock == null) {
                 //Read
-                Block readBlock = BLOCK_READER.read(lines, index);
+                ReadBlock readBlock = BLOCK_READER.read(lines, index);
                 //If is part of the footer
-                if (readBlock.isFooterContent()) {
+                if (readBlock.getBlock().isFooterContent()) {
                     //Set
                     nextBlock = readBlock;
                     //Finished
                     return index;
                 }
                 //Set
-                block = (DocumentBlock) readBlock;
+                block = (DocumentBlock) readBlock.getBlock();
+                size = readBlock.getSize();
+                indents = readBlock.getIndents();
             } else {
                 //Set
-                block = (DocumentBlock) nextBlock;
+                block = (DocumentBlock) nextBlock.getBlock();
+                size = nextBlock.getSize();
+                indents = nextBlock.getIndents();
                 //Set to null
                 nextBlock = null;
             }
@@ -203,24 +203,24 @@ public class FileReader {
             //If not set
             if (spaces == -1)
                 //Set
-                spaces = block.getIndents();
+                spaces = indents;
             //If less indents
-            if (block.getIndents() < spaces)
+            if (indents < spaces)
                 //End of the section
                 return index;
 
             //Increment
-            index += block.getSize() + 1;
+            index += size + 1;
 
             //If section value block is set
             if (section != null) {
                 //If more indents
-                if (section.getIndents() >= block.getIndents()) {
+                if (sectionIndents >= indents) {
                     //Not part of the section
                     section = null;
                 } else {
                     //Attach
-                    section.attach(block, block.getIndents() - section.getIndents());
+                    section.attach(block, indents - sectionIndents);
                     continue;
                 }
             }
@@ -228,7 +228,7 @@ public class FileReader {
             //If not a section
             if (!block.isSection()) {
                 //Put
-                mappings.put(block.getFormattedKey(), block);
+                mappings.put(block.getRawKey(), block);
                 continue;
             }
 
@@ -238,22 +238,23 @@ public class FileReader {
                 fullKey.append(settings.getSeparator());
 
             //If also a value
-            if (sectionValues.contains(fullKey.append(block.getFormattedKey()).toString())) {
+            if (sectionValues.contains(fullKey.append(block.getRawKey()).toString())) {
                 //Put
-                mappings.put(block.getFormattedKey(), block);
+                mappings.put(block.getRawKey(), block);
                 //Set
-                section = new MappingBlock(block.getComments(), new Key(block.getRawKey(), block.getFormattedKey(), block.getIndents()), block.getValue(), block.getSize());
+                section = new MappingBlock(block.getComments(), block.getRawKey(), block.getValue());
+                sectionIndents = indents;
             } else {
                 //Create a new map
                 LinkedHashMap<String, DocumentBlock> map = new LinkedHashMap<>();
                 //Put
-                mappings.put(block.getFormattedKey(), new Section(block, map));
+                mappings.put(block.getRawKey(), new Section(block, map));
                 //Load
                 index += loadSection(lines.subList(index, lines.size()), fullKey, map);
             }
 
             //Reset back
-            fullKey.setLength(Math.max(0, fullKey.length() - block.getFormattedKey().length() - 1));
+            fullKey.setLength(Math.max(0, fullKey.length() - block.getRawKey().length() - 1));
         }
 
         //Finished to the end

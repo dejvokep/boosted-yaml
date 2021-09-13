@@ -7,8 +7,8 @@ public class IndicatorBlock extends Block {
     private final boolean documentStart;
     private final String specification;
 
-    public IndicatorBlock(String comments, int size, String specification) {
-        super(Type.INDICATOR, comments, size);
+    public IndicatorBlock(String comments, String specification) {
+        super(Type.INDICATOR, comments);
         this.specification = specification;
         this.documentStart = specification.startsWith(Constants.DOCUMENT_START);
     }

@@ -12,8 +12,8 @@ public class MappingBlock extends DocumentBlock {
      * @param size     the amount of lines occupied by the block
      * @param section  whether this block is a section or mapping, see {@link Type}
      */
-    public MappingBlock(String comments, Key key, StringBuilder value, int size) {
-        super(comments, key, value, size, false);
+    public MappingBlock(String comments, String key, StringBuilder value) {
+        super(comments, key, value, false);
     }
 
 }

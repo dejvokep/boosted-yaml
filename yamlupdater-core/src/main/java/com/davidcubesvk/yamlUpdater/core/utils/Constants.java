@@ -16,7 +16,7 @@ public class Constants {
      * An empty key used to pass while loading a file (which extends
      * {@link com.davidcubesvk.yamlUpdater.core.block.Section} class requiring a key in constructor).
      */
-    public static final Key EMPTY_KEY = new Key("", "", 0);
+    public static final Key EMPTY_KEY = new Key("", 0);
     /**
      * An empty string builder.
      */

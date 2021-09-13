@@ -26,7 +26,7 @@ public class BlockReader {
      * @throws ParseException                 if the given YAML is invalid
      * @throws ArrayIndexOutOfBoundsException if invalid offset was specified
      */
-    public Block read(List<String> lines, int offset) throws ParseException, ArrayIndexOutOfBoundsException {
+    public ReadBlock read(List<String> lines, int offset) throws ParseException, ArrayIndexOutOfBoundsException {
         //If invalid offset
         if (offset >= lines.size())
             throw new ArrayIndexOutOfBoundsException(String.format("Invalid offset %d for lines list size of %d!", offset, lines.size()));
@@ -36,14 +36,14 @@ public class BlockReader {
         //If at the end
         if (offset + comments.getLine() >= lines.size())
             //Return
-            return new CommentBlock(comments.getComponent().toString(), comments.getLine());
+            return new ReadBlock(new CommentBlock(comments.getComponent().toString()), comments.getLine(), 0);
 
         //Try
         try {
             //The line
             String keyLine = lines.get(offset + comments.getLine());
             //Read directive
-            Block block = readDirective(comments, keyLine);
+            ReadBlock block = readDirective(comments, keyLine);
             //If not null
             if (block != null)
                 return block;
@@ -63,14 +63,14 @@ public class BlockReader {
             //Value
             Component<Value> value = getValue(lines.subList(offset + comments.getLine(), lines.size()), key);
             //Return
-            return new DocumentBlock(comments.getComponent().toString(), key.getComponent(), value.getComponent().getValue(), comments.getLine() + value.getLine(), value.getComponent().isSection());
+            return new ReadBlock(new DocumentBlock(comments.getComponent().toString(), key.getComponent().getRaw(), value.getComponent().getValue(), value.getComponent().isSection()), comments.getLine() + value.getLine(), key.getComponent().getIndents());
         } catch (Exception ex) {
             //Throw wrapper exception
             throw new ParseException(String.format("Failed to parse configuration block starting at line %d. Is the YAML formatted properly?", offset + 1), ex);
         }
     }
 
-    private Block readDirective(Component<StringBuilder> comments, String line) {
+    private ReadBlock readDirective(Component<StringBuilder> comments, String line) {
         //If does not start with the indicator
         if (line.length() < 4 || line.charAt(0) != DIRECTIVE_INDICATOR)
             return null;
@@ -103,7 +103,7 @@ public class BlockReader {
                 return null;
 
             //Return
-            return new DirectiveBlock(comments.getComponent().toString(), comments.getLine() + 1, line, true, id);
+            return new ReadBlock(new DirectiveBlock(comments.getComponent().toString(), line, true, id), comments.getLine() + 1, 0);
         }
 
         //If it is not a YAML directive
@@ -121,19 +121,19 @@ public class BlockReader {
             return null;
 
         //Return
-        return new DirectiveBlock(comments.getComponent().toString(), comments.getLine() + 1, line, false, line.substring(5 + spaces, 5 + spaces + 3));
+        return new ReadBlock(new DirectiveBlock(comments.getComponent().toString(), line, false, line.substring(5 + spaces, 5 + spaces + 3)), comments.getLine() + 1, 0);
     }
 
-    private Block readIndicator(Component<StringBuilder> comments, String line) {
+    private ReadBlock readIndicator(Component<StringBuilder> comments, String line) {
         //If there is no space, the line is at least 3 chars long and there is no configuration after 3 chars
         if (countSpaces(line) == 0 && line.length() >= 3 && !isConfiguration(line, 3)) {
             //If it starts with document start sequence
             if (line.startsWith(DOCUMENT_START))
                 //Return
-                return new IndicatorBlock(comments.getComponent().toString(), comments.getLine() + 1, line);
+                return new ReadBlock(new IndicatorBlock(comments.getComponent().toString(), line), comments.getLine() + 1, 0);
             else if (line.startsWith(DOCUMENT_END))
                 //Return
-                return new IndicatorBlock(comments.getComponent().toString(), comments.getLine() + 1, line);
+                return new ReadBlock(new IndicatorBlock(comments.getComponent().toString(), line), comments.getLine() + 1, 0);
         }
 
         return null;
@@ -510,7 +510,7 @@ public class BlockReader {
             if (c == STRING_QUOTE_SURROUNDING || c == STRING_APOSTROPHE_SURROUNDING)
                 return new Component<>(keyEnd, keyEnd + spacesPastKey + 1, new Key(key, spaces));
             //Parse and return
-            return new Component<>(keyEnd, keyEnd + spacesPastKey + 1, new Key(key, YAML.load(key).toString(), spaces));
+            return new Component<>(keyEnd, keyEnd + spacesPastKey + 1, new Key(YAML.load(key).toString(), spaces));
         }
 
         //The index of the colon
@@ -527,7 +527,7 @@ public class BlockReader {
         String key = line.substring(spaces, index);
 
         //Return the key
-        return new Component<>(0, index + 1, new Key(key, key.trim(), spaces));
+        return new Component<>(0, index + 1, new Key(key.trim(), spaces));
     }
 
     /**

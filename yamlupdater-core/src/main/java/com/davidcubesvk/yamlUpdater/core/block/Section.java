@@ -18,7 +18,7 @@ public class Section extends DocumentBlock {
      * @see #Section(String, Key, StringBuilder, Map, int) the detailed constructor
      */
     public Section(DocumentBlock block, Map<String, DocumentBlock> mappings) {
-        this(block.getComments(), new Key(block.getRawKey(), block.getFormattedKey(), block.getIndents()), block.getValue(), mappings, block.getSize());
+        this(block.getComments(), block.getRawKey(), block.getValue(), mappings);
     }
 
     /**
@@ -33,8 +33,8 @@ public class Section extends DocumentBlock {
      * @param size     amount of lines needed to skip to get to the last line belonging to this section (actual line size
      *                 <code>- 1</code>), not including the sub-mappings
      */
-    public Section(String comments, Key key, StringBuilder value, Map<String, DocumentBlock> mappings, int size) {
-        super(comments, key, value, size, true);
+    public Section(String comments, String key, StringBuilder value, Map<String, DocumentBlock> mappings) {
+        super(comments, key, value, true);
         this.mappings = mappings;
     }
 

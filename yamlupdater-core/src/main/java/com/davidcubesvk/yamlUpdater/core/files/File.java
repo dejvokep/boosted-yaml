@@ -16,11 +16,11 @@ import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
 public class File extends Section {
 
     //The directives
-    private List<DirectiveBlock> directives = new ArrayList<>();
+    private final List<DirectiveBlock> directives;
     //The document start and end blocks
     private IndicatorBlock documentStart, documentEnd;
     //Mappings
-    private Map<String, DocumentBlock> mappings = new HashMap<>();
+    private final Map<String, DocumentBlock> mappings;
     //Dangling comments
     private CommentBlock danglingComments;
     //The key separators
@@ -34,7 +34,7 @@ public class File extends Section {
      * @param settings settings this file will be loaded with, used to get the key separators
      */
     public File(List<DirectiveBlock> directives, IndicatorBlock documentStart, Map<String, DocumentBlock> mappings, IndicatorBlock documentEnd, CommentBlock danglingComments, Settings settings) {
-        super(EMPTY_STRING, EMPTY_KEY, EMPTY_STRING_BUILDER, mappings, -1);
+        super(EMPTY_STRING, EMPTY_STRING, EMPTY_STRING_BUILDER, mappings);
         this.directives = directives;
         this.documentStart = documentStart;
         this.mappings = mappings;
@@ -134,6 +134,18 @@ public class File extends Section {
 
     public IndicatorBlock getDocumentEnd() {
         return documentEnd;
+    }
+
+    public void setDocumentStart(IndicatorBlock documentStart) {
+        this.documentStart = documentStart;
+    }
+
+    public void setDocumentEnd(IndicatorBlock documentEnd) {
+        this.documentEnd = documentEnd;
+    }
+
+    public void setDanglingComments(CommentBlock danglingComments) {
+        this.danglingComments = danglingComments;
     }
 
     @Override

@@ -116,10 +116,8 @@ public class Relocator {
 
         //The to key
         String[] toKey = File.splitKey(to, separator, escapedSeparator);
-        //Reset keys
-        block.setRawKey(toKey[toKey.length - 1]);
-        //Format the key
-        block.setFormattedKey(Constants.YAML.load(block.getRawKey()).toString());
+        //Reset key
+        block.setRawKey(Constants.YAML.load(block.getRawKey()).toString());
 
         //If there is no section created
         if (diskFile.getUpperMap(toKey) == null)
@@ -149,7 +147,7 @@ public class Relocator {
         //If null or not a section
         if (!(object instanceof Section)) {
             //Create new section
-            Section newSection = new Section("", new Key(path[index], new Yaml().load(path[index]).toString(), -1), new StringBuilder(":\n"), new LinkedHashMap<>(), 0);
+            Section newSection = new Section("", Constants.YAML.load(path[index]).toString(), new StringBuilder(":\n"), new LinkedHashMap<>());
             //Put
             section.getMappings().put(path[index], newSection);
             //Create subsection

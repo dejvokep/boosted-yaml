@@ -19,9 +19,8 @@ public abstract class Block {
 
     private Type type;
     private String comments;
-    private int size;
 
-    public Block(Type type, String comments, int size) {
+    public Block(Type type, String comments) {
         this.type = type;
         this.comments = comments;
     }
@@ -32,10 +31,6 @@ public abstract class Block {
 
     public String getComments() {
         return comments;
-    }
-
-    public int getSize() {
-        return size;
     }
 
     public boolean isHeaderContent() {

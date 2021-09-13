@@ -7,8 +7,8 @@ public class DirectiveBlock extends Block {
     //The ID and raw variant of the directive
     private final String id, raw;
 
-    public DirectiveBlock(String comments, int size, String raw, boolean tag, String id) {
-        super(Type.DIRECTIVE, comments, size);
+    public DirectiveBlock(String comments, String raw, boolean tag, String id) {
+        super(Type.DIRECTIVE, comments);
         this.raw = raw;
         this.tag = tag;
         this.id = id;

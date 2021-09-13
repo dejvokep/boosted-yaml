@@ -5,8 +5,8 @@ package com.davidcubesvk.yamlUpdater.core.block;
  */
 public class Key {
 
-    //Raw and formatted key
-    private final String raw, formatted;
+    //Raw key
+    private final String raw;
     //Amount of indents of this key
     private final int indents;
 
@@ -18,19 +18,7 @@ public class Key {
      * @see #Key(String, String, int) the main constructor
      */
     public Key(String key, int indents) {
-        this(key, key, indents);
-    }
-
-    /**
-     * Initializes the key with the given key versions and amount of indents.
-     *
-     * @param raw       the raw version of the key
-     * @param formatted the formatted version of the key
-     * @param indents   the amount of indents (spaces) before the key
-     */
-    public Key(String raw, String formatted, int indents) {
-        this.raw = raw;
-        this.formatted = formatted;
+        this.raw = key;
         this.indents = indents;
     }
 
@@ -44,16 +32,6 @@ public class Key {
      */
     public String getRaw() {
         return raw;
-    }
-
-    /**
-     * Returns the formatted key (used as the "real" key, as block key, in file representation maps). It is guaranteed
-     * that the formatted key corresponds to the raw key (see {@link #getRaw()}).
-     *
-     * @return the formatted key
-     */
-    public String getFormatted() {
-        return formatted;
     }
 
     /**
