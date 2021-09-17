@@ -7,10 +7,6 @@ import com.davidcubesvk.yamlUpdater.core.utils.Constants;
  */
 public class DocumentBlock extends Block {
 
-    //Comments
-    private final String comments;
-    //Key
-    private String key;
     //The value
     private final StringBuilder value;
 
@@ -23,10 +19,8 @@ public class DocumentBlock extends Block {
      * @param value    the value
      * @param section  whether this block is a section or mapping, see {@link Type}
      */
-    public DocumentBlock(String comments, String key, StringBuilder value, boolean section) {
+    public DocumentBlock(String comments, StringBuilder value, boolean section) {
         super(section ? Type.SECTION : Type.MAPPING, comments);
-        this.comments = comments;
-        this.key = key;
         this.value = value;
     }
 
@@ -37,11 +31,11 @@ public class DocumentBlock extends Block {
      * @param indents the amount of indents (indent spaces) before the key relative to indents of this block, see
      *                {@link Key#getIndents()} and {@link #getIndents()}
      */
-    public void attach(DocumentBlock block, int indents) {
+    public void attach(String key, DocumentBlock block, int indents) {
         //Attach comments
-        attach(block.comments, indents);
+        attach(block.getComments(), indents);
         //Attach key
-        attach(block.key, indents);
+        attach(key, indents);
         //Attach value
         attach(block.value, indents);
     }
@@ -70,34 +64,6 @@ public class DocumentBlock extends Block {
                 }
             }
         }
-    }
-
-    /**
-     * Sets the raw key. It is recommended, but not required to call afterwards.
-     *
-     * @param key the new raw key
-     */
-    public void setRawKey(String key) {
-        this.key = key;
-    }
-
-    /**
-     * Returns the comments associated with this block, or an empty string.
-     *
-     * @return the comments associated with this block, or an empty string
-     */
-    public String getComments() {
-        return comments;
-    }
-
-    /**
-     * Returns the raw key associated with this block, or <code>null</code> if returns
-     * <code>true</code>.
-     *
-     * @return the raw key
-     */
-    public String getRawKey() {
-        return key;
     }
 
     /**

@@ -1,8 +1,8 @@
 package com.davidcubesvk.yamlUpdater.core.reader;
 
 import com.davidcubesvk.yamlUpdater.core.block.*;
-import com.davidcubesvk.yamlUpdater.core.files.File;
-import com.davidcubesvk.yamlUpdater.core.settings.Settings;
+import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
+import com.davidcubesvk.yamlUpdater.core.settings.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 
 import java.io.BufferedReader;
@@ -21,18 +21,16 @@ public class FileReader {
     private static final BlockReader BLOCK_READER = new BlockReader();
 
     //The lines
-    private List<String> lines;
-    //Section values
-    private Set<String> sectionValues;
+    private final List<String> lines;
     //Settings
-    private Settings settings;
+    private final LoaderSettings settings;
 
     //The directives
-    private List<DirectiveBlock> directives = new ArrayList<>();
+    private final List<DirectiveBlock> directives = new ArrayList<>();
     //The document start and end blocks
     private IndicatorBlock documentStart, documentEnd;
     //Mappings
-    private Map<String, DocumentBlock> mappings = new HashMap<>();
+    private final Map<String, DocumentBlock> mappings = new HashMap<>();
     //Dangling comments
     private CommentBlock danglingComments;
 
@@ -41,9 +39,8 @@ public class FileReader {
     //Temp block
     private ReadBlock nextBlock = null;
 
-    public FileReader(InputStreamReader streamReader, Set<String> sectionValues, Settings settings) {
+    public FileReader(InputStreamReader streamReader, LoaderSettings settings) {
         this.lines = new BufferedReader(streamReader).lines().collect(Collectors.toCollection(ArrayList::new));
-        this.sectionValues = sectionValues;
         this.settings = settings;
     }
 
@@ -70,7 +67,7 @@ public class FileReader {
      * @throws ParseException if the YAML is not formatted properly (see {@link BlockReader#read(List, int)} for more
      *                        information)
      */
-    public File load() throws ParseException {
+    public YamlFile load() throws ParseException {
         //Load the header
         loadHeader();
 
@@ -87,12 +84,12 @@ public class FileReader {
 
         //If there is not anything else
         if (nextBlock == null)
-            return new File(directives, documentStart, mappings, documentEnd, danglingComments, settings);
+            return new YamlFile(directives, documentStart, mappings, documentEnd, danglingComments, settings);
 
         //Load the footer
         loadFooter();
         //Return
-        return new File(directives, documentStart, mappings, documentEnd, danglingComments, settings);
+        return new YamlFile(directives, documentStart, mappings, documentEnd, danglingComments, settings);
     }
 
     /**
@@ -166,15 +163,13 @@ public class FileReader {
      * @throws ParseException if the YAML is not formatted properly
      */
     private int loadSection(List<String> lines, StringBuilder fullKey, Map<String, DocumentBlock> mappings) throws ParseException {
-        //The section value block
-        MappingBlock section = null;
-        int sectionIndents = -1;
         //Index and spaces
         int index = 0, spaces = -1;
         //While not at the end of the file
         while (index < lines.size()) {
             //Load
             DocumentBlock block;
+            String key;
             int size, indents;
             //If not loading the first block in the document
             if (nextBlock == null) {
@@ -189,11 +184,13 @@ public class FileReader {
                 }
                 //Set
                 block = (DocumentBlock) readBlock.getBlock();
+                key = readBlock.getKey();
                 size = readBlock.getSize();
                 indents = readBlock.getIndents();
             } else {
                 //Set
                 block = (DocumentBlock) nextBlock.getBlock();
+                key = nextBlock.getKey();
                 size = nextBlock.getSize();
                 indents = nextBlock.getIndents();
                 //Set to null
@@ -212,23 +209,10 @@ public class FileReader {
             //Increment
             index += size + 1;
 
-            //If section value block is set
-            if (section != null) {
-                //If more indents
-                if (sectionIndents >= indents) {
-                    //Not part of the section
-                    section = null;
-                } else {
-                    //Attach
-                    section.attach(block, indents - sectionIndents);
-                    continue;
-                }
-            }
-
             //If not a section
             if (!block.isSection()) {
                 //Put
-                mappings.put(block.getRawKey(), block);
+                mappings.put(key, block);
                 continue;
             }
 
@@ -237,24 +221,15 @@ public class FileReader {
                 //Append the separator
                 fullKey.append(settings.getSeparator());
 
-            //If also a value
-            if (sectionValues.contains(fullKey.append(block.getRawKey()).toString())) {
-                //Put
-                mappings.put(block.getRawKey(), block);
-                //Set
-                section = new MappingBlock(block.getComments(), block.getRawKey(), block.getValue());
-                sectionIndents = indents;
-            } else {
-                //Create a new map
-                LinkedHashMap<String, DocumentBlock> map = new LinkedHashMap<>();
-                //Put
-                mappings.put(block.getRawKey(), new Section(block, map));
-                //Load
-                index += loadSection(lines.subList(index, lines.size()), fullKey, map);
-            }
+            //Create a new map
+            LinkedHashMap<String, DocumentBlock> map = new LinkedHashMap<>();
+            //Put
+            mappings.put(key, new Section(block, map));
+            //Load
+            index += loadSection(lines.subList(index, lines.size()), fullKey, map);
 
             //Reset back
-            fullKey.setLength(Math.max(0, fullKey.length() - block.getRawKey().length() - 1));
+            fullKey.setLength(Math.max(0, fullKey.length() - key.length() - 1));
         }
 
         //Finished to the end

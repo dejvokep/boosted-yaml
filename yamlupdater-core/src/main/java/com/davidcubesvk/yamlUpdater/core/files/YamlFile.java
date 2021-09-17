@@ -1,6 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core.files;
 
 import com.davidcubesvk.yamlUpdater.core.block.*;
+import com.davidcubesvk.yamlUpdater.core.settings.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
 /**
  * Represents a loaded YAML file.
  */
-public class File extends Section {
+public class YamlFile extends Section {
 
     //The directives
     private final List<DirectiveBlock> directives;
@@ -33,7 +34,7 @@ public class File extends Section {
      * @param mappings mappings inside the file
      * @param settings settings this file will be loaded with, used to get the key separators
      */
-    public File(List<DirectiveBlock> directives, IndicatorBlock documentStart, Map<String, DocumentBlock> mappings, IndicatorBlock documentEnd, CommentBlock danglingComments, Settings settings) {
+    public YamlFile(List<DirectiveBlock> directives, IndicatorBlock documentStart, Map<String, DocumentBlock> mappings, IndicatorBlock documentEnd, CommentBlock danglingComments, LoaderSettings settings) {
         super(EMPTY_STRING, EMPTY_STRING, EMPTY_STRING_BUILDER, mappings);
         this.directives = directives;
         this.documentStart = documentStart;

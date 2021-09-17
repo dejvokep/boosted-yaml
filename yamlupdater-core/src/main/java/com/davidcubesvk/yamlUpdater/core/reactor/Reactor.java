@@ -1,14 +1,17 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
-import com.davidcubesvk.yamlUpdater.core.files.File;
+import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.files.FileProvider;
 import com.davidcubesvk.yamlUpdater.core.files.UpdatedFile;
+import com.davidcubesvk.yamlUpdater.core.settings.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
+import com.davidcubesvk.yamlUpdater.core.settings.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -46,32 +49,25 @@ public class Reactor {
      * @throws ClassCastException     if an object failed to cast (usually compatibility problem)
      * @throws ClassNotFoundException if class was not found (usually compatibility problem)
      */
-    public static <T> UpdatedFile<T> react(Settings settings, FileProvider<T> fileProvider) throws ParseException, NullPointerException, IOException, ClassCastException, ClassNotFoundException {
-        if (settings.getDiskFile() == null || settings.getResourceFile() == null)
-            throw new NullPointerException();
-
-        //Load as YAML
-        Map<Object, Object> resourceMap = YAML.load(new FileReader(settings.getResourceFile()));
+    public static YamlFile react(File userFile, InputStream defaultFile, LoaderSettings loaderSettings, UpdaterSettings updaterSettings) throws ParseException, NullPointerException, IOException, ClassCastException, ClassNotFoundException {
+        if (userFile == null || defaultFile == null || loaderSettings == null || updaterSettings == null)
+            throw new NullPointerException("User file, default file stream, loader or updater settings are null!");
 
         //If the file does not exist
-        if (!settings.getDiskFile().exists()) {
-            //If updating the disk file is enabled
-            if (settings.isUpdateDiskFile()) {
+        if (!userFile.exists()) {
+            //If creating new file is enabled
+            if (updaterSettings.isUpdatePhysicalFile()) {
                 //Create directories
-                if (settings.getDiskFile().getParentFile() != null)
-                    settings.getDiskFile().getParentFile().mkdirs();
+                if (userFile.getParentFile() != null)
+                    userFile.getParentFile().mkdirs();
                 //Create the file
-                settings.getDiskFile().createNewFile();
+                userFile.createNewFile();
                 //Copy
-                Files.copy(settings.getResourceFile().toPath(), settings.getDiskFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(defaultFile, userFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
-            //Create the output stream
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            //Write the object
-            new ObjectOutputStream(outputStream).writeObject(outputStream);
+
             //Read and return
-            return new UpdatedFile<>(settings, fileProvider, resourceMap,
-                    (Map<?, ?>) new ObjectInputStream(new ByteArrayInputStream(outputStream.toByteArray())).readObject(), new String(Files.readAllBytes(settings.getResourceFile().toPath())));
+            return new com.davidcubesvk.yamlUpdater.core.reader.FileReader(new FileReader(userFile), loaderSettings).load();
         }
 
         //Load as YAML
@@ -80,7 +76,7 @@ public class Reactor {
         //If the current version is not set
         if (settings.getDiskFileVersionId() == null && settings.getVersionIdPath() != null) {
             //The object
-            Object version = File.get(diskMap, settings.getVersionIdPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
+            Object version = YamlFile.get(diskMap, settings.getVersionIdPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
             //If not null
             if (version != null)
                 //Set
@@ -90,7 +86,7 @@ public class Reactor {
         //If the latest version is not set
         if (settings.getResourceFileVersionId() == null && settings.getVersionIdPath() != null) {
             //The object
-            Object version = File.get(resourceMap, settings.getVersionIdPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
+            Object version = YamlFile.get(resourceMap, settings.getVersionIdPath(), settings.getSeparatorString(), settings.getEscapedSeparator());
             //If not null
             if (version != null)
                 //Set
@@ -99,16 +95,16 @@ public class Reactor {
 
 
         //Load both the files
-        File diskFile = new com.davidcubesvk.yamlUpdater.core.reader.FileReader(new FileReader(settings.getDiskFile()), settings.getDiskFileVersionId() != null ?
+        YamlFile diskYamlFile = new com.davidcubesvk.yamlUpdater.core.reader.FileReader(new FileReader(settings.getDiskFile()), settings.getDiskFileVersionId() != null ?
                 settings.getSectionValues().getOrDefault(settings.getDiskFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings).load(),
-                resourceFile = new com.davidcubesvk.yamlUpdater.core.reader.FileReader(new FileReader(settings.getResourceFile()), settings.getResourceFileVersionId() != null ?
+                resourceYamlFile = new com.davidcubesvk.yamlUpdater.core.reader.FileReader(new FileReader(settings.getResourceFile()), settings.getResourceFileVersionId() != null ?
                         settings.getSectionValues().getOrDefault(settings.getResourceFileVersionId(), EMPTY_STRING_SET) : EMPTY_STRING_SET, settings).load();
 
         //If both versions are set
         if (settings.getDiskFileVersionId() != null && settings.getResourceFileVersionId() != null) {
             //Initialize relocator
             Relocator relocator = new Relocator(
-                    diskFile,
+                    diskYamlFile,
                     settings.getVersioningPattern().getVersion(settings.getDiskFileVersionId()),
                     settings.getVersioningPattern().getVersion(settings.getResourceFileVersionId()),
                     settings.getSeparatorString(), settings.getEscapedSeparator());
@@ -117,7 +113,7 @@ public class Reactor {
         }
 
         //Merge
-        String merged = Merger.merge(diskFile, resourceFile, resourceMap, settings);
+        String merged = Merger.merge(diskYamlFile, resourceYamlFile, resourceMap, settings);
         //If file update is enabled
         if (settings.isUpdateDiskFile()) {
             //Overwrite

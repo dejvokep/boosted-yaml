@@ -33,6 +33,10 @@ public abstract class Block {
         return comments;
     }
 
+    void setComments(String comments) {
+        this.comments = comments;
+    }
+
     public boolean isHeaderContent() {
         return type == Type.DIRECTIVE;
     }

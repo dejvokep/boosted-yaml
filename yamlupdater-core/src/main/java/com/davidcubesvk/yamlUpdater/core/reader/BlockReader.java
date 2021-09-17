@@ -36,7 +36,7 @@ public class BlockReader {
         //If at the end
         if (offset + comments.getLine() >= lines.size())
             //Return
-            return new ReadBlock(new CommentBlock(comments.getComponent().toString()), comments.getLine(), 0);
+            return new ReadBlock(new CommentBlock(comments.getComponent().toString()), null, comments.getLine(), 0);
 
         //Try
         try {
@@ -63,7 +63,7 @@ public class BlockReader {
             //Value
             Component<Value> value = getValue(lines.subList(offset + comments.getLine(), lines.size()), key);
             //Return
-            return new ReadBlock(new DocumentBlock(comments.getComponent().toString(), key.getComponent().getRaw(), value.getComponent().getValue(), value.getComponent().isSection()), comments.getLine() + value.getLine(), key.getComponent().getIndents());
+            return new ReadBlock(new DocumentBlock(comments.getComponent().toString(), value.getComponent().getValue(), value.getComponent().isSection()), key.getComponent().getRaw(), comments.getLine() + value.getLine(), key.getComponent().getIndents());
         } catch (Exception ex) {
             //Throw wrapper exception
             throw new ParseException(String.format("Failed to parse configuration block starting at line %d. Is the YAML formatted properly?", offset + 1), ex);
@@ -103,7 +103,7 @@ public class BlockReader {
                 return null;
 
             //Return
-            return new ReadBlock(new DirectiveBlock(comments.getComponent().toString(), line, true, id), comments.getLine() + 1, 0);
+            return new ReadBlock(new DirectiveBlock(comments.getComponent().toString(), line, true, id), null,comments.getLine() + 1, 0);
         }
 
         //If it is not a YAML directive
@@ -121,7 +121,7 @@ public class BlockReader {
             return null;
 
         //Return
-        return new ReadBlock(new DirectiveBlock(comments.getComponent().toString(), line, false, line.substring(5 + spaces, 5 + spaces + 3)), comments.getLine() + 1, 0);
+        return new ReadBlock(new DirectiveBlock(comments.getComponent().toString(), line, false, line.substring(5 + spaces, 5 + spaces + 3)), null,comments.getLine() + 1, 0);
     }
 
     private ReadBlock readIndicator(Component<StringBuilder> comments, String line) {
@@ -130,10 +130,10 @@ public class BlockReader {
             //If it starts with document start sequence
             if (line.startsWith(DOCUMENT_START))
                 //Return
-                return new ReadBlock(new IndicatorBlock(comments.getComponent().toString(), line), comments.getLine() + 1, 0);
+                return new ReadBlock(new IndicatorBlock(comments.getComponent().toString(), line), null, comments.getLine() + 1, 0);
             else if (line.startsWith(DOCUMENT_END))
                 //Return
-                return new ReadBlock(new IndicatorBlock(comments.getComponent().toString(), line), comments.getLine() + 1, 0);
+                return new ReadBlock(new IndicatorBlock(comments.getComponent().toString(), line), null, comments.getLine() + 1, 0);
         }
 
         return null;

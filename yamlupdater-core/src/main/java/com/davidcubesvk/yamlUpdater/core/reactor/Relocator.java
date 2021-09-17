@@ -1,12 +1,10 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
 import com.davidcubesvk.yamlUpdater.core.block.DocumentBlock;
-import com.davidcubesvk.yamlUpdater.core.block.Key;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.files.File;
+import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.utils.Constants;
 import com.davidcubesvk.yamlUpdater.core.version.Version;
-import org.yaml.snakeyaml.Yaml;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -15,7 +13,7 @@ import java.util.Map;
 public class Relocator {
 
     //The disk file
-    private final File diskFile;
+    private final YamlFile diskYamlFile;
     //Versions
     private final Version diskVersion, resourceVersion;
     //The separator
@@ -24,14 +22,14 @@ public class Relocator {
     /**
      * Initializes the relocator with the given disk file and file versions.
      *
-     * @param diskFile            the disk file
+     * @param diskYamlFile            the disk file
      * @param diskVersion         version of the disk file
      * @param resourceVersion     version of the resource (latest) file
      * @param keySeparator        the key separator
      * @param escapedKeySeparator the escaped key separator
      */
-    public Relocator(File diskFile, Version diskVersion, Version resourceVersion, String keySeparator, String escapedKeySeparator) {
-        this.diskFile = diskFile;
+    public Relocator(YamlFile diskYamlFile, Version diskVersion, Version resourceVersion, String keySeparator, String escapedKeySeparator) {
+        this.diskYamlFile = diskYamlFile;
         this.diskVersion = diskVersion;
         this.resourceVersion = resourceVersion;
         this.separator = keySeparator;
@@ -90,13 +88,13 @@ public class Relocator {
         //To
         String to = relocations.get(from).toString();
         //The upper map
-        Map<String, DocumentBlock> upper = diskFile.getUpperMap(from);
+        Map<String, DocumentBlock> upper = diskYamlFile.getUpperMap(from);
         //If null
         if (upper == null)
             //Nothing to relocate
             return;
         //The from key
-        String[] fromKey = File.splitKey(from, separator, escapedSeparator);
+        String[] fromKey = YamlFile.splitKey(from, separator, escapedSeparator);
         //The block
         DocumentBlock block = upper.get(fromKey[fromKey.length - 1]);
         //If null
@@ -109,23 +107,21 @@ public class Relocator {
         //Remove the block to free up the space for another possible relocation
         upper.remove(fromKey[fromKey.length - 1]);
         //Remove sections if empty
-        removeIfEmpty(diskFile, fromKey, 0);
+        removeIfEmpty(diskYamlFile, fromKey, 0);
 
         //Relocate to
         apply(relocations, keyIterator, to);
 
         //The to key
-        String[] toKey = File.splitKey(to, separator, escapedSeparator);
-        //Reset key
-        block.setRawKey(Constants.YAML.load(block.getRawKey()).toString());
+        String[] toKey = YamlFile.splitKey(to, separator, escapedSeparator);
 
         //If there is no section created
-        if (diskFile.getUpperMap(toKey) == null)
+        if (diskYamlFile.getUpperMap(toKey) == null)
             //Create
-            createSection(diskFile, toKey, 0);
+            createSection(diskYamlFile, toKey, 0);
 
         //Relocate
-        diskFile.getUpperMap(toKey).put(toKey[toKey.length - 1], block);
+        diskYamlFile.getUpperMap(toKey).put(toKey[toKey.length - 1], block);
     }
 
     /**

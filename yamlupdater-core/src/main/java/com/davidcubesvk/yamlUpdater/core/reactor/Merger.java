@@ -4,7 +4,7 @@ import com.davidcubesvk.yamlUpdater.core.block.DirectiveBlock;
 import com.davidcubesvk.yamlUpdater.core.block.DocumentBlock;
 import com.davidcubesvk.yamlUpdater.core.block.IndicatorBlock;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.files.File;
+import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
 
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class Merger {
      * @param indents     amount of indents (spaces) per each hierarchy level
      * @return the merged file as a string
      */
-    public static String merge(File disk, File resource, Map<Object, Object> resourceMap, Settings settings) {
+    public static String merge(YamlFile disk, YamlFile resource, Map<Object, Object> resourceMap, Settings settings) {
         //The builder
         StringBuilder builder = new StringBuilder();
         //Merge header
@@ -46,7 +46,7 @@ public class Merger {
         return builder.toString();
     }
 
-    private void mergeHeader(StringBuilder builder, File disk, File resource, boolean keepFormerDirectives) {
+    private void mergeHeader(StringBuilder builder, YamlFile disk, YamlFile resource, boolean keepFormerDirectives) {
         //Go through all directives inside the resource file
         outer:
         for (DirectiveBlock directive : resource.getDirectives()) {
@@ -80,7 +80,7 @@ public class Merger {
         appendIndicator(builder, disk.getDocumentStart(), resource.getDocumentStart());
     }
 
-    private void mergeFooter(StringBuilder builder, File disk, File resource) {
+    private void mergeFooter(StringBuilder builder, YamlFile disk, YamlFile resource) {
         //Append indicator
         appendIndicator(builder, disk.getDocumentEnd(), resource.getDocumentEnd());
 
@@ -150,14 +150,14 @@ public class Merger {
                 //If there is not such a key in the current map
                 if (diskSection == null || diskSection.getMappings() == null || !diskSection.getMappings().containsKey(entry.getKey())) {
                     //Append
-                    appendSection(builder, depth, indentSpaces, (Map<Object, Object>) resourceMap.get(entry.getKey()), section);
+                    appendSection(builder, depth, indentSpaces, (Map<Object, Object>) resourceMap.get(entry.getKey()), section, entry.getKey());
                     continue;
                 }
 
                 //Disk object
                 DocumentBlock diskBlock = diskSection.getMappings().get(entry.getKey());
                 //Append
-                appendBlock(builder, depth, indentSpaces, diskBlock);
+                appendBlock(builder, depth, indentSpaces, diskBlock, entry.getKey());
                 //If a section
                 if (diskBlock instanceof Section) {
                     //Create a new map
@@ -177,7 +177,7 @@ public class Merger {
             //If there is not such a key in the current map
             if (diskSection == null || diskSection.getMappings() == null || !diskSection.getMappings().containsKey(entry.getKey())) {
                 //Append
-                appendBlock(builder, depth, indentSpaces, resourceBlock);
+                appendBlock(builder, depth, indentSpaces, resourceBlock, entry.getKey());
                 continue;
             }
 
@@ -190,12 +190,12 @@ public class Merger {
                 //Update the map
                 resourceMap.put(entry.getKey(), map);
                 //Append
-                appendSection(builder, depth, indentSpaces, map, (Section) diskBlock);
+                appendSection(builder, depth, indentSpaces, map, (Section) diskBlock, entry.getKey());
             } else {
                 //Update the map
                 resourceMap.put(entry.getKey(), YAML.load(diskBlock.getValue().toString().trim().substring(1)));
                 //Append
-                appendBlock(builder, depth, indentSpaces, diskBlock);
+                appendBlock(builder, depth, indentSpaces, diskBlock, entry.getKey());
             }
         }
     }
@@ -214,9 +214,9 @@ public class Merger {
      * @throws IllegalArgumentException if there is not instance of type {@link DocumentBlock} somewhere in the section's
      *                                  mapping values
      */
-    private void appendSection(StringBuilder builder, int depth, int indents, Map<Object, Object> map, Section section) throws IllegalArgumentException {
+    private void appendSection(StringBuilder builder, int depth, int indents, Map<Object, Object> map, Section section, String key) throws IllegalArgumentException {
         //Append
-        appendBlock(builder, depth, indents, section);
+        appendBlock(builder, depth, indents, section, key);
         //Go through all entries
         for (Map.Entry<String, DocumentBlock> entry : section.getMappings().entrySet()) {
             //If null
@@ -230,12 +230,12 @@ public class Merger {
                 //Update the map
                 map.put(entry.getKey(), newMap);
                 //Append
-                appendSection(builder, depth + 1, indents, newMap, (Section) entry.getValue());
+                appendSection(builder, depth + 1, indents, newMap, (Section) entry.getValue(), entry.getKey());
             } else {
                 //Update the map
                 map.put(entry.getKey(), YAML.load(entry.getValue().getValue().toString().trim().substring(1)));
                 //Append
-                appendBlock(builder, depth + 1, indents, entry.getValue());
+                appendBlock(builder, depth + 1, indents, entry.getValue(), entry.getKey());
             }
         }
     }
@@ -250,13 +250,13 @@ public class Merger {
      * @param indents indents (spaces) differentiating each level (depth) of the hierarchy
      * @param block   the block to append
      */
-    private void appendBlock(StringBuilder builder, int depth, int indents, DocumentBlock block) {
+    private void appendBlock(StringBuilder builder, int depth, int indents, DocumentBlock block, String key) {
         //Calculate spaces
         int spaces = depth * indents;
         //Append comments
         appendSequence(builder, block.getComments(), spaces);
         //Append key
-        appendSequence(builder, block.getRawKey(), spaces);
+        appendSequence(builder, key, spaces);
         //Append value
         appendSequence(builder, block.getValue(), spaces);
     }
