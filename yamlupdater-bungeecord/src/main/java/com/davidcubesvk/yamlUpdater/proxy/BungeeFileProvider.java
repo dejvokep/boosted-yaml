@@ -1,7 +1,5 @@
 package com.davidcubesvk.yamlUpdater.proxy;
 
-import com.davidcubesvk.yamlUpdater.core.files.FileProvider;
-import com.davidcubesvk.yamlUpdater.core.files.UpdatedFile;
 import net.md_5.bungee.config.Configuration;
 
 import java.lang.reflect.Constructor;

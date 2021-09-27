@@ -1,7 +1,5 @@
 package com.davidcubesvk.yamlUpdater.core.reader;
 
-import com.davidcubesvk.yamlUpdater.core.block.Block;
-
 public class ReadBlock {
 
     private final Block block;

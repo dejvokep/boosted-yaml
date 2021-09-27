@@ -1,6 +1,5 @@
 package com.davidcubesvk.yamlUpdater.core.utils;
 
-import com.davidcubesvk.yamlUpdater.core.block.Key;
 import org.yaml.snakeyaml.Yaml;
 
 /**

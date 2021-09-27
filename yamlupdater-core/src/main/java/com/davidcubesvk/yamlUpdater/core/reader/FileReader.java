@@ -4,9 +4,19 @@ import com.davidcubesvk.yamlUpdater.core.block.*;
 import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.settings.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
+import org.snakeyaml.engine.v2.api.LoadSettings;
+import org.snakeyaml.engine.v2.api.YamlUnicodeReader;
+import org.snakeyaml.engine.v2.composer.Composer;
+import org.snakeyaml.engine.v2.constructor.StandardConstructor;
+import org.snakeyaml.engine.v2.parser.Parser;
+import org.snakeyaml.engine.v2.parser.ParserImpl;
+import org.snakeyaml.engine.v2.resolver.ScalarResolver;
+import org.snakeyaml.engine.v2.scanner.StreamReader;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,29 +77,16 @@ public class FileReader {
      * @throws ParseException if the YAML is not formatted properly (see {@link BlockReader#read(List, int)} for more
      *                        information)
      */
-    public YamlFile load() throws ParseException {
-        //Load the header
-        loadHeader();
+    public YamlFile load(InputStream inputStream) throws ParseException {
+        LoadSettings settings = null;
+        //Create the composer
+        Composer composer = new Composer(settings, new ParserImpl(settings, new StreamReader(settings, new YamlUnicodeReader(inputStream))));
+    }
 
-        //If there is not anything else
-        if (nextBlock == null)
-            throw new ParseException("No document content was found!");
-
-        //If it is footer content
-        if (nextBlock.getBlock().isFooterContent())
-            throw new ParseException("No document content was found!");
-
-        //Load
-        loadSection(lines.subList(index, lines.size()), new StringBuilder(), mappings);
-
-        //If there is not anything else
-        if (nextBlock == null)
-            return new YamlFile(directives, documentStart, mappings, documentEnd, danglingComments, settings);
-
-        //Load the footer
-        loadFooter();
-        //Return
-        return new YamlFile(directives, documentStart, mappings, documentEnd, danglingComments, settings);
+    private YamlFile construct(Composer composer) {
+        LoadSettings settings = null;
+        //Construct to objects
+        Object file = new StandardConstructor(settings).constructSingleDocument(Optional.ofNullable(composer.next()));
     }
 
     /**

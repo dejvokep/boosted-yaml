@@ -62,13 +62,20 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>Sonatype-public</id>
+            <url>http://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+    </repositories>
+
     <!-- Dependencies -->
     <dependencies>
         <!-- SnakeYAML -->
         <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.21</version>
+            <groupId>org.snakeyaml</groupId>
+            <artifactId>snakeyaml-engine</artifactId>
+            <version>2.3</version>
         </dependency>
     </dependencies>
 

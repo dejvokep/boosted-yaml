@@ -1,17 +1,13 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
 import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.files.FileProvider;
-import com.davidcubesvk.yamlUpdater.core.files.UpdatedFile;
 import com.davidcubesvk.yamlUpdater.core.settings.LoaderSettings;
-import com.davidcubesvk.yamlUpdater.core.settings.Settings;
 import com.davidcubesvk.yamlUpdater.core.settings.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
