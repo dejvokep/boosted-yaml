@@ -2,8 +2,6 @@ package com.davidcubesvk.yamlUpdater.core;
 
 import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.reactor.Reactor;
-import com.davidcubesvk.yamlUpdater.core.reader.FileReader;
-import com.davidcubesvk.yamlUpdater.core.settings.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 

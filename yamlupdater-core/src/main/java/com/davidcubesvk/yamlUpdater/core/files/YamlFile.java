@@ -1,31 +1,29 @@
 package com.davidcubesvk.yamlUpdater.core.files;
 
 import com.davidcubesvk.yamlUpdater.core.block.*;
-import com.davidcubesvk.yamlUpdater.core.settings.LoaderSettings;
+import com.davidcubesvk.yamlUpdater.core.reader.Constructor;
 import com.davidcubesvk.yamlUpdater.core.settings.Settings;
+import org.snakeyaml.engine.v2.api.YamlUnicodeReader;
+import org.snakeyaml.engine.v2.composer.Composer;
+import org.snakeyaml.engine.v2.nodes.MappingNode;
+import org.snakeyaml.engine.v2.nodes.Node;
+import org.snakeyaml.engine.v2.parser.ParserImpl;
+import org.snakeyaml.engine.v2.scanner.StreamReader;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.davidcubesvk.yamlUpdater.core.utils.Constants.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Represents a loaded YAML file.
  */
 public class YamlFile extends Section {
 
-    //The directives
-    private final List<DirectiveBlock> directives;
-    //The document start and end blocks
-    private IndicatorBlock documentStart, documentEnd;
-    //Mappings
-    private final Map<String, DocumentBlock> mappings;
-    //Dangling comments
-    private CommentBlock danglingComments;
-    //The key separators
-    private final String separator, escapedSeparator;
+    private final File file;
+    private final Settings settings;
+    private final YamlFile defaults;
 
     /**
      * Initializes the file from the given header, mappings and key separator.
@@ -34,127 +32,68 @@ public class YamlFile extends Section {
      * @param mappings mappings inside the file
      * @param settings settings this file will be loaded with, used to get the key separators
      */
-    public YamlFile(List<DirectiveBlock> directives, IndicatorBlock documentStart, Map<String, DocumentBlock> mappings, IndicatorBlock documentEnd, CommentBlock danglingComments, LoaderSettings settings) {
-        super(EMPTY_STRING, EMPTY_STRING, EMPTY_STRING_BUILDER, mappings);
-        this.directives = directives;
-        this.documentStart = documentStart;
-        this.mappings = mappings;
-        this.documentEnd = documentEnd;
-        this.danglingComments = danglingComments;
-        this.separator = settings.getSeparatorString();
-        this.escapedSeparator = settings.getEscapedSeparator();
+    public YamlFile(InputStream inputStream, Settings settings, YamlFile defaults) {
+        //Call superclass
+        super();
+        //Set
+        this.settings = settings;
+        this.file = null;
+        this.defaults = defaults;
+
+        //Load
+        load(inputStream);
     }
 
-    /**
-     * Returns the upper map of the given path, or <code>null</code> if does not exist.
-     *
-     * @param path the path to search the upper map for with keys separated by the given key separator
-     * @return the upper map, or <code>null</code> if does not exist
-     */
-    public Map<String, DocumentBlock> getUpperMap(String path) {
-        return getUpperMap(splitKey(path, separator, escapedSeparator));
+    public YamlFile(File file, Settings settings, YamlFile defaults) throws FileNotFoundException {
+        //Call superclass
+        super();
+        //Set
+        this.settings = settings;
+        this.file = file;
+        this.defaults = defaults;
+
+        //Load
+        load();
     }
 
-    /**
-     * Returns the upper map of the given path, or <code>null</code> if does not exist.
-     *
-     * @param path the path to search the upper map for
-     * @return the upper map, or <code>null</code> if does not exist
-     */
-    public Map<String, DocumentBlock> getUpperMap(String[] path) {
-        //If not a direct key
-        if (path.length > 1) {
-            //Get the section at the super path
-            Section section = ((Section) get(getMappings(), path, path.length - 1));
-            //Return mappings or null
-            return section == null ? null : section.getMappings();
-        }
+    public boolean load() throws FileNotFoundException {
+        //If not present
+        if (file == null)
+            return false;
+        //Load
+        load(file);
+        return true;
+    }
+    public void load(File file) throws FileNotFoundException {
+        load(new FileInputStream(file));
+    }
+    public void load(InputStream inputStream) {
+        //Create the constructor
+        Constructor constructor = new Constructor(settings.getLoadSettings());
+        //Create the composer
+        Composer composer = new Composer(settings.getLoadSettings(), new ParserImpl(settings.getLoadSettings(), new StreamReader(settings.getLoadSettings(), new YamlUnicodeReader(inputStream))));
+        //Node
+        Node node = composer.next();
+        //Construct
+        constructor.constructSingleDocument(Optional.of(node));
 
-        //Return mappings
-        return getMappings();
+        //Init
+        init(this, constructor, null, (MappingNode) constructor.getConstructed().get(composer.next()));
     }
 
-    /**
-     * Returns object at the given path in the given mappings, or <code>null</code> if not found.
-     *
-     * @param mappings            the mappings to search
-     * @param path                the path with keys separated by the given key separator
-     * @param keySeparator        the key separator used to differentiate super from sub keys
-     * @param escapedKeySeparator the escaped version of the key separator
-     * @return the object, or <code>null</code> if not found
-     */
-    public static Object get(Map<?, ?> mappings, String path, String keySeparator, String escapedKeySeparator) {
-        return get(mappings, splitKey(path, keySeparator, escapedKeySeparator), Integer.MAX_VALUE);
+    public YamlFile getDefaults() {
+        return defaults;
     }
 
-    /**
-     * Returns object at the given path in the given mappings, or <code>null</code> if not found.
-     *
-     * @param mappings the mappings to search
-     * @param path     the path
-     * @param to       exclusive index of the last path element (allows to get super-objects), if it is larger than the
-     *                 length of the array, the length of the array is taken
-     * @return the object, or <code>null</code> if not found
-     */
-    public static Object get(Map<?, ?> mappings, String[] path, int to) {
-        //Current object
-        Object current = mappings;
-        //Go to the end of the path
-        for (int index = 0; index < Math.min(path.length, to); index++) {
-            //If not at the last index and it is not a map
-            if (index + 1 < to && !(current instanceof Map))
-                return null;
-
-            //Set
-            current = ((Map<?, ?>) current).get(path[index]);
-        }
-
-        //Return the object
-        return current;
+    public void update() {
+        //If more documents
+        if (documents.si)
     }
 
-    /**
-     * Splits and returns the given key as an array.
-     *
-     * @param key              the key to split
-     * @param separator        the key separator
-     * @param escapedSeparator the escaped key separator used to split the key
-     * @return the split key
-     */
-    public static String[] splitKey(String key, String separator, String escapedSeparator) {
-        return key.contains(separator) ? key.split(escapedSeparator) : new String[]{key};
+    public Settings getSettings() {
+        return settings;
     }
 
-    public List<DirectiveBlock> getDirectives() {
-        return directives;
-    }
+    public void save() {}
 
-    public IndicatorBlock getDocumentStart() {
-        return documentStart;
-    }
-
-    public IndicatorBlock getDocumentEnd() {
-        return documentEnd;
-    }
-
-    public void setDocumentStart(IndicatorBlock documentStart) {
-        this.documentStart = documentStart;
-    }
-
-    public void setDocumentEnd(IndicatorBlock documentEnd) {
-        this.documentEnd = documentEnd;
-    }
-
-    public void setDanglingComments(CommentBlock danglingComments) {
-        this.danglingComments = danglingComments;
-    }
-
-    @Override
-    public Map<String, DocumentBlock> getMappings() {
-        return mappings;
-    }
-
-    public CommentBlock getDanglingComments() {
-        return danglingComments;
-    }
 }

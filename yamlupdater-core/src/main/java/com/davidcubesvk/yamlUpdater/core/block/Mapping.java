@@ -5,16 +5,13 @@ import org.snakeyaml.engine.v2.nodes.Node;
 
 import java.util.List;
 
-public class Mapping extends Block {
+public class Mapping extends Block<Object> {
 
-    private Object value;
-
-    public Mapping(Node node, Object value) {
-        super(node);
-        this.value = value;
+    public Mapping(Node keyNode, Node valueNode, Object value) {
+        super(keyNode, valueNode, value);
     }
 
-    public Object getValue() {
-        return value;
+    public Mapping(Block<?> previous, Object value) {
+        super(previous, value);
     }
 }
