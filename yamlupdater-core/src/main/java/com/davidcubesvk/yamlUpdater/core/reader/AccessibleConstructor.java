@@ -7,12 +7,12 @@ import org.snakeyaml.engine.v2.nodes.Node;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-public class Constructor extends BaseConstructor {
+public class AccessibleConstructor extends BaseConstructor {
 
     private static Field CONSTRUCTED_MAP;
     private Map<Node, Object> constructed;
 
-    public Constructor(LoadSettings settings) {
+    public AccessibleConstructor(LoadSettings settings) {
         super(settings);
 
         //Try to get

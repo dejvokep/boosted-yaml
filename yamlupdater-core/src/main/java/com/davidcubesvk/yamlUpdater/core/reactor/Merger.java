@@ -2,7 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.reactor;
 
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.settings.Settings;
+import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,13 +29,13 @@ public class Merger {
      * @param indents     amount of indents (spaces) per each hierarchy level
      * @return the merged file as a string
      */
-    public static String merge(YamlFile disk, YamlFile resource, Map<Object, Object> resourceMap, Settings settings) {
+    public static String merge(YamlFile disk, YamlFile resource, Map<Object, Object> resourceMap, GeneralSettings generalSettings) {
         //The builder
         StringBuilder builder = new StringBuilder();
         //Merge header
-        MERGER.mergeHeader(builder, disk, resource, settings.isKeepFormerDirectives());
+        MERGER.mergeHeader(builder, disk, resource, generalSettings.isKeepFormerDirectives());
         //Merge document
-        MERGER.iterate(resource, resourceMap, disk, builder, 0, settings.getIndentSpaces());
+        MERGER.iterate(resource, resourceMap, disk, builder, 0, generalSettings.getIndentSpaces());
         //Merge footer
         MERGER.mergeFooter(builder, disk, resource);
 

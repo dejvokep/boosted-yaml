@@ -1,7 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core;
 
 import com.davidcubesvk.yamlUpdater.core.reactor.Reactor;
-import com.davidcubesvk.yamlUpdater.core.settings.Settings;
+import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 
 import java.io.File;
@@ -46,8 +46,8 @@ public class YamlUpdaterCore<T> {
      *
      * @return the new settings object
      */
-    public Settings createSettings() {
-        return new Settings(this);
+    public GeneralSettings createSettings() {
+        return new GeneralSettings(this);
     }
 
     /**
@@ -60,9 +60,9 @@ public class YamlUpdaterCore<T> {
      *     <li>applying relocations (see {@link com.davidcubesvk.yamlUpdater.core.reactor.Relocator}),</li>
      *     <li>merging together (see {@link com.davidcubesvk.yamlUpdater.core.reactor.Merger}),</li>
      * </ol>
-     * Please see the {@link Reactor#react(Settings, FileProvider)} method for more information.
+     * Please see the {@link Reactor#react(GeneralSettings, FileProvider)} method for more information.
      *
-     * @param settings the settings to use
+     * @param generalSettings the settings to use
      * @return the updated file
      * @throws ParseException         if failed to internally parse any of the files (usually compatibility problem)
      * @throws NullPointerException   if disk or resource file path is not set
@@ -70,8 +70,8 @@ public class YamlUpdaterCore<T> {
      * @throws ClassCastException     if an object failed to cast (usually compatibility problem)
      * @throws ClassNotFoundException if class was not found (usually compatibility problem)
      */
-    public UpdatedFile<T> update(Settings settings) throws ParseException, NullPointerException, IOException, ClassCastException, ClassNotFoundException {
-        return Reactor.react(settings, fileProvider);
+    public UpdatedFile<T> update(GeneralSettings generalSettings) throws ParseException, NullPointerException, IOException, ClassCastException, ClassNotFoundException {
+        return Reactor.react(generalSettings, fileProvider);
     }
 
     /**

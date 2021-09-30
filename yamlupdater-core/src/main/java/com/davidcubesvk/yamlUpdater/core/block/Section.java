@@ -2,7 +2,8 @@ package com.davidcubesvk.yamlUpdater.core.block;
 
 import com.davidcubesvk.yamlUpdater.core.files.Path;
 import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.reader.Constructor;
+import com.davidcubesvk.yamlUpdater.core.reader.AccessibleConstructor;
+import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import org.snakeyaml.engine.v2.nodes.*;
 
 import java.math.BigInteger;
@@ -29,13 +30,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * While loading.
      */
-    public Section(YamlFile root, Section parent, Object name, Path path, Node keyNode, MappingNode valueNode, Constructor constructor) {
+    public Section(YamlFile root, Section parent, Object name, Path path, Node keyNode, MappingNode valueNode, AccessibleConstructor constructor) {
         //Call superclass
-        super(keyNode, valueNode, new HashMap<>());
+        super(keyNode, valueNode, root.getGeneralSettings().getDefaultMap());
         //Set
         this.root = root;
         this.parent = parent;
-        this.name = name;
+        this.name = adaptKey(name);
         this.path = path;
         //Init
         init(root, constructor, keyNode, valueNode);
@@ -46,16 +47,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public Section(YamlFile root, Section parent, Object name, Path path, Block<?> previous, Map<?, ?> mappings) {
         //Call superclass
-        super(previous, new HashMap<>());
+        super(previous, root.getGeneralSettings().getDefaultMap());
         //Set
         this.root = root;
         this.parent = parent;
-        this.name = name;
+        this.name = adaptKey(name);
         this.path = path;
         //Loop through all mappings
         for (Map.Entry<?, ?> entry : mappings.entrySet()) {
             //Key and value
-            Object key = entry.getKey(), value = entry.getValue();
+            Object key = adaptKey(entry.getKey()), value = entry.getValue();
             //Add
             getValue().put(key, value instanceof Map ? new Section(root, this, key, path.add(key), null, (Map<?, ?>) value) : new Mapping(null, value));
         }
@@ -64,16 +65,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Call #init afterwards!
      */
-    protected Section() {
+    protected Section(Map<Object, Block<?>> defaultMap) {
         //Call superclass
-        super(new HashMap<>());
+        super(defaultMap);
         //Set
+        this.root = null;
         this.parent = null;
         this.name = null;
         this.path = new Path();
     }
 
-    protected void init(YamlFile root, Constructor constructor, Node keyNode, MappingNode valueNode) {
+    protected void init(YamlFile root, AccessibleConstructor constructor, Node keyNode, MappingNode valueNode) {
         //Call superclass
         super.init(keyNode, valueNode);
         //Set
@@ -81,10 +83,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Loop through all mappings
         for (NodeTuple tuple : valueNode.getValue()) {
             //Key and value
-            Object key = constructor.getConstructed(tuple.getKeyNode()), value = constructor.getConstructed(tuple.getValueNode());
+            Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
             //Add
             getValue().put(key, value instanceof Map ? new Section(root, this, key, path.add(key), tuple.getKeyNode(), (MappingNode) tuple.getValueNode(), constructor) : new Mapping(tuple.getKeyNode(), tuple.getValueNode(), value));
         }
+    }
+
+    public Object adaptKey(Object key) {
+        return root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
     }
 
     public Set<Path> getKeys(boolean deep) {
@@ -142,16 +148,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     private void setInternal(Path path, Object value, int i) {
         //Key
-        Object key = path.getKey(i, root.getSettings());
+        Object key = path.getKey(i);
         //If at the last index
-        if (i + 1 >= path.getLength(root.getSettings())) {
+        if (i + 1 >= path.getLength()) {
             //Call the direct method
             set(key, value);
             return;
         }
 
         //The block at the key
-        Block<?> block = getValue().get(path.getKey(i, root.getSettings()));
+        Block<?> block = getValue().get(path.getKey(i));
         //If null
         if (block == null || block instanceof Mapping)
             createSection(key, block);
@@ -164,7 +170,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     private void createSection(Object key, Block<?> previous) {
-        getValue().put(key, new Section(root, this, key, path.add(key), previous, new HashMap<>()));
+        getValue().put(key, new Section(root, this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap()));
     }
 
     public void set(Path path, Object value) {
@@ -227,13 +233,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return Optional.of(getValue().get(key));
     }
 
+    private Optional<Block<?>> getSafeInternalString(String path, int i) {
+        //Next separator
+        int next = path.indexOf(i+1, root.getGeneralSettings().getSeparator());
+        //If -1
+        if (next == -1)
+            return getBlock(path.substring(i));
+        //Call subsection
+        return getSectionSafe(path.substring(i, next)).flatMap(section -> section.getSafeInternalString(path, next));
+    }
+
     private Optional<Block<?>> getSafeInternal(Path path, int i) {
+        //If length is 0
+        if (path.getLength() == 0)
+            return Optional.of(this);
+
         //If at last index
-        if (i + 1 >= path.getLength(root.getSettings()))
-            return getBlock(path.getKey(i, root.getSettings()));
+        if (i + 1 >= path.getLength())
+            return getBlock(path.getKey(i));
 
         //Section
-        Optional<Block<?>> section = getBlock(path.getKey(i, root.getSettings()));
+        Optional<Block<?>> section = getBlock(path.getKey(i));
         //If not present
         if (!section.isPresent())
             return Optional.empty();
@@ -249,6 +269,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Optional<Object> getSafe(Object key) {
+        //If is string mode and contains sub-key
+        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
+            //Return
+            return getSafeInternalString(key.toString(), 0).map(Block::getValue);
         //If does not contain
         if (!getValue().containsKey(key))
             return Optional.empty();
@@ -283,11 +307,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
 
     public Object get(Path path) {
-        return getSafe(path).orElse(root.getSettings().getDefaultObject());
+        return getSafe(path).orElse(root.getGeneralSettings().getDefaultObject());
     }
 
     public Object get(Object key) {
-        return getSafe(key).orElse(root.getSettings().getDefaultObject());
+        return getSafe(key).orElse(root.getGeneralSettings().getDefaultObject());
     }
 
     @SuppressWarnings("unchecked")
@@ -353,11 +377,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Section getSection(Path path) {
-        return getSection(path, root.getSettings().getDefaultSection());
+        return getSection(path, root.getGeneralSettings().getDefaultSection());
     }
 
     public Section getSection(Object key) {
-        return getSection(key, root.getSettings().getDefaultSection());
+        return getSection(key, root.getGeneralSettings().getDefaultSection());
     }
 
     public Section getSection(Path path, Section def) {
@@ -385,11 +409,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public String getString(Path path) {
-        return getString(path, root.getSettings().getDefaultString());
+        return getString(path, root.getGeneralSettings().getDefaultString());
     }
 
     public String getString(Object key) {
-        return getString(key, root.getSettings().getDefaultString());
+        return getString(key, root.getGeneralSettings().getDefaultString());
     }
 
     public String getString(Path path, String def) {
@@ -425,11 +449,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Character getChar(Path path) {
-        return getChar(path, root.getSettings().getDefaultChar());
+        return getChar(path, root.getGeneralSettings().getDefaultChar());
     }
 
     public Character getChar(Object key) {
-        return getChar(key, root.getSettings().getDefaultChar());
+        return getChar(key, root.getGeneralSettings().getDefaultChar());
     }
 
     public Character getChar(Path path, Character def) {
@@ -465,11 +489,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Integer getInt(Path path) {
-        return getInt(path, root.getSettings().getDefaultNumber().intValue());
+        return getInt(path, root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     public Integer getInt(Object key) {
-        return getInt(key, root.getSettings().getDefaultNumber().intValue());
+        return getInt(key, root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     public boolean isInt(Path path) {
@@ -497,11 +521,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Boolean getBoolean(Path path) {
-        return getBoolean(path, root.getSettings().getDefaultBoolean());
+        return getBoolean(path, root.getGeneralSettings().getDefaultBoolean());
     }
 
     public Boolean getBoolean(Object key) {
-        return getBoolean(key, root.getSettings().getDefaultBoolean());
+        return getBoolean(key, root.getGeneralSettings().getDefaultBoolean());
     }
 
     public boolean isBoolean(Path path) {
@@ -529,11 +553,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Double getDouble(Path path) {
-        return getDouble(path, root.getSettings().getDefaultNumber().doubleValue());
+        return getDouble(path, root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     public Double getDouble(Object key) {
-        return getDouble(key, root.getSettings().getDefaultNumber().doubleValue());
+        return getDouble(key, root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     public boolean isDouble(Path path) {
@@ -561,11 +585,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Float getFloat(Path path) {
-        return getFloat(path, root.getSettings().getDefaultNumber().floatValue());
+        return getFloat(path, root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     public Float getFloat(Object key) {
-        return getFloat(key, root.getSettings().getDefaultNumber().floatValue());
+        return getFloat(key, root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     public boolean isFloat(Path path) {
@@ -593,11 +617,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Byte getByte(Path path) {
-        return getByte(path, root.getSettings().getDefaultNumber().byteValue());
+        return getByte(path, root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     public Byte getByte(Object key) {
-        return getByte(key, root.getSettings().getDefaultNumber().byteValue());
+        return getByte(key, root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     public boolean isByte(Path path) {
@@ -625,11 +649,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Long getLong(Path path) {
-        return getLong(path, root.getSettings().getDefaultNumber().longValue());
+        return getLong(path, root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     public Long getLong(Object key) {
-        return getLong(key, root.getSettings().getDefaultNumber().longValue());
+        return getLong(key, root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     public boolean isLong(Path path) {
@@ -657,11 +681,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Short getShort(Path path) {
-        return getShort(path, root.getSettings().getDefaultNumber().shortValue());
+        return getShort(path, root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     public Short getShort(Object key) {
-        return getShort(key, root.getSettings().getDefaultNumber().shortValue());
+        return getShort(key, root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     public boolean isShort(Path path) {
@@ -689,11 +713,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<?> getList(Path path) {
-        return getList(path, root.getSettings().getDefaultList());
+        return getList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<?> getList(Object key) {
-        return getList(key, root.getSettings().getDefaultList());
+        return getList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public boolean isList(Path path) {
@@ -721,11 +745,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<String> getStringList(Path path) {
-        return getStringList(path, root.getSettings().getDefaultList());
+        return getStringList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<String> getStringList(Object key) {
-        return getStringList(key, root.getSettings().getDefaultList());
+        return getStringList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<Integer>> getIntListSafe(Path path) {
@@ -745,11 +769,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<Integer> getIntList(Path path) {
-        return getIntList(path, root.getSettings().getDefaultList());
+        return getIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<Integer> getIntList(Object key) {
-        return getIntList(key, root.getSettings().getDefaultList());
+        return getIntList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<BigInteger>> getBigIntListSafe(Path path) {
@@ -769,11 +793,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<BigInteger> getBigIntList(Path path) {
-        return getBigIntList(path, root.getSettings().getDefaultList());
+        return getBigIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<BigInteger> getBigIntList(Object key) {
-        return getBigIntList(key, root.getSettings().getDefaultList());
+        return getBigIntList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<Byte>> getByteListSafe(Path path) {
@@ -793,11 +817,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<Byte> getByteList(Path path) {
-        return getByteList(path, root.getSettings().getDefaultList());
+        return getByteList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<Byte> getByteList(Object key) {
-        return getByteList(key, root.getSettings().getDefaultList());
+        return getByteList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<Long>> getLongListSafe(Path path) {
@@ -817,11 +841,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<Long> getLongList(Path path) {
-        return getLongList(path, root.getSettings().getDefaultList());
+        return getLongList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<Long> getLongList(Object key) {
-        return getLongList(key, root.getSettings().getDefaultList());
+        return getLongList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<Double>> getDoubleListSafe(Path path) {
@@ -841,11 +865,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<Double> getDoubleList(Path path) {
-        return getDoubleList(path, root.getSettings().getDefaultList());
+        return getDoubleList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<Double> getDoubleList(Object key) {
-        return getDoubleList(key, root.getSettings().getDefaultList());
+        return getDoubleList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<Float>> getFloatListSafe(Path path) {
@@ -865,11 +889,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<Float> getFloatList(Path path) {
-        return getFloatList(path, root.getSettings().getDefaultList());
+        return getFloatList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<Float> getFloatList(Object key) {
-        return getFloatList(key, root.getSettings().getDefaultList());
+        return getFloatList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<Short>> getShortListSafe(Path path) {
@@ -889,11 +913,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<Short> getShortList(Path path) {
-        return getShortList(path, root.getSettings().getDefaultList());
+        return getShortList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<Short> getShortList(Object key) {
-        return getShortList(key, root.getSettings().getDefaultList());
+        return getShortList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public Optional<List<Map<?, ?>>> getMapListSafe(Path path) {
@@ -913,11 +937,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public List<Map<?, ?>> getMapList(Path path) {
-        return getMapList(path, root.getSettings().getDefaultList());
+        return getMapList(path, root.getGeneralSettings().getDefaultList());
     }
 
     public List<Map<?, ?>> getMapList(Object key) {
-        return getMapList(key, root.getSettings().getDefaultList());
+        return getMapList(key, root.getGeneralSettings().getDefaultList());
     }
 
     public YamlFile getRoot() {

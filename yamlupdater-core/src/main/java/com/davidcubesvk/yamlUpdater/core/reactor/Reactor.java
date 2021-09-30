@@ -1,7 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core.reactor;
 
 import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.settings.UpdaterSettings;
+import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.ParseException;
 
 import java.io.*;

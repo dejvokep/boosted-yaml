@@ -1,34 +1,81 @@
 package com.davidcubesvk.yamlUpdater.core.block;
 
+import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.nodes.Node;
+
+import java.util.List;
 
 public class Block<T> {
 
-    private Node node;
+    private List<CommentLine> keyBlockComments, keyInlineComments, keyEndComments, valueBlockComments, valueInlineComments, valueEndComments;
     private T value;
 
     public Block(Node keyNode, Node valueNode, T value) {
-        this.node = node;
         this.value = value;
+        init(keyNode, valueNode);
     }
+
+    /**
+     * Call #init afterwards!
+     * @param value
+     */
     public Block(T value) {
         this(null, null, value);
     }
-    public Block(Block<?> previous, T value) {}
+    public Block(Block<?> previous, T value) {
+        //Set
+        this.value = value;
+        //If null
+        if (previous == null)
+            return;
+
+        //Set
+        this.keyBlockComments = previous.keyBlockComments;
+        this.keyInlineComments = previous.keyInlineComments;
+        this.keyEndComments = previous.keyEndComments;
+        this.valueBlockComments = previous.valueBlockComments;
+        this.valueInlineComments = previous.valueInlineComments;
+        this.valueEndComments = previous.valueEndComments;
+    }
 
     protected void init(Node key, Node value) {
+        //If not null
+        if (key != null) {
+            keyBlockComments = key.getBlockComments();
+            keyInlineComments = key.getInLineComments();
+            keyEndComments = key.getEndComments();
+        }
+
+        //If not null
+        if (value != null) {
+            valueBlockComments = value.getBlockComments();
+            valueInlineComments = value.getInLineComments();
+            valueEndComments = value.getEndComments();
+        }
     }
 
-    public void setNode(Node node) {
-        this.node = node;
+    public List<CommentLine> getKeyBlockComments() {
+        return keyBlockComments;
     }
 
-    public void setValue(T value) {
-        this.value = value;
+    public List<CommentLine> getKeyInlineComments() {
+        return keyInlineComments;
     }
 
-    public Node getNode() {
-        return node;
+    public List<CommentLine> getKeyEndComments() {
+        return keyEndComments;
+    }
+
+    public List<CommentLine> getValueBlockComments() {
+        return valueBlockComments;
+    }
+
+    public List<CommentLine> getValueInlineComments() {
+        return valueInlineComments;
+    }
+
+    public List<CommentLine> getValueEndComments() {
+        return valueEndComments;
     }
 
     public T getValue() {

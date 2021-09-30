@@ -1,46 +1,43 @@
 package com.davidcubesvk.yamlUpdater.core.files;
 
-import com.davidcubesvk.yamlUpdater.core.settings.Settings;
+import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class Path {
-
-    private String stringPath;
-    private char lastParsed;
 
     private Object[] path;
 
     public Path(Object... path) {
         this.path = path;
     }
-    public Path(String stringPath) {
-        this.stringPath = stringPath;
+    public Path(String path) {
+        this.path = path.split(GeneralSettings.DEFAULT_ESCAPED_SEPARATOR);
+    }
+    public Path(String path, char separator) {
+        this.path = path.split(Pattern.quote(String.valueOf(separator)));
+    }
+    public Path(String path, PathFactory pathFactory) {
+        this.path = path.split(pathFactory.getEscapedSeparator());
     }
 
-    public int getLength(Settings settings) {
+    public int getLength() {
         return path.length;
     }
 
-    public Object getKey(int i, Settings settings) {
+    public Object getKey(int i) {
         return path[i];
     }
-    public Object[] getPath(Settings settings) {
+    public Object[] getPath() {
         return path;
     }
     public Path add(Object element) {
         //New path
-        Path path = new Path();
+        Object[] path = Arrays.copyOf(this.path, this.path.length + 1);
         //Set
-        path.path = Arrays.copyOf(this.path, this.path.length + 1);
-        path.path[this.path.length] = element;
+        path[path.length - 1] = element;
         //Return
-        return path;
-    }
-
-    public static Path from(Object[] path) {
-        Path newPath = new Path();
-        newPath.path = path;
-        return newPath;
+        return new Path(path);
     }
 }

@@ -1,5 +1,6 @@
-package com.davidcubesvk.yamlUpdater.core.settings;
+package com.davidcubesvk.yamlUpdater.core.settings.updater;
 
+import com.davidcubesvk.yamlUpdater.core.settings.*;
 import com.davidcubesvk.yamlUpdater.core.version.Pattern;
 
 import java.util.HashMap;
