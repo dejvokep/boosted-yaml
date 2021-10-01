@@ -1,4 +1,4 @@
-package com.davidcubesvk.yamlUpdater.core.utils;
+package com.davidcubesvk.yamlUpdater.core.utils.conversion;
 
 import java.math.BigInteger;
 import java.util.Optional;

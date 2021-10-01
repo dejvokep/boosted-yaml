@@ -20,6 +20,8 @@ public class DumperSettings {
         YAML, JSON
     }
 
+    public static final DumperSettings DEFAULT = builder().build();
+
     private final DumpSettings settings;
     private final DumpSettingsBuilder builder;
     private final Supplier<AnchorGenerator> generatorSupplier;
@@ -39,22 +41,16 @@ public class DumperSettings {
         this.generatorSupplier = null;
     }
 
-    private DumperSettings(DumpSettings settings) {
-        this.settings = settings;
-        this.builder = null;
-        this.generatorSupplier = null;
-    }
-
     public DumpSettings getSettings() {
         return settings == null ? builder.setAnchorGenerator(generatorSupplier.get()).build() : settings;
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new Builder(DumpSettings.builder());
     }
 
-    public static DumperSettings from(DumpSettings settings) {
-        return new DumperSettings(settings);
+    public static Builder builder(DumpSettingsBuilder builder) {
+        return new Builder(builder);
     }
 
     public static class Builder {
@@ -63,8 +59,8 @@ public class DumperSettings {
         private Supplier<AnchorGenerator> anchorGeneratorSupplier;
         private boolean resetAnchorGenerator;
 
-        private Builder() {
-            this.builder = DumpSettings.builder();
+        private Builder(DumpSettingsBuilder builder) {
+            this.builder = builder;
         }
 
         public Builder setAnchorGenerator(Supplier<AnchorGenerator> generator, boolean reset) {

@@ -1,6 +1,5 @@
 package com.davidcubesvk.yamlUpdater.backend;
 
-import com.davidcubesvk.yamlUpdater.core.YamlUpdaterCore;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 

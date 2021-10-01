@@ -1,4 +1,4 @@
-package com.davidcubesvk.yamlUpdater.core.settings;
+package com.davidcubesvk.yamlUpdater.core.utils.exception;
 
 public class VersioningException extends Exception {
 

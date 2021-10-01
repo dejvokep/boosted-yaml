@@ -5,7 +5,7 @@ import org.snakeyaml.engine.v2.nodes.Node;
 
 import java.util.List;
 
-public class Block<T> {
+public abstract class Block<T> {
 
     private List<CommentLine> keyBlockComments, keyInlineComments, keyEndComments, valueBlockComments, valueInlineComments, valueEndComments;
     private T value;
@@ -53,6 +53,8 @@ public class Block<T> {
             valueEndComments = value.getEndComments();
         }
     }
+
+    public void resetComments() {}
 
     public List<CommentLine> getKeyBlockComments() {
         return keyBlockComments;

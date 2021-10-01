@@ -1,10 +1,10 @@
 package com.davidcubesvk.yamlUpdater.core.settings.general;
 
 import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.utils.Serializator;
-import com.davidcubesvk.yamlUpdater.core.utils.ListSupplier;
-import com.davidcubesvk.yamlUpdater.core.utils.MapSupplier;
-import com.davidcubesvk.yamlUpdater.core.utils.SetSupplier;
+import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
+import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
+import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
+import com.davidcubesvk.yamlUpdater.core.utils.supplier.SetSupplier;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -23,6 +23,7 @@ public class GeneralSettings {
      * The default path (key) separator.
      */
     public static final char DEFAULT_SEPARATOR = '.';
+    public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_SEPARATOR));
     public static final PathMode DEFAULT_PATH_MODE = PathMode.STRING_BASED;
     public static final Object DEFAULT_OBJECT = null;
     public static final Section DEFAULT_SECTION = null;
@@ -37,7 +38,7 @@ public class GeneralSettings {
     private final PathMode pathMode;
     private final char separator;
     private final String escapedSeparator;
-    private final Serializator serializator;
+    private final YamlSerializer serializer;
     private final Object defaultObject;
     private final Section defaultSection;
     private final Number defaultNumber;
@@ -53,11 +54,11 @@ public class GeneralSettings {
      *
      * @param updater the main updater class
      */
-    public GeneralSettings(PathMode pathMode, char separator, Serializator serializator, Object defaultObject, Section defaultSection, Number defaultNumber, String defaultString, char defaultChar, boolean defaultBoolean, ListSupplier defaultList, SetSupplier defaultSet, MapSupplier defaultMap) {
+    public GeneralSettings(PathMode pathMode, char separator, YamlSerializer serializer, Object defaultObject, Section defaultSection, Number defaultNumber, String defaultString, char defaultChar, boolean defaultBoolean, ListSupplier defaultList, SetSupplier defaultSet, MapSupplier defaultMap) {
         this.pathMode = pathMode;
         this.separator = separator;
         this.escapedSeparator = Pattern.quote(String.valueOf(separator));
-        this.serializator = serializator;
+        this.serializer = serializer;
         this.defaultObject = defaultObject;
         this.defaultSection = defaultSection;
         this.defaultNumber = defaultNumber;
@@ -81,8 +82,8 @@ public class GeneralSettings {
         return escapedSeparator;
     }
 
-    public Serializator getSerializator() {
-        return serializator;
+    public YamlSerializer getSerializer() {
+        return serializer;
     }
 
     public Object getDefaultObject() {
@@ -137,7 +138,7 @@ public class GeneralSettings {
     public static class Builder {
         private PathMode pathMode = DEFAULT_PATH_MODE;
         private char separator = DEFAULT_SEPARATOR;
-        private Serializator serializator = null;
+        private YamlSerializer serializer = null;
         private Object defaultObject = DEFAULT_OBJECT;
         private Section defaultSection = DEFAULT_SECTION;
         private Number defaultNumber = DEFAULT_NUMBER;
@@ -151,7 +152,7 @@ public class GeneralSettings {
         private Builder() {}
 
         public GeneralSettings build() {
-            return new GeneralSettings(pathMode, separator, serializator, defaultObject, defaultSection, defaultNumber, defaultString, defaultChar, defaultBoolean, defaultList, defaultSet, defaultMap);
+            return new GeneralSettings(pathMode, separator, serializer, defaultObject, defaultSection, defaultNumber, defaultString, defaultChar, defaultBoolean, defaultList, defaultSet, defaultMap);
         }
 
         public void setPathMode(PathMode pathMode) {
@@ -162,8 +163,8 @@ public class GeneralSettings {
             this.separator = separator;
         }
 
-        public void setSerializator(Serializator serializator) {
-            this.serializator = serializator;
+        public void setSerializer(YamlSerializer serializer) {
+            this.serializer = serializer;
         }
 
         public void setDefaultObject(Object defaultObject) {

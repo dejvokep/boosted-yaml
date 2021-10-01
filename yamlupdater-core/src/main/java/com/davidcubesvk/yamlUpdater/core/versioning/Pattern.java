@@ -1,4 +1,4 @@
-package com.davidcubesvk.yamlUpdater.core.version;
+package com.davidcubesvk.yamlUpdater.core.versioning;
 
 import java.util.stream.IntStream;
 

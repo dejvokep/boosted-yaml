@@ -1,6 +1,5 @@
 package com.davidcubesvk.yamlUpdater.proxy;
 
-import com.davidcubesvk.yamlUpdater.core.YamlUpdaterCore;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 

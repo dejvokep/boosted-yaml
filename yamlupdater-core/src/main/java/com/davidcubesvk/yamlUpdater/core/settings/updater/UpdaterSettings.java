@@ -1,7 +1,10 @@
 package com.davidcubesvk.yamlUpdater.core.settings.updater;
 
-import com.davidcubesvk.yamlUpdater.core.settings.*;
-import com.davidcubesvk.yamlUpdater.core.version.Pattern;
+import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.AutomaticVersioning;
+import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.ManualVersioning;
+import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
+import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,104 +12,135 @@ import java.util.Set;
 
 public class UpdaterSettings {
 
-    /**
-     * Default value for automatically updating disk file option.
-     */
-    public static final boolean DEFAULT_UPDATE_PHYSICAL_FILE = true;
-    public static final boolean DEFAULT_UPDATE_UNSUPPORTED_FILES = false;
+    public static final UpdaterSettings DEFAULT = builder().build();
 
+    public static final boolean DEFAULT_MANAGE_USER_FILE = true;
+    public static final boolean DEFAULT_ENABLE_DOWNGRADING = false;
+    public static final boolean DEFAULT_SILENT_ERRORS = false;
+    public static final boolean DEFAULT_FORCE_COPY_ALL = false;
     public static final Map<MergeRule, Boolean> DEFAULT_MERGE_RULES = new HashMap<MergeRule, Boolean>(){{
-        //All rules
-        for (MergeRule rule : MergeRule.values())
-            //Set to true
-            put(rule, true);
+        put(MergeRule.MAPPINGS, true);
+        put(MergeRule.MAPPING_AT_SECTION, false);
+        put(MergeRule.SECTION_AT_MAPPING, false);
     }};
+    public static final Versioning DEFAULT_VERSIONING = null;
 
-    private boolean updatePhysicalFile = DEFAULT_UPDATE_PHYSICAL_FILE;
-    private boolean updateUnsupportedFiles = DEFAULT_UPDATE_UNSUPPORTED_FILES;
-    private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
-    private final Map<String, Set<String>> forceCopy = new HashMap<>();
-    private final Map<String, Map<String, String>> relocations = new HashMap<>();
-    private Versioning versioning = null;
-    private UpdaterCallback postLoadedCallback = null, postRelocatedCallback = null;
+    //If to update disk file
+    private final boolean autoSave;
+    private final boolean enableDowngrading;
+    private final boolean silentErrors;
+    private final boolean forceCopyAll;
+    private final Map<MergeRule, Boolean> mergeRules;
+    private final Map<String, Set<Path>> forceCopy;
+    private final Map<String, Map<Path, Path>> relocations;
+    private final Versioning versioning;
 
-    public UpdaterSettings setUpdatePhysicalFile(boolean updatePhysicalFile) {
-        this.updatePhysicalFile = updatePhysicalFile;
-        return this;
+    public UpdaterSettings(Builder builder) {
+        this.autoSave = builder.autoSave;
+        this.enableDowngrading = builder.enableDowngrading;
+        this.silentErrors = builder.silentErrors;
+        this.forceCopyAll = builder.forceCopyAll;
+        this.mergeRules = builder.mergeRules;
+        this.forceCopy = builder.forceCopy;
+        this.relocations = builder.relocations;
+        this.versioning = builder.versioning;
     }
 
-    public void setUpdateUnsupportedFiles(boolean updateUnsupportedFiles) {
-        this.updateUnsupportedFiles = updateUnsupportedFiles;
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public UpdaterSettings setMergeRules(Map<MergeRule, Boolean> mergeRules) {
-        this.mergeRules.putAll(mergeRules);
-        return this;
-    }
+    public static class Builder {
 
-    public UpdaterSettings setMergeRule(MergeRule rule, boolean preserveUser) {
-        this.mergeRules.put(rule, preserveUser);
-        return this;
-    }
+        private boolean autoSave = DEFAULT_MANAGE_USER_FILE;
+        private boolean enableDowngrading = DEFAULT_ENABLE_DOWNGRADING;
+        private boolean silentErrors = DEFAULT_SILENT_ERRORS;
+        private boolean forceCopyAll = DEFAULT_FORCE_COPY_ALL;
+        private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
+        private final Map<String, Set<Path>> forceCopy = new HashMap<>();
+        private final Map<String, Map<Path, Path>> relocations = new HashMap<>();
+        private Versioning versioning = DEFAULT_VERSIONING;
 
-    public UpdaterSettings setForceCopy(Map<String, Set<String>> forceCopy) {
-        this.forceCopy.putAll(forceCopy);
-        return this;
-    }
+        private Builder() {
+        }
 
-    public UpdaterSettings setForceCopy(String versionId, Set<String> paths) {
-        this.forceCopy.put(versionId, paths);
-        return this;
-    }
+        public Builder setAutoSave(boolean autoSave) {
+            this.autoSave = autoSave;
+            return this;
+        }
 
-    public UpdaterSettings setRelocations(Map<String, Map<String, String>> relocations) {
-        this.relocations.putAll(relocations);
-        return this;
-    }
+        public Builder setEnableDowngrading(boolean enableDowngrading) {
+            this.enableDowngrading = enableDowngrading;
+            return this;
+        }
 
-    public UpdaterSettings setRelocations(String versionId, Map<String, String> relocations) {
-        this.relocations.put(versionId, relocations);
-        return this;
-    }
+        public Builder setForceCopyAll(boolean forceCopyAll) {
+            this.forceCopyAll = forceCopyAll;
+            return this;
+        }
 
-    public UpdaterSettings setVersioning(Versioning versioning) {
-        this.versioning = versioning;
-        return this;
-    }
+        public Builder setSilentErrors(boolean silentErrors) {
+            this.silentErrors = silentErrors;
+            return this;
+        }
 
-    public UpdaterSettings setVersioning(Pattern pattern, String userFileVersionId, String defaultFileVersionId) {
-        setVersioning(new ManualVersioning(pattern, userFileVersionId, defaultFileVersionId));
-        return this;
-    }
+        public Builder setMergeRules(Map<MergeRule, Boolean> mergeRules) {
+            this.mergeRules.putAll(mergeRules);
+            return this;
+        }
 
-    public UpdaterSettings setVersioning(Pattern pattern, String path) {
-        setVersioning(new AutomaticVersioning(pattern, path));
-        return this;
-    }
+        public Builder setMergeRule(MergeRule rule, boolean preserveUser) {
+            this.mergeRules.put(rule, preserveUser);
+            return this;
+        }
 
-    public UpdaterSettings setPostLoadedCallback(UpdaterCallback postLoadedCallback) {
-        this.postLoadedCallback = postLoadedCallback;
-        return this;
-    }
+        public Builder setForceCopy(Map<String, Set<Path>> forceCopy) {
+            this.forceCopy.putAll(forceCopy);
+            return this;
+        }
 
-    public UpdaterSettings setPostRelocatedCallback(UpdaterCallback postRelocatedCallback) {
-        this.postRelocatedCallback = postRelocatedCallback;
-        return this;
-    }
+        public Builder setForceCopy(String versionId, Set<Path> paths) {
+            this.forceCopy.put(versionId, paths);
+            return this;
+        }
 
-    public boolean isUpdatePhysicalFile() {
-        return updatePhysicalFile;
+        public Builder setRelocations(Map<String, Map<Path, Path>> relocations) {
+            this.relocations.putAll(relocations);
+            return this;
+        }
+
+        public Builder setRelocations(String versionId, Map<Path, Path> relocations) {
+            this.relocations.put(versionId, relocations);
+            return this;
+        }
+
+        public Builder setVersioning(Versioning versioning) {
+            this.versioning = versioning;
+            return this;
+        }
+
+        public Builder setVersioning(Pattern pattern, String userFileVersionId, String defaultFileVersionId) {
+            return setVersioning(new ManualVersioning(pattern, userFileVersionId, defaultFileVersionId));
+        }
+
+        public Builder setVersioning(Pattern pattern, String path) {
+            return setVersioning(new AutomaticVersioning(pattern, path));
+        }
+
+        public UpdaterSettings build() {
+            return new UpdaterSettings(this);
+        }
     }
 
     public Map<MergeRule, Boolean> getMergeRules() {
         return mergeRules;
     }
 
-    public Map<String, Set<String>> getForceCopy() {
+    public Map<String, Set<Path>> getForceCopy() {
         return forceCopy;
     }
 
-    public Map<String, Map<String, String>> getRelocations() {
+    public Map<String, Map<Path, Path>> getRelocations() {
         return relocations;
     }
 
@@ -114,11 +148,19 @@ public class UpdaterSettings {
         return versioning;
     }
 
-    public UpdaterCallback getPostLoadedCallback() {
-        return postLoadedCallback;
+    public boolean isEnableDowngrading() {
+        return enableDowngrading;
     }
 
-    public UpdaterCallback getPostRelocatedCallback() {
-        return postRelocatedCallback;
+    public boolean isSilentErrors() {
+        return silentErrors;
+    }
+
+    public boolean isForceCopyAll() {
+        return forceCopyAll;
+    }
+
+    public boolean isAutoSave() {
+        return autoSave;
     }
 }

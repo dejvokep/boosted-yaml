@@ -1,9 +1,12 @@
-package com.davidcubesvk.yamlUpdater.core.reader;
+package com.davidcubesvk.yamlUpdater.core.engine;
 
 import com.davidcubesvk.yamlUpdater.core.block.Block;
-import com.davidcubesvk.yamlUpdater.core.block.Mapping;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
+import com.davidcubesvk.yamlUpdater.core.utils.serialization.Serializable;
+import com.davidcubesvk.yamlUpdater.core.utils.serialization.Serializer;
+import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
 import org.snakeyaml.engine.v2.api.DumpSettings;
+import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.FlowStyle;
 import org.snakeyaml.engine.v2.nodes.*;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
@@ -14,27 +17,40 @@ import java.util.Map;
 
 public class FullRepresenter extends StandardRepresenter {
 
-    public FullRepresenter(DumpSettings settings) {
+    private YamlSerializer serializer;
+
+    public FullRepresenter(DumpSettings settings, YamlSerializer serializer) {
+        //Call the superclass constructor
         super(settings);
+        //Set
+        this.serializer = serializer;
+        //Add representers
+        super.representers.put(Section.class, new RepresentSection());
+        super.parentClassRepresenters.put(Serializable.class, new RepresentSerializable());
     }
 
-    @Override
-    public Node represent(Object data) {
-        //If instance of section
-        if (data instanceof Section)
-            return representSection((Section) data);
-        //Return
-        return super.represent(data);
+    private class RepresentSerializable implements RepresentToNode {
+
+        @Override
+        public Node representData(Object o) {
+            return FullRepresenter.this.representData(serializer.serialize(o));
+        }
+
     }
 
-    public Node representSection(Section section) {
-        return representMapping(getTag(section.getValue().getClass(), Tag.MAP), section.getValue(),
-                FlowStyle.AUTO);
+    private class RepresentSection implements RepresentToNode {
+
+        @Override
+        public Node representData(Object o) {
+            //Cast
+            Section section = (Section) o;
+            //Return
+            return applyKeyComments(section, FullRepresenter.this.representData(section.getValue()));
+        }
+
     }
 
-    public Node representKeyNode(Block<?> block, Object instance) {
-        //Represent
-        Node node = representData(instance);
+    public Node applyKeyComments(Block<?> block, Node node) {
         //If not null
         if (block != null) {
             //Set
@@ -46,9 +62,7 @@ public class FullRepresenter extends StandardRepresenter {
         return node;
     }
 
-    public Node representValueNode(Block<?> block, Object instance) {
-        //Represent
-        Node node = representData(instance);
+    public Node applyValueComments(Block<?> block, Node node) {
         //If not null
         if (block != null) {
             //Set
@@ -71,8 +85,9 @@ public class FullRepresenter extends StandardRepresenter {
             // ----- YamlLib start -----
             //Block
             Block<?> block = entry.getValue() instanceof Block<?> ? (Block<?>) entry.getValue() : null;
-            Node nodeKey = representKeyNode(block, entry.getKey());
-            Node nodeValue = representValueNode(block, entry.getValue());
+            //Represent nodes
+            Node nodeKey = applyKeyComments(block, representData(entry.getKey()));
+            Node nodeValue = applyValueComments(block, representData(entry.getKey()));
             // ----- YamlLib end -----
             if (!(nodeKey instanceof ScalarNode && ((ScalarNode) nodeKey).isPlain())) {
                 bestStyle = FlowStyle.BLOCK;

@@ -1,8 +1,8 @@
 package com.davidcubesvk.yamlUpdater.core.block;
 
-import com.davidcubesvk.yamlUpdater.core.files.Path;
-import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.reader.AccessibleConstructor;
+import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.YamlFile;
+import com.davidcubesvk.yamlUpdater.core.engine.AccessibleConstructor;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import org.snakeyaml.engine.v2.nodes.*;
 
@@ -10,8 +10,8 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Consumer;
 
-import static com.davidcubesvk.yamlUpdater.core.utils.NumericConversions.*;
-import static com.davidcubesvk.yamlUpdater.core.utils.ListConversions.*;
+import static com.davidcubesvk.yamlUpdater.core.utils.conversion.NumericConversions.*;
+import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions.*;
 
 /**
  * An extension of the {@link } class used to represent a section.
@@ -89,6 +89,25 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
     }
 
+    public boolean isEmpty(boolean deep) {
+        //If no values are present
+        if (getValue().size() == 0)
+            return true;
+        //If not deep
+        if (!deep)
+            return false;
+
+        //Loop through all values
+        for (Block<?> value : getValue().values()) {
+            //If a mapping or non empty section
+            if (value instanceof Mapping || (value instanceof Section && !((Section) value).isEmpty(true)))
+                return false;
+        }
+
+        //Empty
+        return true;
+    }
+
     public Object adaptKey(Object key) {
         return root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
     }
@@ -100,6 +119,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
         addData((entry) -> keys.add(path.add(entry.getKey())), deep);
         //Return
         return keys;
+    }
+
+    public Set<Object> getKeys() {
+        return new HashSet<>(getValue().keySet());
     }
 
     public Map<Path, Object> getValues(boolean deep) {
@@ -131,6 +154,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
     }
 
+    public boolean isRoot() {
+        return false;
+    }
+
     public boolean contains(Path path) {
         return getSafe(path).isPresent();
     }
@@ -157,20 +184,37 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
 
         //The block at the key
-        Block<?> block = getValue().get(path.getKey(i));
+        Block<?> block = getValue().getOrDefault(path.getKey(i), null);
         //If null
         if (block == null || block instanceof Mapping)
-            createSection(key, block);
-        //Call subsection
-        getSection(path).setInternal(path, value, i + 1);
+            //Create
+            createSection(key, block).setInternal(path, value, i + 1);
+        else
+            //Call subsection
+            ((Section) block).setInternal(path, value, i + 1);
     }
 
-    public void createSection(Object key) {
-        createSection(key, null);
+    public Section createSection(Path path) {
+        //Current section
+        Section current = this;
+        //All keys
+        for (int i = 0; i < path.getLength(); i++)
+            //Create
+            current = current.createSection(path.getKey(i));
+        //Return
+        return current;
     }
 
-    private void createSection(Object key, Block<?> previous) {
-        getValue().put(key, new Section(root, this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap()));
+    public Section createSection(Object key) {
+        return createSection(key, null);
+    }
+
+    public Section createSection(Object key, Block<?> previous) {
+       return getSectionSafe(key).orElseGet(() -> {
+           Section section = new Section(root, Section.this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap());
+           getValue().put(key, section);
+           return section;
+       });
     }
 
     public void set(Path path, Object value) {
@@ -221,10 +265,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Optional<Block<?>> getBlock(Path path) {
-        return getSafeInternal(path, 0);
+        return getSafeInternal(path, 0, false);
     }
 
     public Optional<Block<?>> getBlock(Object key) {
+        //If is string mode and contains sub-key
+        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
+            //Return
+            return getSafeInternalString(key.toString(), 0, false);
         //If does not contain
         if (!getValue().containsKey(key))
             return Optional.empty();
@@ -233,24 +281,41 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return Optional.of(getValue().get(key));
     }
 
-    private Optional<Block<?>> getSafeInternalString(String path, int i) {
-        //Next separator
-        int next = path.indexOf(i+1, root.getGeneralSettings().getSeparator());
-        //If -1
-        if (next == -1)
-            return getBlock(path.substring(i));
-        //Call subsection
-        return getSectionSafe(path.substring(i, next)).flatMap(section -> section.getSafeInternalString(path, next));
+    public Optional<Section> getParent(Path path) {
+        return getSafeInternal(path, 0, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
-    private Optional<Block<?>> getSafeInternal(Path path, int i) {
+    public Optional<Section> getParent(Object key) {
+        //If is string mode and contains sub-key
+        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
+            //Return
+            return getSafeInternalString(key.toString(), 0, true).map(block -> block instanceof Section ? (Section) block : null);
+        //If does not contain
+        if (!getValue().containsKey(key))
+            return Optional.empty();
+
+        //Return
+        return Optional.of(getValue().get(key)).map(block -> block instanceof Section ? (Section) block : null);
+    }
+
+    private Optional<Block<?>> getSafeInternalString(String path, int i, boolean parent) {
+        //Next separator
+        int next = path.indexOf(i + 1, root.getGeneralSettings().getSeparator());
+        //If -1
+        if (next == -1)
+            return parent ? Optional.of(this) : getBlock(path.substring(i));
+        //Call subsection
+        return getSectionSafe(path.substring(i, next)).flatMap(section -> section.getSafeInternalString(path, next, parent));
+    }
+
+    private Optional<Block<?>> getSafeInternal(Path path, int i, boolean parent) {
         //If length is 0
         if (path.getLength() == 0)
             return Optional.of(this);
 
         //If at last index
         if (i + 1 >= path.getLength())
-            return getBlock(path.getKey(i));
+            return parent ? Optional.of(this) : getBlock(path.getKey(i));
 
         //Section
         Optional<Block<?>> section = getBlock(path.getKey(i));
@@ -261,18 +326,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
         if (!(section.get() instanceof Section))
             return Optional.empty();
         //Return
-        return ((Section) section.get()).getSafeInternal(path, i + 1);
+        return ((Section) section.get()).getSafeInternal(path, i + 1, parent);
     }
 
     public Optional<Object> getSafe(Path path) {
-        return getSafeInternal(path, 0).map(Block::getValue);
+        return getSafeInternal(path, 0, false).map(Block::getValue);
     }
 
     public Optional<Object> getSafe(Object key) {
         //If is string mode and contains sub-key
         if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
             //Return
-            return getSafeInternalString(key.toString(), 0).map(Block::getValue);
+            return getSafeInternalString(key.toString(), 0, false).map(Block::getValue);
         //If does not contain
         if (!getValue().containsKey(key))
             return Optional.empty();

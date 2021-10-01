@@ -1,4 +1,4 @@
-package com.davidcubesvk.yamlUpdater.core.files;
+package com.davidcubesvk.yamlUpdater.core.path;
 
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 

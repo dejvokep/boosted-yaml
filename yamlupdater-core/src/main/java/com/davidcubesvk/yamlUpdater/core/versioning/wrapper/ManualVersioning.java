@@ -1,8 +1,8 @@
-package com.davidcubesvk.yamlUpdater.core.settings;
+package com.davidcubesvk.yamlUpdater.core.versioning.wrapper;
 
-import com.davidcubesvk.yamlUpdater.core.files.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.version.Pattern;
-import com.davidcubesvk.yamlUpdater.core.version.Version;
+import com.davidcubesvk.yamlUpdater.core.YamlFile;
+import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
+import com.davidcubesvk.yamlUpdater.core.versioning.Version;
 
 public class ManualVersioning implements Versioning {
 

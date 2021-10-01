@@ -13,30 +13,55 @@ import java.util.Optional;
 
 public class LoaderSettings {
 
-    private final LoadSettingsBuilder builder;
+    public static final LoaderSettings DEFAULT = builder().build();
+    public static final boolean DEFAULT_CREATE_FILE_IF_ABSENT = true;
+    public static final boolean DEFAULT_AUTO_UPDATE = true;
 
-    private LoaderSettings(LoadSettingsBuilder builder) {
-        this.builder = builder;
+    private final LoadSettingsBuilder builder;
+    private final boolean createFileIfAbsent, autoUpdate;
+
+    private LoaderSettings(Builder builder) {
+        this.builder = builder.builder;
+        this.autoUpdate = builder.autoUpdate;
+        this.createFileIfAbsent = builder.createFileIfAbsent;
+    }
+
+    public boolean isAutoUpdate() {
+        return autoUpdate;
+    }
+
+    public boolean isCreateFileIfAbsent() {
+        return createFileIfAbsent;
     }
 
     public LoadSettings getSettings(GeneralSettings generalSettings) {
-        return this.builder.setDefaultList(generalSettings::getDefaultList).setDefaultSet(generalSettings::getDefaultSet).setDefaultMap(generalSettings::getDefaultMap).build();
+        return this.builder.setParseComments(true).setDefaultList(generalSettings::getDefaultList).setDefaultSet(generalSettings::getDefaultSet).setDefaultMap(generalSettings::getDefaultMap).build();
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new Builder(LoadSettings.builder());
     }
-
-    public static LoaderSettings from(LoadSettingsBuilder builder) {
-        return new LoaderSettings(builder);
+    public static Builder builder(LoadSettingsBuilder builder) {
+        return new Builder(builder);
     }
 
     public static class Builder {
 
         private final LoadSettingsBuilder builder;
+        private boolean autoUpdate, createFileIfAbsent;
 
-        private Builder() {
-            this.builder = LoadSettings.builder();
+        private Builder(LoadSettingsBuilder builder) {
+            this.builder = builder.setParseComments(true);
+            this.autoUpdate = DEFAULT_AUTO_UPDATE;
+            this.createFileIfAbsent = DEFAULT_CREATE_FILE_IF_ABSENT;
+        }
+
+        public void setCreateFileIfAbsent(boolean createFileIfAbsent) {
+            this.createFileIfAbsent = createFileIfAbsent;
+        }
+
+        public void setAutoUpdate(boolean autoUpdate) {
+            this.autoUpdate = autoUpdate;
         }
 
         public Builder setLabel(String label) {
@@ -80,7 +105,7 @@ public class LoaderSettings {
         }
 
         public LoaderSettings build() {
-            return new LoaderSettings(builder);
+            return new LoaderSettings(this);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.davidcubesvk.yamlUpdater.core.utils;
+package com.davidcubesvk.yamlUpdater.core.utils.supplier;
 
 import java.util.List;
 import java.util.Set;

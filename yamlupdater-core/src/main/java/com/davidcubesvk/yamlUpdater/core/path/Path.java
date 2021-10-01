@@ -1,4 +1,4 @@
-package com.davidcubesvk.yamlUpdater.core.files;
+package com.davidcubesvk.yamlUpdater.core.path;
 
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 
@@ -39,5 +39,8 @@ public class Path {
         path[path.length - 1] = element;
         //Return
         return new Path(path);
+    }
+    public Path parent() {
+        return new Path(Arrays.copyOf(this.path, this.path.length - 1));
     }
 }
