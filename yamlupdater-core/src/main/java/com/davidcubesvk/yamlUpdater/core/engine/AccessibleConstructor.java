@@ -8,13 +8,14 @@ import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.Tag;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
 public class AccessibleConstructor extends StandardConstructor {
 
     private static Field CONSTRUCTED_MAP;
-    private YamlSerializer serializer;
-    private Map<Node, Object> constructed;
+    private final YamlSerializer serializer;
+    private final Map<Node, Object> constructed = new HashMap<>();
 
     public AccessibleConstructor(LoadSettings settings, YamlSerializer serializer) {
         //Call the superclass constructor
@@ -23,13 +24,22 @@ public class AccessibleConstructor extends StandardConstructor {
         this.serializer = serializer;
         //Add constructors
         tagConstructors.put(Tag.MAP, new ConstructMap((ConstructYamlMap) tagConstructors.get(Tag.MAP)));
+    }
 
-        //Try to get
-        try {
-            constructed = (Map<Node, Object>) CONSTRUCTED_MAP.get(this);
-        } catch (IllegalAccessException ex) {
-            ex.printStackTrace();
-        }
+    @Override
+    protected Object construct(Node node) {
+        Object o = super.construct(node);
+        constructed.put(node, o);
+        System.out.println("CONSTRUCTED: " + node.toString() + " > " + o.toString());
+        return o;
+    }
+
+    @Override
+    protected Object constructObjectNoCheck(Node node) {
+        Object o = super.constructObjectNoCheck(node);
+        constructed.put(node, o);
+        System.out.println("CONSTRUCTED NO CHECK: " + node.toString() + " > " + o.toString());
+        return o;
     }
 
     public Map<Node, Object> getConstructed() {

@@ -83,7 +83,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Loop through all mappings
         for (NodeTuple tuple : valueNode.getValue()) {
             //Key and value
+            System.out.println(constructor.getConstructed());
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
+            System.out.println("KEY: " + key + "VALUE: " + value);
             //Add
             getValue().put(key, value instanceof Map ? new Section(root, this, key, path.add(key), tuple.getKeyNode(), (MappingNode) tuple.getValueNode(), constructor) : new Mapping(tuple.getKeyNode(), tuple.getValueNode(), value));
         }

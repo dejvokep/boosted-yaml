@@ -25,7 +25,7 @@ public class FullRepresenter extends StandardRepresenter {
         //Set
         this.serializer = serializer;
         //Add representers
-        super.representers.put(Section.class, new RepresentSection());
+        super.parentClassRepresenters.put(Section.class, new RepresentSection());
         super.parentClassRepresenters.put(Serializable.class, new RepresentSerializable());
     }
 
@@ -87,7 +87,7 @@ public class FullRepresenter extends StandardRepresenter {
             Block<?> block = entry.getValue() instanceof Block<?> ? (Block<?>) entry.getValue() : null;
             //Represent nodes
             Node nodeKey = applyKeyComments(block, representData(entry.getKey()));
-            Node nodeValue = applyValueComments(block, representData(entry.getKey()));
+            Node nodeValue = applyValueComments(block, representData(block == null ? entry.getValue() : block.getValue()));
             // ----- YamlLib end -----
             if (!(nodeKey instanceof ScalarNode && ((ScalarNode) nodeKey).isPlain())) {
                 bestStyle = FlowStyle.BLOCK;

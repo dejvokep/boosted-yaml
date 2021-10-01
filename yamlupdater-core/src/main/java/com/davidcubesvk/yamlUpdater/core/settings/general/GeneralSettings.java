@@ -1,6 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core.settings.general;
 
 import com.davidcubesvk.yamlUpdater.core.block.Section;
+import com.davidcubesvk.yamlUpdater.core.utils.serialization.Serializer;
 import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
@@ -25,6 +26,7 @@ public class GeneralSettings {
     public static final char DEFAULT_SEPARATOR = '.';
     public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_SEPARATOR));
     public static final PathMode DEFAULT_PATH_MODE = PathMode.STRING_BASED;
+    public static final YamlSerializer DEFAULT_SERIALIZER = new Serializer("==");
     public static final Object DEFAULT_OBJECT = null;
     public static final Section DEFAULT_SECTION = null;
     public static final Number DEFAULT_NUMBER = 0;
@@ -43,8 +45,8 @@ public class GeneralSettings {
     private final Section defaultSection;
     private final Number defaultNumber;
     private final String defaultString;
-    private final char defaultChar;
-    private final boolean defaultBoolean;
+    private final Character defaultChar;
+    private final Boolean defaultBoolean;
     private final ListSupplier defaultList;
     private final SetSupplier defaultSet;
     private final MapSupplier defaultMap;
@@ -52,22 +54,21 @@ public class GeneralSettings {
     /**
      * Initializes the settings with data (to be more specific, disk folder and class loader) from the given main class.
      *
-     * @param updater the main updater class
      */
-    public GeneralSettings(PathMode pathMode, char separator, YamlSerializer serializer, Object defaultObject, Section defaultSection, Number defaultNumber, String defaultString, char defaultChar, boolean defaultBoolean, ListSupplier defaultList, SetSupplier defaultSet, MapSupplier defaultMap) {
-        this.pathMode = pathMode;
-        this.separator = separator;
+    public GeneralSettings(Builder builder) {
+        this.pathMode = builder.pathMode;
+        this.separator = builder.separator;
         this.escapedSeparator = Pattern.quote(String.valueOf(separator));
-        this.serializer = serializer;
-        this.defaultObject = defaultObject;
-        this.defaultSection = defaultSection;
-        this.defaultNumber = defaultNumber;
-        this.defaultString = defaultString;
-        this.defaultChar = defaultChar;
-        this.defaultBoolean = defaultBoolean;
-        this.defaultList = defaultList;
-        this.defaultSet = defaultSet;
-        this.defaultMap = defaultMap;
+        this.serializer = builder.serializer;
+        this.defaultObject = builder.defaultObject;
+        this.defaultSection = builder.defaultSection;
+        this.defaultNumber = builder.defaultNumber;
+        this.defaultString = builder.defaultString;
+        this.defaultChar = builder.defaultChar;
+        this.defaultBoolean = builder.defaultBoolean;
+        this.defaultList = builder.defaultList;
+        this.defaultSet = builder.defaultSet;
+        this.defaultMap = builder.defaultMap;
     }
 
     public PathMode getPathMode() {
@@ -138,7 +139,7 @@ public class GeneralSettings {
     public static class Builder {
         private PathMode pathMode = DEFAULT_PATH_MODE;
         private char separator = DEFAULT_SEPARATOR;
-        private YamlSerializer serializer = null;
+        private YamlSerializer serializer = DEFAULT_SERIALIZER;
         private Object defaultObject = DEFAULT_OBJECT;
         private Section defaultSection = DEFAULT_SECTION;
         private Number defaultNumber = DEFAULT_NUMBER;
@@ -152,55 +153,67 @@ public class GeneralSettings {
         private Builder() {}
 
         public GeneralSettings build() {
-            return new GeneralSettings(pathMode, separator, serializer, defaultObject, defaultSection, defaultNumber, defaultString, defaultChar, defaultBoolean, defaultList, defaultSet, defaultMap);
+            return new GeneralSettings(this);
         }
 
-        public void setPathMode(PathMode pathMode) {
+        public Builder setPathMode(PathMode pathMode) {
             this.pathMode = pathMode;
+            return this;
         }
 
-        public void setSeparator(char separator) {
+        public Builder setSeparator(char separator) {
             this.separator = separator;
+            return this;
         }
 
-        public void setSerializer(YamlSerializer serializer) {
+        public Builder setSerializer(YamlSerializer serializer) {
             this.serializer = serializer;
+            return this;
         }
 
-        public void setDefaultObject(Object defaultObject) {
+        public Builder setDefaultObject(Object defaultObject) {
             this.defaultObject = defaultObject;
+            return this;
         }
 
-        public void setDefaultSection(Section defaultSection) {
+        public Builder setDefaultSection(Section defaultSection) {
             this.defaultSection = defaultSection;
+            return this;
         }
 
-        public void setDefaultNumber(Number defaultNumber) {
+        public Builder setDefaultNumber(Number defaultNumber) {
             this.defaultNumber = defaultNumber;
+            return this;
         }
 
-        public void setDefaultString(String defaultString) {
+        public Builder setDefaultString(String defaultString) {
             this.defaultString = defaultString;
+            return this;
         }
 
-        public void setDefaultChar(char defaultChar) {
+        public Builder setDefaultChar(char defaultChar) {
             this.defaultChar = defaultChar;
+            return this;
         }
 
-        public void setDefaultBoolean(boolean defaultBoolean) {
+        public Builder setDefaultBoolean(boolean defaultBoolean) {
             this.defaultBoolean = defaultBoolean;
+            return this;
         }
 
-        public void setDefaultList(ListSupplier defaultList) {
+        public Builder setDefaultList(ListSupplier defaultList) {
             this.defaultList = defaultList;
+            return this;
         }
 
-        public void setDefaultSet(SetSupplier defaultSet) {
+        public Builder setDefaultSet(SetSupplier defaultSet) {
             this.defaultSet = defaultSet;
+            return this;
         }
 
-        public void setDefaultMap(MapSupplier defaultMap) {
+        public Builder setDefaultMap(MapSupplier defaultMap) {
             this.defaultMap = defaultMap;
+            return this;
         }
     }
 

@@ -56,12 +56,14 @@ public class LoaderSettings {
             this.createFileIfAbsent = DEFAULT_CREATE_FILE_IF_ABSENT;
         }
 
-        public void setCreateFileIfAbsent(boolean createFileIfAbsent) {
+        public Builder setCreateFileIfAbsent(boolean createFileIfAbsent) {
             this.createFileIfAbsent = createFileIfAbsent;
+            return this;
         }
 
-        public void setAutoUpdate(boolean autoUpdate) {
+        public Builder setAutoUpdate(boolean autoUpdate) {
             this.autoUpdate = autoUpdate;
+            return this;
         }
 
         public Builder setLabel(String label) {

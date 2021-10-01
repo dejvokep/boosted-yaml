@@ -12,8 +12,6 @@ import java.util.Set;
 
 public class UpdaterSettings {
 
-    public static final UpdaterSettings DEFAULT = builder().build();
-
     public static final boolean DEFAULT_MANAGE_USER_FILE = true;
     public static final boolean DEFAULT_ENABLE_DOWNGRADING = false;
     public static final boolean DEFAULT_SILENT_ERRORS = false;
@@ -24,6 +22,12 @@ public class UpdaterSettings {
         put(MergeRule.SECTION_AT_MAPPING, false);
     }};
     public static final Versioning DEFAULT_VERSIONING = null;
+
+    public static final UpdaterSettings DEFAULT = builder().build();
+
+    static {
+        System.out.println("Init");
+    }
 
     //If to update disk file
     private final boolean autoSave;
@@ -47,6 +51,7 @@ public class UpdaterSettings {
     }
 
     public static Builder builder() {
+        System.out.println("BUILDER: " + DEFAULT_MERGE_RULES);
         return new Builder();
     }
 
@@ -62,6 +67,7 @@ public class UpdaterSettings {
         private Versioning versioning = DEFAULT_VERSIONING;
 
         private Builder() {
+            System.out.println(DEFAULT_MERGE_RULES);
         }
 
         public Builder setAutoSave(boolean autoSave) {
