@@ -1,9 +1,9 @@
 package com.davidcubesvk.yamlUpdater.core.engine;
 
 import com.davidcubesvk.yamlUpdater.core.block.Block;
+import com.davidcubesvk.yamlUpdater.core.block.Mapping;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.utils.serialization.Serializable;
-import com.davidcubesvk.yamlUpdater.core.utils.serialization.Serializer;
 import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
@@ -25,7 +25,8 @@ public class FullRepresenter extends StandardRepresenter {
         //Set
         this.serializer = serializer;
         //Add representers
-        super.parentClassRepresenters.put(Section.class, new RepresentSection());
+        //super.parentClassRepresenters.put(Section.class, new RepresentSection());
+        super.parentClassRepresenters.put(Block.class, new RepresentBlock());
         super.parentClassRepresenters.put(Serializable.class, new RepresentSerializable());
     }
 
@@ -38,14 +39,21 @@ public class FullRepresenter extends StandardRepresenter {
 
     }
 
-    private class RepresentSection implements RepresentToNode {
+    private class RepresentBlock implements RepresentToNode {
 
         @Override
         public Node representData(Object o) {
-            //Cast
-            Section section = (Section) o;
-            //Return
-            return applyKeyComments(section, FullRepresenter.this.representData(section.getValue()));
+            //If a section
+            if (o instanceof Section) {
+                //Cast
+                Section section = (Section) o;
+                //Return
+                return applyKeyComments(section, FullRepresenter.this.representData(section.getValue()));
+            }
+
+            //Mapping
+            Mapping mapping = (Mapping) o;
+            return null;
         }
 
     }
@@ -82,9 +90,12 @@ public class FullRepresenter extends StandardRepresenter {
         representedObjects.put(objectToRepresent, node);
         FlowStyle bestStyle = FlowStyle.FLOW;
         for (Map.Entry<?, ?> entry : mapping.entrySet()) {
+            System.out.println("Representing entry: " + entry.getKey() + " " + entry.getValue());
             // ----- YamlLib start -----
             //Block
-            Block<?> block = entry.getValue() instanceof Block<?> ? (Block<?>) entry.getValue() : null;
+            Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
+            System.out.println("block = " + block + ", representing = " + (block == null ? entry.getValue() : block.getValue()));
+            System.out.println((block == null ? "no block provided" : block.getValue()));
             //Represent nodes
             Node nodeKey = applyKeyComments(block, representData(entry.getKey()));
             Node nodeValue = applyValueComments(block, representData(block == null ? entry.getValue() : block.getValue()));

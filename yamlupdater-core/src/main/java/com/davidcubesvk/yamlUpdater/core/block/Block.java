@@ -29,6 +29,11 @@ public abstract class Block<T> {
         if (previous == null)
             return;
 
+        if (value instanceof Mapping) {
+            System.out.println("MAPPING AS VALUE! " + previous + " " + value);
+            throw new IllegalArgumentException("Mapping as value!");
+        }
+
         //Set
         this.keyBlockComments = previous.keyBlockComments;
         this.keyInlineComments = previous.keyInlineComments;

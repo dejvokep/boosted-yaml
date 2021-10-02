@@ -239,6 +239,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
         if (value == null)
             remove(key);
 
+        System.out.println("SETTING " + value + " at key=" + key);
+
         //If a section
         if (value instanceof Section) {
             //Cast
@@ -251,6 +253,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         } else if (value instanceof Mapping) {
             //Set
             getValue().put(key, (Mapping) value);
+            return;
         }
 
         //If a map

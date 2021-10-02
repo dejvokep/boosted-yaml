@@ -13,5 +13,6 @@ public class Mapping extends Block<Object> {
 
     public Mapping(Block<?> previous, Object value) {
         super(previous, value);
+        System.out.println("Mapping.java constructor 2: " + previous + " val=" + value);
     }
 }

@@ -34,8 +34,6 @@ public class Merger {
      *
      * @param userFile        the disk (old, to be updated) file
      * @param resourceFile    the resource (latest) file
-     * @param resourceMap YAML map representation of the resource file (must match the resource file)
-     * @param indents     amount of indents (spaces) per each hierarchy level
      * @return the merged file as a string
      */
     public static void merge(YamlFile userFile, YamlFile resourceFile, UpdaterSettings settings, Set<Path> forceCopy) {
@@ -65,8 +63,13 @@ public class Merger {
                     return;
                 }
 
+                System.out.println(entry.getKey() + ": USER=" + userBlock + " (value=" + userBlock.getValue() + "), DEFAULT=" + defBlock + " (value=" + defBlock.getValue() + ")");
                 //Set preserved value
                 userSection.set(key, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
+                System.out.println("merge rule preserve user=" + (settings.getMergeRules().get(MergeRule.getFor(isUserBlockSection, isDefBlockSection))));
+                System.out.println(entry.getKey() + " preserving " + userSection.get(key) + userSection.getBlock(key).get().getValue());
+                System.out.println();
+                return;
             }
 
             //Set cloned
@@ -124,6 +127,7 @@ public class Merger {
         //Construct
         constructor.constructSingleDocument(Optional.of(represented));
 
+        System.out.println("Cloning Mapping: " + mapping + " with value=" + mapping.getValue() + " to=" + constructor.getConstructed().get(represented));
         //Create
         return new Mapping(mapping, constructor.getConstructed().get(represented));
     }
