@@ -2,8 +2,8 @@ package com.davidcubesvk.yamlUpdater.core;
 
 import com.davidcubesvk.yamlUpdater.core.block.*;
 import com.davidcubesvk.yamlUpdater.core.updater.Updater;
-import com.davidcubesvk.yamlUpdater.core.engine.AccessibleConstructor;
-import com.davidcubesvk.yamlUpdater.core.engine.FullRepresenter;
+import com.davidcubesvk.yamlUpdater.core.engine.LibConstructor;
+import com.davidcubesvk.yamlUpdater.core.engine.LibRepresenter;
 import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
@@ -141,7 +141,7 @@ public class YamlFile extends Section {
         //Create the settings
         LoadSettings settings = loaderSettings.getSettings(generalSettings);
         //Create the constructor
-        AccessibleConstructor constructor = new AccessibleConstructor(settings, generalSettings.getSerializer());
+        LibConstructor constructor = new LibConstructor(settings, generalSettings.getSerializer());
         //Create the parser and composer
         Parser parser = new ParserImpl(settings, new StreamReader(settings, new YamlUnicodeReader(inputStream)));
         Composer composer = new Composer(settings, parser);
@@ -283,7 +283,7 @@ public class YamlFile extends Section {
         //Output
         SerializedStream stream = new SerializedStream();
         //Create the representer
-        BaseRepresenter representer = new FullRepresenter(settings, generalSettings.getSerializer());
+        BaseRepresenter representer = new LibRepresenter(settings, generalSettings.getSerializer());
 
         //Serializer
         Serializer serializer = new Serializer(settings, new Emitter(settings, stream));

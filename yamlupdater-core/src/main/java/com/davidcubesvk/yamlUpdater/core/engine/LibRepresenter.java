@@ -1,9 +1,8 @@
 package com.davidcubesvk.yamlUpdater.core.engine;
 
 import com.davidcubesvk.yamlUpdater.core.block.Block;
-import com.davidcubesvk.yamlUpdater.core.block.Mapping;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.utils.serialization.Serializable;
+import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
@@ -15,26 +14,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FullRepresenter extends StandardRepresenter {
+public class LibRepresenter extends StandardRepresenter {
 
-    private YamlSerializer serializer;
+    private final GeneralSettings generalSettings;
+    private final YamlSerializer serializer;
 
-    public FullRepresenter(DumpSettings settings, YamlSerializer serializer) {
+    public LibRepresenter(GeneralSettings generalSettings, DumpSettings dumpSettings, YamlSerializer serializer) {
         //Call the superclass constructor
-        super(settings);
+        super(dumpSettings);
         //Set
+        this.generalSettings = generalSettings;
         this.serializer = serializer;
         //Add representers
-        //super.parentClassRepresenters.put(Section.class, new RepresentSection());
-        super.parentClassRepresenters.put(Block.class, new RepresentBlock());
-        super.parentClassRepresenters.put(Serializable.class, new RepresentSerializable());
+        super.parentClassRepresenters.put(Section.class, new RepresentBlock());
+        super.parentClassRepresenters.put(serializer.getSerializableClass(), new RepresentSerializable());
     }
 
     private class RepresentSerializable implements RepresentToNode {
 
         @Override
         public Node representData(Object o) {
-            return FullRepresenter.this.representData(serializer.serialize(o));
+            return LibRepresenter.this.representData(serializer.serialize(o, generalSettings.getDefaultMapSupplier()));
         }
 
     }
@@ -43,17 +43,10 @@ public class FullRepresenter extends StandardRepresenter {
 
         @Override
         public Node representData(Object o) {
-            //If a section
-            if (o instanceof Section) {
-                //Cast
-                Section section = (Section) o;
-                //Return
-                return applyKeyComments(section, FullRepresenter.this.representData(section.getValue()));
-            }
-
-            //Mapping
-            Mapping mapping = (Mapping) o;
-            return null;
+            //Cast
+            Section section = (Section) o;
+            //Return
+            return applyKeyComments(section, LibRepresenter.this.representData(section.getValue()));
         }
 
     }

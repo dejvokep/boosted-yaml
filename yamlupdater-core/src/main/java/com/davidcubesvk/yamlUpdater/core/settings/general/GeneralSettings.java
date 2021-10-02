@@ -132,6 +132,10 @@ public class GeneralSettings {
         return getDefaultMap(0);
     }
 
+    public MapSupplier getDefaultMapSupplier() {
+        return defaultMap;
+    }
+
     public static Builder builder() {
         return new Builder();
     }

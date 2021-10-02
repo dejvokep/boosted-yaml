@@ -2,22 +2,19 @@ package com.davidcubesvk.yamlUpdater.core.engine;
 
 import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
 import org.snakeyaml.engine.v2.api.LoadSettings;
-import org.snakeyaml.engine.v2.constructor.BaseConstructor;
 import org.snakeyaml.engine.v2.constructor.StandardConstructor;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.Tag;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AccessibleConstructor extends StandardConstructor {
+public class LibConstructor extends StandardConstructor {
 
-    private static Field CONSTRUCTED_MAP;
     private final YamlSerializer serializer;
     private final Map<Node, Object> constructed = new HashMap<>();
 
-    public AccessibleConstructor(LoadSettings settings, YamlSerializer serializer) {
+    public LibConstructor(LoadSettings settings, YamlSerializer serializer) {
         //Call the superclass constructor
         super(settings);
         //Set
@@ -50,7 +47,7 @@ public class AccessibleConstructor extends StandardConstructor {
 
     private class ConstructMap extends ConstructYamlMap {
 
-        private ConstructYamlMap previous;
+        private final ConstructYamlMap previous;
 
         private ConstructMap(ConstructYamlMap previous) {
             this.previous = previous;
@@ -58,7 +55,8 @@ public class AccessibleConstructor extends StandardConstructor {
 
         @Override
         public Object construct(Node node) {
-            //Construct the map
+            //Construct the map (safe to suppress because StandardConstructor always returns Map of objects)
+            @SuppressWarnings("unchecked")
             Map<Object, Object> map = (Map<Object, Object>) previous.construct(node);
             //Deserialize
             Object deserialized = serializer.deserialize(map);
@@ -67,14 +65,5 @@ public class AccessibleConstructor extends StandardConstructor {
             return deserialized == null ? map : deserialized;
         }
 
-    }
-
-    static {
-        try {
-            CONSTRUCTED_MAP = BaseConstructor.class.getDeclaredField("constructedObjects");
-            CONSTRUCTED_MAP.setAccessible(true);
-        } catch (NoSuchFieldException ex) {
-            ex.printStackTrace();
-        }
     }
 }

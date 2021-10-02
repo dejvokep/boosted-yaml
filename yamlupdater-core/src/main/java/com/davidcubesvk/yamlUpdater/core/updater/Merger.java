@@ -4,8 +4,8 @@ import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Mapping;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.engine.AccessibleConstructor;
-import com.davidcubesvk.yamlUpdater.core.engine.FullRepresenter;
+import com.davidcubesvk.yamlUpdater.core.engine.LibConstructor;
+import com.davidcubesvk.yamlUpdater.core.engine.LibRepresenter;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.MergeRule;
@@ -102,9 +102,9 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new FullRepresenter(root.getDumperSettings().getSettings(), generalSettings.getSerializer());
+        BaseRepresenter representer = new LibRepresenter(root.getDumperSettings().getSettings(), generalSettings.getSerializer());
         //Create the constructor
-        AccessibleConstructor constructor = new AccessibleConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
+        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
         //Represent
         Node represented = representer.represent(section);
         //Construct
@@ -121,9 +121,9 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new FullRepresenter(root.getDumperSettings().getSettings(), generalSettings.getSerializer());
+        BaseRepresenter representer = new LibRepresenter(root.getDumperSettings().getSettings(), generalSettings.getSerializer());
         //Create the constructor
-        AccessibleConstructor constructor = new AccessibleConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
+        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
         //Represent
         Node represented = representer.represent(mapping.getValue());
         //Construct

@@ -2,7 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.block;
 
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.engine.AccessibleConstructor;
+import com.davidcubesvk.yamlUpdater.core.engine.LibConstructor;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import org.snakeyaml.engine.v2.nodes.*;
 
@@ -30,7 +30,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * While loading.
      */
-    public Section(YamlFile root, Section parent, Object name, Path path, Node keyNode, MappingNode valueNode, AccessibleConstructor constructor) {
+    public Section(YamlFile root, Section parent, Object name, Path path, Node keyNode, MappingNode valueNode, LibConstructor constructor) {
         //Call superclass
         super(keyNode, null, root.getGeneralSettings().getDefaultMap());
         //Set
@@ -75,7 +75,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         this.path = new Path();
     }
 
-    protected void init(YamlFile root, AccessibleConstructor constructor, Node keyNode, MappingNode valueNode) {
+    protected void init(YamlFile root, LibConstructor constructor, Node keyNode, MappingNode valueNode) {
         //Call superclass
         super.init(keyNode, null);
         //Set
