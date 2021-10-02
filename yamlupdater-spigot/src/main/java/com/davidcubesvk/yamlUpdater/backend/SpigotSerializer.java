@@ -1,6 +1,6 @@
 package com.davidcubesvk.yamlUpdater.backend;
 
-import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
+import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;

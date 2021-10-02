@@ -1,4 +1,4 @@
-package com.davidcubesvk.yamlUpdater.core.utils.serialization;
+package com.davidcubesvk.yamlUpdater.core.serialization;
 
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 

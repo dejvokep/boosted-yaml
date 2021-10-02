@@ -153,7 +153,7 @@ public class YamlFile extends Section {
         constructor.constructSingleDocument(Optional.of(node));
 
         //Init
-        init(this, constructor, null, (MappingNode) node);
+        init(this, null, (MappingNode) node, constructor);
     }
 
     public YamlFile getDefaults() {
@@ -197,56 +197,8 @@ public class YamlFile extends Section {
         if (file == null)
             return false;
 
-        print(this);
-
         //Save
         return save(file);
-    }
-
-    private void print(Block<?> block) {
-        System.out.println("------------------------------------------------------------- DUMPING THE FILE ---------------------------------------------------------------------");
-        printNode(block, "MAIN", 0);
-    }
-
-    private void printNode(Block<?> node, String prefix, int level) {
-        for (int i = 0; i < level; i++)
-            System.out.print(" ");
-        System.out.println("> " + prefix + ": " + node);
-        printComments(node, level);
-
-        if (!(node instanceof Section))
-            return;
-
-        Section mappingNode = (Section) node;
-
-        System.out.println("----------------------------------------------------- LEVEL " + (level + 5) + " -----------------------------------------------------");
-        for (Map.Entry<Object, Block<?>> tuple : mappingNode.getValue().entrySet()) {
-            for (int i = 0; i < level; i++)
-                System.out.print(" ");
-            System.out.println("KEY: " + tuple.getKey());
-            printNode(tuple.getValue(), "VALUE", level+5);
-        }
-    }
-
-    private void printComments(Block<?> node, int level) {
-        for (int i = 0; i < level; i++)
-            System.out.print(" ");
-        System.out.println("block: " + node.getKeyBlockComments());
-        for (int i = 0; i < level; i++)
-            System.out.print(" ");
-        System.out.println("inline: " + node.getKeyInlineComments());
-        for (int i = 0; i < level; i++)
-            System.out.print(" ");
-        System.out.println("end: " + node.getKeyEndComments());
-        for (int i = 0; i < level; i++)
-            System.out.print(" ");
-        System.out.println("block: " + node.getValueBlockComments());
-        for (int i = 0; i < level; i++)
-            System.out.print(" ");
-        System.out.println("inline: " + node.getValueInlineComments());
-        for (int i = 0; i < level; i++)
-            System.out.print(" ");
-        System.out.println("end: " + node.getValueEndComments());
     }
 
     public boolean save(File file) {
@@ -283,7 +235,7 @@ public class YamlFile extends Section {
         //Output
         SerializedStream stream = new SerializedStream();
         //Create the representer
-        BaseRepresenter representer = new LibRepresenter(settings, generalSettings.getSerializer());
+        BaseRepresenter representer = new LibRepresenter(generalSettings, settings);
 
         //Serializer
         Serializer serializer = new Serializer(settings, new Emitter(settings, stream));

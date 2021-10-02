@@ -3,7 +3,7 @@ package com.davidcubesvk.yamlUpdater.core.engine;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
-import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
+import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
 import org.snakeyaml.engine.v2.common.FlowStyle;
@@ -17,24 +17,22 @@ import java.util.Map;
 public class LibRepresenter extends StandardRepresenter {
 
     private final GeneralSettings generalSettings;
-    private final YamlSerializer serializer;
 
-    public LibRepresenter(GeneralSettings generalSettings, DumpSettings dumpSettings, YamlSerializer serializer) {
+    public LibRepresenter(GeneralSettings generalSettings, DumpSettings dumpSettings) {
         //Call the superclass constructor
         super(dumpSettings);
         //Set
         this.generalSettings = generalSettings;
-        this.serializer = serializer;
         //Add representers
         super.parentClassRepresenters.put(Section.class, new RepresentBlock());
-        super.parentClassRepresenters.put(serializer.getSerializableClass(), new RepresentSerializable());
+        super.parentClassRepresenters.put(generalSettings.getSerializer().getSerializableClass(), new RepresentSerializable());
     }
 
     private class RepresentSerializable implements RepresentToNode {
 
         @Override
         public Node representData(Object o) {
-            return LibRepresenter.this.representData(serializer.serialize(o, generalSettings.getDefaultMapSupplier()));
+            return LibRepresenter.this.representData(generalSettings.getSerializer().serialize(o, generalSettings.getDefaultMapSupplier()));
         }
 
     }

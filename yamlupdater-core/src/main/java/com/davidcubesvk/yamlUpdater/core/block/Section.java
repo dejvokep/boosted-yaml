@@ -4,17 +4,21 @@ import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.engine.LibConstructor;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.nodes.*;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.NumericConversions.*;
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions.*;
 
 /**
- * An extension of the {@link } class used to represent a section.
+ * Represents one YAML section, while storing it's contents and comments. Section can also be referred to as
+ * <i>collection of mappings (key=value pairs)</i>.
  */
 public class Section extends Block<Map<Object, Block<?>>> {
 
@@ -28,10 +32,22 @@ public class Section extends Block<Map<Object, Block<?>>> {
     private Path path;
 
     /**
-     * While loading.
+     * Creates a section using the given relatives, nodes and constructor, which is used to retrieve the actual Java
+     * instances of nodes (and sub-nodes).
+     *
+     * @param root        root file
+     * @param parent      parent section (or <code>null</code> if this is the root section)
+     * @param name        name of the section (key to this section in the parent section, or <code>null</code> if this
+     *                    is the root section)
+     * @param path        full (starting from the root file) path to this section
+     * @param keyNode     node which represents the key to this section, used <b>only</b> to retrieve comments
+     * @param valueNode   node which represents this section's contents
+     * @param constructor constructor used to construct all the nodes contained within the root file, used to retrieve
+     *                    Java instances of the given nodes
+     * @see Block#Block(Node, Node, Object) superclass constructor used
      */
-    public Section(YamlFile root, Section parent, Object name, Path path, Node keyNode, MappingNode valueNode, LibConstructor constructor) {
-        //Call superclass
+    public Section(@NotNull YamlFile root, @Nullable Section parent, @Nullable Object name, @NotNull Path path, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull LibConstructor constructor) {
+        //Call superclass (value node is null because there can't be any value comments)
         super(keyNode, null, root.getGeneralSettings().getDefaultMap());
         //Set
         this.root = root;
@@ -39,13 +55,22 @@ public class Section extends Block<Map<Object, Block<?>>> {
         this.name = adaptKey(name);
         this.path = path;
         //Init
-        init(root, constructor, keyNode, valueNode);
+        init(root, keyNode, valueNode, constructor);
     }
 
     /**
-     * When creating a new section manually -> mappings represent raw parsed YAML map!
+     * Creates a section using the given relatives, previous block and mappings.
+     *
+     * @param root     root file
+     * @param parent   parent section (or <code>null</code> if this is the root section)
+     * @param name     name of the section (key to this section in the parent section, or <code>null</code> if this is
+     *                 the root section)
+     * @param path     full (starting from the root file) path to this section
+     * @param previous previous block at the same position, used to reference comments from
+     * @param mappings raw (containing Java values directly; no {@link Block} instances) content map
+     * @see Block#Block(Block, Object) superclass constructor used
      */
-    public Section(YamlFile root, Section parent, Object name, Path path, Block<?> previous, Map<?, ?> mappings) {
+    public Section(@NotNull YamlFile root, @Nullable Section parent, @Nullable Object name, @NotNull Path path, @Nullable Block<?> previous, @NotNull Map<?, ?> mappings) {
         //Call superclass
         super(previous, root.getGeneralSettings().getDefaultMap());
         //Set
@@ -63,49 +88,79 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Call #init afterwards!
+     * Creates a section using the given (not necessarily empty) instance of default map, while setting the root file,
+     * parent section to <code>null</code>, section name to an empty string and path to an empty path.
+     * <p>
+     * <b>This constructor is only used by extending class {@link YamlFile}, where the respective nodes are unknown at
+     * the time of initialization. In such a scenario, it is needed to call
+     * {@link #init(YamlFile, Node, MappingNode, LibConstructor)} afterwards.</b>
+     *
+     * @param defaultMap the content map
+     * @see Block#Block(Object) superclass constructor used
      */
-    protected Section(Map<Object, Block<?>> defaultMap) {
+    protected Section(@NotNull Map<Object, Block<?>> defaultMap) {
         //Call superclass
         super(defaultMap);
         //Set
         this.root = null;
         this.parent = null;
-        this.name = null;
+        this.name = "";
         this.path = new Path();
     }
 
-    protected void init(YamlFile root, LibConstructor constructor, Node keyNode, MappingNode valueNode) {
+    /**
+     * Initializes this section and it's contents using the given parameters, while also initializing the superclass by
+     * calling {@link Block#init(Node, Node)}.
+     * <p>
+     * This method can also be referred to as <i>secondary</i> constructor.
+     *
+     * @param root        the root file of this section
+     * @param keyNode     node which represents the key to this section, used <b>only</b> to retrieve comments
+     * @param valueNode   node which represents this section's contents
+     * @param constructor constructor used to construct all the nodes contained within the root file, used to retrieve
+     *                    Java instances of the given nodes
+     */
+    protected void init(@NotNull YamlFile root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull LibConstructor constructor) {
         //Call superclass
         super.init(keyNode, null);
         //Set
         this.root = root;
-        boolean mainCommentsAssigned = false;
+        //If comments of the super node were assigned
+        boolean superNodeComments = false;
         //Loop through all mappings
         for (NodeTuple tuple : valueNode.getValue()) {
             //Key and value
-            //System.out.println(constructor.getConstructed());
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
-            System.out.println("ADDING KEY: " + key + ", VAL:" + value);
-            //System.out.println("KEY: " + key + "VALUE: " + value);
-            //System.out.println(tuple.getKeyNode().getBlockComments() + " " + tuple.getKeyNode().getInLineComments() + " " + tuple.getKeyNode().getEndComments());
-            //System.out.println(tuple.getValueNode().getBlockComments() + " " + tuple.getValueNode().getInLineComments() + " " + tuple.getValueNode().getEndComments());
             //Add
             getValue().put(key, value instanceof Map ?
-                    new Section(root, this, key, path.add(key), mainCommentsAssigned ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
-                    new Mapping(mainCommentsAssigned ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
-            if (!mainCommentsAssigned) {
-                mainCommentsAssigned = true;
-                /*valueNode.setBlockComments(new ArrayList<>());
-                valueNode.setInLineComments(new ArrayList<>());
-                valueNode.setEndComments(null);*/ // TODO: 2. 10. 2021 Is this needed or can be deleted? Check repeating nodes.
-            }
+                    new Section(root, this, key, path.add(key), superNodeComments ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
+                    new Mapping(superNodeComments ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
+            //Set to true
+            superNodeComments = true;
         }
     }
 
+    /**
+     * Returns <code>true</code> if this section is empty, <code>false</code> otherwise. The parameter indicates if to
+     * search subsections too, which gives the <b>true</b> indication if the section is empty.
+     * <p>
+     * If <code>deep</code> is <code>false</code>, returns only the result of {@link Map#isEmpty()} called on the
+     * content map represented by this section.
+     * However, the section (underlying map) might also contain sections, which are empty, resulting in incorrect
+     * returned value by this method <code>false</code>.
+     * <p>
+     * More formally, if <code>deep == true</code>, contents of this section are iterated. If any of the values is a
+     * mapping (not a subsection), returns <code>false</code>. Similarly, if it is a section, runs
+     * {@link #isEmpty(boolean)} (with <code>deep</code> set to <code>true</code>) and returns <code>false</code> if the
+     * result of that call is <code>false</code>. If the iteration finished and none of these conditions were met,
+     * returns <code>true</code>.
+     *
+     * @param deep if to search deeply
+     * @return whether this section is empty
+     */
     public boolean isEmpty(boolean deep) {
         //If no values are present
-        if (getValue().size() == 0)
+        if (getValue().isEmpty())
             return true;
         //If not deep
         if (!deep)
@@ -122,69 +177,191 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return true;
     }
 
+    /**
+     * Adapts the given key, so it fits the path mode configured via the root's general settings
+     * ({@link YamlFile#getGeneralSettings()}).
+     * <p>
+     * More formally, if {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode} returned by
+     * the settings is {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#STRING_BASED},
+     * returns the result of {@link Object#toString()} on the given key object, the key object otherwise.
+     *
+     * @param key the key object to adapt
+     * @return the adapted key
+     */
     public Object adaptKey(Object key) {
-        return root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
+        return key == null ? null : root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
     }
 
+    /**
+     * Returns set of paths in this section; while not keeping any reference to this (or sub-) sections, therefore,
+     * enabling the caller to modify it freely.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, (practically) returns the result of {@link #getKeys()} with
+     * the keys converted to paths each with one element - the key itself.
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete set of
+     * paths relative to this section; including paths to sections.
+     *
+     * @param deep if to get paths deeply
+     * @return the complete set of paths
+     */
     public Set<Path> getKeys(boolean deep) {
         //Create set
         Set<Path> keys = new HashSet<>();
         //Add
-        addData((entry) -> keys.add(path.add(entry.getKey())), deep);
+        addData((path, entry) -> keys.add(path), new Path(), deep);
         //Return
         return keys;
     }
 
+    /**
+     * Returns a complete set of paths in this section only (not deep), including paths to sections. More formally,
+     * returns the key set of the underlying map.
+     * The set, however, is a <i>shallow</i> copy of the map's key set, therefore, the caller is able to modify it
+     * freely, without modifying this section.
+     *
+     * @return the complete set of paths directly contained by this section
+     */
     public Set<Object> getKeys() {
         return new HashSet<>(getValue().keySet());
     }
 
+    /**
+     * Returns a complete map of path=value pairs; while not keeping any reference to this (or sub-) sections,
+     * therefore, enabling the caller to modify it freely.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, returns a copy of the underlying map with keys (which are
+     * stored as object instances) converted to paths each with one element - the key itself; with their appropriate
+     * values (obtained from the block, if not a section, stored at those paths).
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
+     * path=value (obtained from the block, if not a section, stored at those paths) pairs, with paths relative to this
+     * section.
+     * <p>
+     * Practically, it is a result of {@link #getKeys(boolean)} with appropriate values to each path assigned. <b>It is
+     * also a copy of {@link #getValue()} converted from nested to flat map (with the blocks, if a mapping - not a
+     * section, represented by their values).</b>
+     *
+     * @param deep if to get values from sub-sections too
+     * @return the complete map of path=value pairs, including sections
+     */
     public Map<Path, Object> getValues(boolean deep) {
         //Create map
         Map<Path, Object> values = new HashMap<>();
         //Add
-        addData((entry) -> values.put(path.add(entry.getKey()), entry.getValue().getValue()), deep);
+        addData((path, entry) -> values.put(path, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getValue()), new Path(), deep);
         //Return
         return values;
     }
 
+    /**
+     * Returns a complete map of path=block pairs; while not keeping any reference to this (or sub-) sections,
+     * therefore, enabling the caller to modify it freely.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, returns a copy of the underlying map with keys (which are
+     * stored as object instances) converted to paths each with one element - the key itself; with their appropriate
+     * blocks.
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
+     * path=block pairs, with paths relative to this section.
+     * <p>
+     * Practically, it is a result of {@link #getKeys(boolean)} with blocks to each path assigned, or <b>a copy of
+     * {@link #getValue()} converted from nested to flat map.</b>
+     *
+     * @param deep if to get values from sub-sections too
+     * @return the complete map of path=value pairs
+     */
     public Map<Path, Block<?>> getBlocks(boolean deep) {
         //Create map
         Map<Path, Block<?>> blocks = new HashMap<>();
         //Add
-        addData((entry) -> blocks.put(path.add(entry.getKey()), entry.getValue()), deep);
+        addData((path, entry) -> blocks.put(path, entry.getValue()), new Path(), deep);
         //Return
         return blocks;
     }
 
-    private void addData(Consumer<Map.Entry<?, Block<?>>> consumer, boolean deep) {
+    /**
+     * Iterates through all entries in the underlying map, while calling the given consumer for each entry. The path
+     * given is the path relative to this section.
+     *
+     * If any of the entries contain an instance of {@link Section} as their value and <code>deep</code> is set to
+     * <code>true</code>, this method is called on each sub-section with the same consumer (while the path is managed to
+     * be always relative to this section).
+     * @param consumer the consumer to call for each entry
+     * @param current the path to the currently iterated section, relative to the main caller section
+     * @param deep if to iterate deeply
+     */
+    private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @Nullable Path current, boolean deep) {
         //All keys
         for (Map.Entry<?, Block<?>> entry : getValue().entrySet()) {
+            //Path to this entry
+            Path entryPath = current.add(entry.getKey());
             //Call
-            consumer.accept(entry);
+            consumer.accept(current, entry);
             //If a section and deep is enabled
             if (deep && entry.getValue() instanceof Section)
-                ((Section) entry.getValue()).addData(consumer, true);
+                ((Section) entry.getValue()).addData(consumer, entryPath, true);
         }
     }
 
+    /**
+     * Returns whether this section is simultaneously the root section (file).
+     * @return if this section is the root section
+     */
     public boolean isRoot() {
         return false;
     }
 
-    public boolean contains(Path path) {
+    /**
+     * Returns whether this section contains anything at the given path.
+     * @param path the path to check
+     * @return if this section contains anything at the given path
+     */
+    public boolean contains(@NotNull Path path) {
         return getSafe(path).isPresent();
     }
 
-    public boolean contains(Object key) {
-        return getSafe(key).isPresent();
+    /**
+     * Returns whether this section contains any direct object at the given key. More formally, returns the result of
+     * {@link Map#containsKey(Object)} called on the underlying map, with the given key as the parameter.
+     * @param key the key to check
+     * @return if this section contains anything (directly) at the given key
+     */
+    public boolean contains(@Nullable Object key) {
+        return getValue().containsKey(key);
     }
 
-    private void adapt(YamlFile root, Section parent, Object name, Path path) {
-        this.root = root;
+    /**
+     * Adapts this section (including sub-sections) to the new relatives. This method should be called if and only this
+     * section was relocated to a new parent section.
+     *
+     * @param root new root file
+     * @param parent new parent section
+     * @param name new name for this section
+     * @param path new path for this section
+     */
+    private void adapt(@NotNull YamlFile root, @Nullable Section parent, @NotNull Object name, @NotNull Path path) {
+        //Set
         this.parent = parent;
         this.name = name;
+        //Adapt
+        adapt(root, path);
+    }
+
+    /**
+     * Adapts this section (including sub-sections) to the new relatives. This method should only be called by
+     * {@link #adapt(YamlFile, Section, Object, Path)}.
+     *
+     * @param root new root file
+     * @param path new path for this section
+     */
+    private void adapt(@NotNull YamlFile root, @NotNull Path path) {
+        //Set
+        this.root = root;
         this.path = path;
+        //Loop through all entries
+        for (Map.Entry<Object, Block<?>> entry : getValue().entrySet())
+            //If a section
+            if (entry.getValue() instanceof Section)
+                //Adapt
+                ((Section) entry.getValue()).adapt(root, path.add(entry.getKey()));
     }
 
     private void setInternal(Path path, Object value, int i) {
@@ -224,11 +401,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     public Section createSection(Object key, Block<?> previous) {
-       return getSectionSafe(key).orElseGet(() -> {
-           Section section = new Section(root, Section.this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap());
-           getValue().put(key, section);
-           return section;
-       });
+        return getSectionSafe(key).orElseGet(() -> {
+            Section section = new Section(root, Section.this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap());
+            getValue().put(key, section);
+            return section;
+        });
     }
 
     public void set(Path path, Object value) {

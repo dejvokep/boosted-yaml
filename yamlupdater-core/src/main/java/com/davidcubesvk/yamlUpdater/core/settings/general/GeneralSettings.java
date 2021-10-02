@@ -1,8 +1,8 @@
 package com.davidcubesvk.yamlUpdater.core.settings.general;
 
 import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.utils.serialization.Serializer;
-import com.davidcubesvk.yamlUpdater.core.utils.serialization.YamlSerializer;
+import com.davidcubesvk.yamlUpdater.core.serialization.Serializer;
+import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.SetSupplier;
@@ -26,7 +26,7 @@ public class GeneralSettings {
     public static final char DEFAULT_SEPARATOR = '.';
     public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_SEPARATOR));
     public static final PathMode DEFAULT_PATH_MODE = PathMode.STRING_BASED;
-    public static final YamlSerializer DEFAULT_SERIALIZER = new Serializer("==");
+    public static final YamlSerializer DEFAULT_SERIALIZER = Serializer.DEFAULT;
     public static final Object DEFAULT_OBJECT = null;
     public static final Section DEFAULT_SECTION = null;
     public static final Number DEFAULT_NUMBER = 0;
