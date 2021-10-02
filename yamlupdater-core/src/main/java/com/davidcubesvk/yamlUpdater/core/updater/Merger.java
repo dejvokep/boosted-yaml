@@ -53,7 +53,7 @@ public class Merger {
             //Delete
             userKeys.remove(key);
             //Blocks
-            Block<?> userBlock = userSection.getBlock(key).orElse(null), defBlock = entry.getValue();
+            Block<?> userBlock = userSection.getBlockSafe(key).orElse(null), defBlock = entry.getValue();
             //If user block is present
             if (userBlock != null) {
                 //If are sections
@@ -69,7 +69,7 @@ public class Merger {
                 //Set preserved value
                 userSection.set(key, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
                 System.out.println("merge rule preserve user=" + (settings.getMergeRules().get(MergeRule.getFor(isUserBlockSection, isDefBlockSection))));
-                System.out.println(entry.getKey() + " preserving " + userSection.get(key) + userSection.getBlock(key).get().getValue());
+                System.out.println(entry.getKey() + " preserving " + userSection.get(key) + userSection.getBlockSafe(key).get().getValue());
                 System.out.println();
                 continue;
             }

@@ -11,7 +11,6 @@ import org.snakeyaml.engine.v2.nodes.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.NumericConversions.*;
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions.*;
@@ -280,13 +279,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Iterates through all entries in the underlying map, while calling the given consumer for each entry. The path
      * given is the path relative to this section.
-     *
+     * <p>
      * If any of the entries contain an instance of {@link Section} as their value and <code>deep</code> is set to
      * <code>true</code>, this method is called on each sub-section with the same consumer (while the path is managed to
      * be always relative to this section).
+     *
      * @param consumer the consumer to call for each entry
-     * @param current the path to the currently iterated section, relative to the main caller section
-     * @param deep if to iterate deeply
+     * @param current  the path to the currently iterated section, relative to the main caller section
+     * @param deep     if to iterate deeply
      */
     private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @Nullable Path current, boolean deep) {
         //All keys
@@ -303,6 +303,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns whether this section is simultaneously the root section (file).
+     *
      * @return if this section is the root section
      */
     public boolean isRoot() {
@@ -311,31 +312,42 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns whether this section contains anything at the given path.
+     *
      * @param path the path to check
      * @return if this section contains anything at the given path
+     * @see #contains(Object)
      */
     public boolean contains(@NotNull Path path) {
         return getSafe(path).isPresent();
     }
 
     /**
-     * Returns whether this section contains any direct object at the given key. More formally, returns the result of
-     * {@link Map#containsKey(Object)} called on the underlying map, with the given key as the parameter.
-     * @param key the key to check
-     * @return if this section contains anything (directly) at the given key
+     * Returns whether this section contains any object at the given direct key (not sub-key, use
+     * {@link #contains(Path)} instead).
+     * <p>
+     * More formally, returns the result of {@link Optional#isPresent()} called on {@link #getSafe(Object)}, with the
+     * given key as the parameter.
+     * <p>
+     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
+     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     *
+     * @param key the direct key, or full string path to check
+     * @return if this section contains anything at the given key, or full string path
+     * @see #contains(Path)
      */
     public boolean contains(@Nullable Object key) {
-        return getValue().containsKey(key);
+        return getSafe(key).isPresent();
     }
 
     /**
      * Adapts this section (including sub-sections) to the new relatives. This method should be called if and only this
      * section was relocated to a new parent section.
      *
-     * @param root new root file
+     * @param root   new root file
      * @param parent new parent section
-     * @param name new name for this section
-     * @param path new path for this section
+     * @param name   new name for this section
+     * @param path   new path for this section
+     * @see #adapt(YamlFile, Path)
      */
     private void adapt(@NotNull YamlFile root, @Nullable Section parent, @NotNull Object name, @NotNull Path path) {
         //Set
@@ -364,6 +376,20 @@ public class Section extends Block<Map<Object, Block<?>>> {
                 ((Section) entry.getValue()).adapt(root, path.add(entry.getKey()));
     }
 
+    /**
+     * Internal method which sets the given value into the appropriate section, at path derived from the given path,
+     * starting from the given index.
+     * <p>
+     * If <code>i</code> represents the last element in the given path, calls {@link #set(Object, Object)} to set the
+     * value into this section.
+     * If not, gets the block at the current key (<code>path.getKey(i)</code>). If it is a mapping or does not exist,
+     * (overwrites it and) creates a new section at the key. Finally, calls this method recursively on the section
+     * currently present at the key.
+     *
+     * @param path  the path to set the value at
+     * @param value value to set
+     * @param i     the current index of the path
+     */
     private void setInternal(Path path, Object value, int i) {
         //Key
         Object key = path.getKey(i);
@@ -385,6 +411,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
             ((Section) block).setInternal(path, value, i + 1);
     }
 
+    /**
+     * Attempts to create a section at the given path and overwrites a mapping if there is one in the way; returns the
+     * section. If there is a section already, nothing is overwritten and the already existing section is returned.
+     * <p>
+     * Calls {@link #createSection(Object)} subsequently for each path's element (in the appropriate sub-sections).
+     *
+     * @param path the path to create a section at
+     * @return the created section at the given path, or already existing one
+     * @see #createSection(Object)
+     * @see #createSection(Object, Block)
+     */
     public Section createSection(Path path) {
         //Current section
         Section current = this;
@@ -396,28 +433,113 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return current;
     }
 
+    /**
+     * Attempts to create a section at the given direct key in this section and returns it. If there already is a
+     * mapping existing at the key, it is overwritten with a new section. If there is a section already, does not
+     * overwrite anything and the already existing section is returned.
+     * <p>
+     * Calls {@link #createSection(Object, Block)} to do so.
+     * <p>
+     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
+     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     *
+     * @param key the key to create a section at
+     * @return the newly created section or the already existing one
+     * @see #createSection(Object, Block)
+     */
     public Section createSection(Object key) {
         return createSection(key, null);
     }
 
+    /**
+     * Attempts to create a section at the given direct key in this section and returns it. If there already is a
+     * mapping existing at the key, it is overwritten with a new section. If there is a section already, does not
+     * overwrite anything and the already existing section is returned.
+     * <p>
+     * If the method ends up creating a new section, previous block's comments are copied (see
+     * {@link #Section(YamlFile, Section, Object, Path, Block, Map)}).
+     * <p>
+     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
+     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     *
+     * @param key      the key to create a section at
+     * @param previous the previous block at this key
+     * @return the newly created section or the already existing one
+     */
     public Section createSection(Object key, Block<?> previous) {
         return getSectionSafe(key).orElseGet(() -> {
+            //The new section
             Section section = new Section(root, Section.this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap());
+            //Add
             getValue().put(key, section);
+            //Return
             return section;
         });
     }
 
+    /**
+     * Sets the given value at the given path in this section. If there are sections missing to the path where the
+     * object should be set, they are created along the way using {@link #createSection(Object, Block)}.
+     * <p>
+     * At the end, this method ends up calling {@link #set(Object, Object)}, meaning the limitations to the given value
+     * are the same for both methods. Please read more regarding that there.
+     *
+     * @param path  the path to set at
+     * @param value the value to set
+     * @see #set(Object, Object)
+     */
     public void set(Path path, Object value) {
         setInternal(path, value, 0);
     }
 
+    /**
+     * Sets the given value at the given direct key in this section. If there is an already existing value for this key
+     * in this section, it is overwritten.
+     * <p>
+     * As the object to set, you can give instances of:
+     * <ul>
+     *     <li><code>null</code>: the object currently stored at the given key in the section will be removed (if any);
+     *     only implemented to support Spigot API (usage like that is <b>deprecated and will likely be removed</b>) -
+     *     please use {@link #remove(Object)} to do so,</li>
+     *     <li>{@link Section}: the given section will be <i>pasted</i> here,</li>
+     *     <li>{@link Mapping}: the given mapping will be <i>pasted</i> here,</li>
+     *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
+     *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
+     *     instances; please see {@link #Section(YamlFile, Section, Object, Path, Block, Map)} for more information),</li>
+     *     <li><i>anything else</i>: the given value will be encapsulated with {@link Mapping} object and set at the
+     *     given key.</li>
+     * </ul>
+     * <p>
+     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
+     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     *
+     * @param key   the key to set the value at, or <code>null</code> if to delete (<b>deprecated, please use
+     *              {@link #remove(Object)}</b>)
+     * @param value the value to set, processed as described above
+     */
     public void set(Object key, Object value) {
-        //If null (delete)
+        //If null (remove)
+        // TODO: 2. 10. 2021 Deprecated?
         if (value == null)
             remove(key);
 
-        System.out.println("SETTING " + value + " at key=" + key);
+        //Adapt
+        key = adaptKey(key);
+
+        //If is string mode
+        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED) {
+            //String key
+            String stringKey = key.toString();
+            //Last separator
+            int lastSeparator = key.toString().indexOf(root.getGeneralSettings().getSeparator());
+            //If found
+            if (lastSeparator != -1) {
+                //Create sections
+                createSection(key.toString().substring(0, lastSeparator));
+                //Change the key
+                key = stringKey.substring(lastSeparator + 1);
+            }
+        }
 
         //If a section
         if (value instanceof Section) {
@@ -454,15 +576,47 @@ public class Section extends Block<Map<Object, Block<?>>> {
         getValue().put(key, new Mapping(previous, value));
     }
 
+    /**
+     * Removes value at the given path (if any); returns <code>true</code> if successfully removed. The method returns
+     * <code>false</code> if the object at the path does not exist, or is the root section.
+     *
+     * @param path the path to remove the object at
+     * @return if the object was removed
+     */
+    public boolean remove(Path path) {
+        //The parent of the block to remove
+        Optional<Section> parent = getParent(path);
+        //If not present
+        if (!parent.isPresent())
+            return false;
+        //The key
+        Object key = path.getKey(path.getLength() - 1);
+        //If does not contain the block
+        if (!parent.get().contains(key))
+            return false;
+        //Remove
+        return parent.get().remove(key);
+    }
+
+    /**
+     * Removes value at the given path (if any); returns <code>true</code> if successfully removed. The method returns
+     * <code>false</code> if the object at the path does not exist, or is the root section.
+     * <p>
+     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
+     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     *
+     * @param key the key to remove the object at in this section
+     * @return if the object was removed
+     */
     public boolean remove(Object key) {
         return getValue().remove(key) != null;
     }
 
-    public Optional<Block<?>> getBlock(Path path) {
+    public Optional<Block<?>> getBlockSafe(Path path) {
         return getSafeInternal(path, 0, false);
     }
 
-    public Optional<Block<?>> getBlock(Object key) {
+    public Optional<Block<?>> getBlockSafe(Object key) {
         //If is string mode and contains sub-key
         if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
             //Return
@@ -497,7 +651,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         int next = path.indexOf(i + 1, root.getGeneralSettings().getSeparator());
         //If -1
         if (next == -1)
-            return parent ? Optional.of(this) : getBlock(path.substring(i));
+            return parent ? Optional.of(this) : getBlockSafe(path.substring(i));
         //Call subsection
         return getSectionSafe(path.substring(i, next)).flatMap(section -> section.getSafeInternalString(path, next, parent));
     }
@@ -509,10 +663,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
         //If at last index
         if (i + 1 >= path.getLength())
-            return parent ? Optional.of(this) : getBlock(path.getKey(i));
+            return parent ? Optional.of(this) : getBlockSafe(path.getKey(i));
 
         //Section
-        Optional<Block<?>> section = getBlock(path.getKey(i));
+        Optional<Block<?>> section = getBlockSafe(path.getKey(i));
         //If not present
         if (!section.isPresent())
             return Optional.empty();
