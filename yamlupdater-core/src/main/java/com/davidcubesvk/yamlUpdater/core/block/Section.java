@@ -86,6 +86,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Key and value
             //System.out.println(constructor.getConstructed());
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
+            System.out.println("ADDING KEY: " + key + ", VAL:" + value);
             //System.out.println("KEY: " + key + "VALUE: " + value);
             //System.out.println(tuple.getKeyNode().getBlockComments() + " " + tuple.getKeyNode().getInLineComments() + " " + tuple.getKeyNode().getEndComments());
             //System.out.println(tuple.getValueNode().getBlockComments() + " " + tuple.getValueNode().getInLineComments() + " " + tuple.getValueNode().getEndComments());

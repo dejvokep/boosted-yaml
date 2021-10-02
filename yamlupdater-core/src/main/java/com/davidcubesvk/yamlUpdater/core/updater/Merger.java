@@ -43,9 +43,11 @@ public class Merger {
     private void iterate(Section userSection, Section defSection, UpdaterSettings settings, Set<Path> forceCopy) {
         //Keys
         Set<Object> userKeys = userSection.getKeys();
+        System.out.println("DEFAULT KEYS " + defSection.getKeys());
 
         //Loop through all default entries
         for (Map.Entry<Object, Block<?>> entry : defSection.getValue().entrySet()) {
+            System.out.println("MERGER key:" + entry.getKey());
             //Key
             Object key = entry.getKey();
             //Delete
@@ -60,7 +62,7 @@ public class Merger {
                 if (isDefBlockSection && isUserBlockSection) {
                     //Iterate
                     iterate((Section) userBlock, (Section) defBlock, settings, forceCopy);
-                    return;
+                    continue;
                 }
 
                 System.out.println(entry.getKey() + ": USER=" + userBlock + " (value=" + userBlock.getValue() + "), DEFAULT=" + defBlock + " (value=" + defBlock.getValue() + ")");
@@ -69,7 +71,7 @@ public class Merger {
                 System.out.println("merge rule preserve user=" + (settings.getMergeRules().get(MergeRule.getFor(isUserBlockSection, isDefBlockSection))));
                 System.out.println(entry.getKey() + " preserving " + userSection.get(key) + userSection.getBlock(key).get().getValue());
                 System.out.println();
-                return;
+                continue;
             }
 
             //Set cloned
