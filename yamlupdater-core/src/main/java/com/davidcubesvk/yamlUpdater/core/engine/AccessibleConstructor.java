@@ -30,7 +30,6 @@ public class AccessibleConstructor extends StandardConstructor {
     protected Object construct(Node node) {
         Object o = super.construct(node);
         constructed.put(node, o);
-        System.out.println("CONSTRUCTED: " + node.toString() + " > " + o.toString());
         return o;
     }
 
@@ -38,7 +37,6 @@ public class AccessibleConstructor extends StandardConstructor {
     protected Object constructObjectNoCheck(Node node) {
         Object o = super.constructObjectNoCheck(node);
         constructed.put(node, o);
-        System.out.println("CONSTRUCTED NO CHECK: " + node.toString() + " > " + o.toString());
         return o;
     }
 

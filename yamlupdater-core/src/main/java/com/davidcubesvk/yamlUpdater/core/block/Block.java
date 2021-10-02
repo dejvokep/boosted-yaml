@@ -8,7 +8,7 @@ import java.util.List;
 public abstract class Block<T> {
 
     private List<CommentLine> keyBlockComments, keyInlineComments, keyEndComments, valueBlockComments, valueInlineComments, valueEndComments;
-    private T value;
+    private final T value;
 
     public Block(Node keyNode, Node valueNode, T value) {
         this.value = value;

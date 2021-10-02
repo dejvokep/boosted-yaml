@@ -32,7 +32,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public Section(YamlFile root, Section parent, Object name, Path path, Node keyNode, MappingNode valueNode, AccessibleConstructor constructor) {
         //Call superclass
-        super(keyNode, valueNode, root.getGeneralSettings().getDefaultMap());
+        super(keyNode, null, root.getGeneralSettings().getDefaultMap());
         //Set
         this.root = root;
         this.parent = parent;
@@ -43,7 +43,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * When creating a new section manually -> mappings represent raw YAML map!
+     * When creating a new section manually -> mappings represent raw parsed YAML map!
      */
     public Section(YamlFile root, Section parent, Object name, Path path, Block<?> previous, Map<?, ?> mappings) {
         //Call superclass
@@ -77,17 +77,28 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     protected void init(YamlFile root, AccessibleConstructor constructor, Node keyNode, MappingNode valueNode) {
         //Call superclass
-        super.init(keyNode, valueNode);
+        super.init(keyNode, null);
         //Set
         this.root = root;
+        boolean mainCommentsAssigned = false;
         //Loop through all mappings
         for (NodeTuple tuple : valueNode.getValue()) {
             //Key and value
-            System.out.println(constructor.getConstructed());
+            //System.out.println(constructor.getConstructed());
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
-            System.out.println("KEY: " + key + "VALUE: " + value);
+            //System.out.println("KEY: " + key + "VALUE: " + value);
+            //System.out.println(tuple.getKeyNode().getBlockComments() + " " + tuple.getKeyNode().getInLineComments() + " " + tuple.getKeyNode().getEndComments());
+            //System.out.println(tuple.getValueNode().getBlockComments() + " " + tuple.getValueNode().getInLineComments() + " " + tuple.getValueNode().getEndComments());
             //Add
-            getValue().put(key, value instanceof Map ? new Section(root, this, key, path.add(key), tuple.getKeyNode(), (MappingNode) tuple.getValueNode(), constructor) : new Mapping(tuple.getKeyNode(), tuple.getValueNode(), value));
+            getValue().put(key, value instanceof Map ?
+                    new Section(root, this, key, path.add(key), mainCommentsAssigned ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
+                    new Mapping(mainCommentsAssigned ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
+            if (!mainCommentsAssigned) {
+                mainCommentsAssigned = true;
+                /*valueNode.setBlockComments(new ArrayList<>());
+                valueNode.setInLineComments(new ArrayList<>());
+                valueNode.setEndComments(null);*/ // TODO: 2. 10. 2021 Is this needed or can be deleted? Check repeating nodes.
+            }
         }
     }
 

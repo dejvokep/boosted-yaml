@@ -61,6 +61,7 @@ public class DumperSettings {
 
         private Builder(DumpSettingsBuilder builder) {
             this.builder = builder;
+            applyStylePreset(Preset.YAML);
         }
 
         public Builder setAnchorGenerator(Supplier<AnchorGenerator> generator, boolean reset) {

@@ -25,10 +25,6 @@ public class UpdaterSettings {
 
     public static final UpdaterSettings DEFAULT = builder().build();
 
-    static {
-        System.out.println("Init");
-    }
-
     //If to update disk file
     private final boolean autoSave;
     private final boolean enableDowngrading;
@@ -51,7 +47,6 @@ public class UpdaterSettings {
     }
 
     public static Builder builder() {
-        System.out.println("BUILDER: " + DEFAULT_MERGE_RULES);
         return new Builder();
     }
 
@@ -67,7 +62,6 @@ public class UpdaterSettings {
         private Versioning versioning = DEFAULT_VERSIONING;
 
         private Builder() {
-            System.out.println(DEFAULT_MERGE_RULES);
         }
 
         public Builder setAutoSave(boolean autoSave) {
