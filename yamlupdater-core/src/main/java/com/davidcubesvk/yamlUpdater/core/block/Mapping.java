@@ -4,7 +4,7 @@ import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.nodes.Node;
 
 /**
- * Represents one YAML mapping (key=value pair), while storing a value and comments.
+ * Represents one YAML mapping (key=value pair), while storing the mapping's value and comments.
  */
 public class Mapping extends Block<Object> {
 

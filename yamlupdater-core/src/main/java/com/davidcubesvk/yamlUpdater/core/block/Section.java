@@ -11,6 +11,7 @@ import org.snakeyaml.engine.v2.nodes.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.NumericConversions.*;
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions.*;
@@ -328,8 +329,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link Optional#isPresent()} called on {@link #getSafe(Object)}, with the
      * given key as the parameter.
      * <p>
-     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
-     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
      *
      * @param key the direct key, or full string path to check
      * @return if this section contains anything at the given key, or full string path
@@ -380,8 +382,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Internal method which sets the given value into the appropriate section, at path derived from the given path,
      * starting from the given index.
      * <p>
-     * If <code>i</code> represents the last element in the given path, calls {@link #set(Object, Object)} to set the
-     * value into this section.
+     * If <code>i</code> represents the last element in the given path or if the path is <code>null</code>, calls
+     * {@link #set(Object, Object)} to set the value into this section.
      * If not, gets the block at the current key (<code>path.getKey(i)</code>). If it is a mapping or does not exist,
      * (overwrites it and) creates a new section at the key. Finally, calls this method recursively on the section
      * currently present at the key.
@@ -390,18 +392,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param value value to set
      * @param i     the current index of the path
      */
-    private void setInternal(Path path, Object value, int i) {
-        //Key
-        Object key = path.getKey(i);
-        //If at the last index
-        if (i + 1 >= path.getLength()) {
+    private void setInternal(@Nullable Path path, @Nullable Object value, int i) {
+        //If null or at the last index
+        if (path == null || i + 1 >= path.getLength()) {
             //Call the direct method
-            set(key, value);
+            set(path == null ? null : adaptKey(path.getKey(i)), value);
             return;
         }
 
+        //Key
+        Object key = adaptKey(path.getKey(i));
         //The block at the key
-        Block<?> block = getValue().getOrDefault(path.getKey(i), null);
+        Block<?> block = getValue().getOrDefault(key, null);
         //If null
         if (block == null || block instanceof Mapping)
             //Create
@@ -416,13 +418,20 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * section. If there is a section already, nothing is overwritten and the already existing section is returned.
      * <p>
      * Calls {@link #createSection(Object)} subsequently for each path's element (in the appropriate sub-sections).
+     * <p>
+     * If the given path is <code>null</code>, calls and returns the result of {@link #createSection(Object)} with
+     * <code>null</code> as the key.
      *
      * @param path the path to create a section at
      * @return the created section at the given path, or already existing one
      * @see #createSection(Object)
      * @see #createSection(Object, Block)
      */
-    public Section createSection(Path path) {
+    public Section createSection(@Nullable Path path) {
+        //If null
+        if (path == null)
+            return createSection((Object) null);
+
         //Current section
         Section current = this;
         //All keys
@@ -440,14 +449,15 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Calls {@link #createSection(Object, Block)} to do so.
      * <p>
-     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
-     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
      *
      * @param key the key to create a section at
      * @return the newly created section or the already existing one
      * @see #createSection(Object, Block)
      */
-    public Section createSection(Object key) {
+    public Section createSection(@Nullable Object key) {
         return createSection(key, null);
     }
 
@@ -459,14 +469,15 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If the method ends up creating a new section, previous block's comments are copied (see
      * {@link #Section(YamlFile, Section, Object, Path, Block, Map)}).
      * <p>
-     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
-     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
      *
      * @param key      the key to create a section at
      * @param previous the previous block at this key
      * @return the newly created section or the already existing one
      */
-    public Section createSection(Object key, Block<?> previous) {
+    public Section createSection(@Nullable Object key, @Nullable Block<?> previous) {
         return getSectionSafe(key).orElseGet(() -> {
             //The new section
             Section section = new Section(root, Section.this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap());
@@ -483,6 +494,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * At the end, this method ends up calling {@link #set(Object, Object)}, meaning the limitations to the given value
      * are the same for both methods. Please read more regarding that there.
+     * <p>
+     * If the given path is <code>null</code>, calls {@link #set(Object, Object)} (indirectly) to set the value at
+     * <code>null</code> key.
      *
      * @param path  the path to set at
      * @param value the value to set
@@ -496,7 +510,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Sets the given value at the given direct key in this section. If there is an already existing value for this key
      * in this section, it is overwritten.
      * <p>
-     * As the object to set, you can give instances of:
+     * As the value to set, you can give instances of:
      * <ul>
      *     <li><code>null</code>: the object currently stored at the given key in the section will be removed (if any);
      *     only implemented to support Spigot API (usage like that is <b>deprecated and will likely be removed</b>) -
@@ -510,11 +524,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *     given key.</li>
      * </ul>
      * <p>
-     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
-     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
      *
-     * @param key   the key to set the value at, or <code>null</code> if to delete (<b>deprecated, please use
-     *              {@link #remove(Object)}</b>)
+     * @param key   the key/string path to set the value at, or <code>null</code> if to delete (<b>deprecated, please
+     *              use {@link #remove(Object)}</b>)
      * @param value the value to set, processed as described above
      */
     public void set(Object key, Object value) {
@@ -578,272 +593,795 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Removes value at the given path (if any); returns <code>true</code> if successfully removed. The method returns
-     * <code>false</code> if the object at the path does not exist, or is the root section.
+     * <code>false</code> if and only value at the path does not exist.
+     * <p>
+     * If the given path is <code>null</code>, calls and returns the result of {@link #remove(Object)} with
+     * <code>null</code> as the key.
      *
      * @param path the path to remove the object at
-     * @return if the object was removed
+     * @return if any value has been removed
      */
-    public boolean remove(Path path) {
-        //The parent of the block to remove
-        Optional<Section> parent = getParent(path);
-        //If not present
-        if (!parent.isPresent())
-            return false;
-        //The key
-        Object key = path.getKey(path.getLength() - 1);
-        //If does not contain the block
-        if (!parent.get().contains(key))
-            return false;
+    public boolean remove(@Nullable Path path) {
+        //If null
+        if (path == null)
+            //Call other method
+            remove((Object) null);
         //Remove
-        return parent.get().remove(key);
+        return removeInternal(getParent(path).orElse(null), path.getKey(path.getLength() - 1));
     }
 
     /**
      * Removes value at the given path (if any); returns <code>true</code> if successfully removed. The method returns
-     * <code>false</code> if the object at the path does not exist, or is the root section.
+     * <code>false</code> if value at the path does not exist.
      * <p>
-     * <b>This method is chained with {@link #getSafe(Object)} and therefore, supports the same pathing (keying)
-     * mechanics. Please look at the description of that method for more detailed information regarding the usage.</b>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
      *
-     * @param key the key to remove the object at in this section
-     * @return if the object was removed
+     * @param key the key/string path to remove the object at in this section (supports <code>null</code> keys)
+     * @return if any value has been removed
      */
-    public boolean remove(Object key) {
-        return getValue().remove(key) != null;
+    public boolean remove(@Nullable Object key) {
+        //Adapt
+        key = adaptKey(key);
+        //If object based, does not contain a sub-key or is null
+        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED || key == null || key.toString().indexOf(root.getGeneralSettings().getSeparator()) == -1)
+            return getValue().remove(key) != null;
+
+        //String key
+        String stringKey = key.toString();
+        //Last index of the separator
+        int lastSeparator = stringKey.lastIndexOf(root.getGeneralSettings().getSeparator());
+        //Remove
+        return removeInternal(getSection(stringKey.substring(0, lastSeparator)), stringKey.substring(lastSeparator + 1));
     }
 
-    public Optional<Block<?>> getBlockSafe(Path path) {
+    /**
+     * An internal method used to actually remove the value. Created to extract common parts from both removal-oriented
+     * methods.
+     * <p>
+     * Returns <code>false</code> if the parent section is <code>null</code> (meaning there is not any value at the
+     * given key as there is not a parent section), then returns the result of {@link #remove(Object)} with the given
+     * key.
+     *
+     * @param parent the parent section, or <code>null</code> if does not exist
+     * @param key    the last key; key to check in the parent section
+     * @return if any value has been removed
+     */
+    private boolean removeInternal(@Nullable Section parent, @Nullable Object key) {
+        //If the parent is null
+        if (parent == null)
+            return false;
+        //Remove
+        return parent.remove(key);
+    }
+
+    /**
+     * Returns block at the given path encapsulated in an instance of {@link Optional}. If there is no block present (no
+     * value) at the given path, returns an empty optional.
+     * <p>
+     * If the given path is <code>null</code>, provides the same functionality as {@link #getBlockSafe(Object)} does -
+     * returns block at <code>null</code> key in the underlying map.
+     * <p>
+     * Each value is encapsulated in a {@link Mapping} (if the value is not a section) or {@link Section} (the value is
+     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}.
+     * <p>
+     * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
+     *
+     * @param path the path to get the block from
+     * @return block at the given path encapsulated in an optional
+     */
+    public Optional<Block<?>> getBlockSafe(@Nullable Path path) {
         return getSafeInternal(path, 0, false);
     }
 
-    public Optional<Block<?>> getBlockSafe(Object key) {
+    /**
+     * Returns block at the given key encapsulated in an instance of {@link Optional}. If there is no block present (no
+     * value) at the given key, returns an empty optional.
+     * <p>
+     * Each value is encapsulated in a {@link Mapping} (if the value is not a section) or {@link Section} (the value is
+     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}.
+     * <p>
+     * <p>
+     * <b>Functionality notes:</b> If root's path mode (general settings) is set to
+     * {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#OBJECT_BASED}, treats the key
+     * as direct one (e.g. searches and returns block at the given key in the underlying map).
+     * <p>
+     * Otherwise (with path mode set to {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#STRING_BASED}),
+     * treats the key like a string key representing full path to the value (like in Spigot/BungeeCord API). Therefore,
+     * if the given key contains any separator (configured in root's general settings), appropriate subsections are
+     * traversed (determined by the individual keys separated by the separator) - for example, for
+     * <code>section.value</code> key (with separator set to <code>.</code>), attempts to get the section at key
+     * <code>section</code> in <b>this</b> section and <b>then</b> the block at key <code>value</code> in
+     * <b>that</b> section. We can also interpret this behaviour as a call to {@link #getBlockSafe(Path)} with path
+     * created via constructor {@link Path#Path(String, char)} (which effectively splits the given string path into
+     * separate keys according to the separator).
+     * <p>
+     * If no separator is contained within the given key, treats the key as a direct one (returns block at the given key
+     * in this section - not subsections).
+     * <p>
+     * <p>
+     * <b>Please note</b> that this class also supports <code>null</code> keys, or empty string keys (<code>""</code>)
+     * as specified by YAML 1.2 spec. This also means that compatibility with Spigot/BungeeCord API is not maintained in
+     * regards to empty string keys, where those APIs would return the instance of the current block - this section.
+     * <p>
+     * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
+     *
+     * @param key the key/string path to get the object from
+     * @return block at the given path encapsulated in an optional
+     */
+    public Optional<Block<?>> getBlockSafe(@Nullable Object key) {
         //If is string mode and contains sub-key
-        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
+        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key != null && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
             //Return
-            return getSafeInternalString(key.toString(), 0, false);
-        //If does not contain
-        if (!getValue().containsKey(key))
-            return Optional.empty();
-
+            return getSafeInternalString(key.toString(), -1, false);
         //Return
-        return Optional.of(getValue().get(key));
+        return Optional.ofNullable(getValue().get(key));
     }
 
-    public Optional<Section> getParent(Path path) {
+    /**
+     * Returns section for the parent path of the given one, encapsulated in an instance of {@link Optional}. Said
+     * differently, the returned section is the result of {@link #getSection(Path)} called for the same path as given
+     * here, with the last path element removed.
+     * <p>
+     * That means, this method ignores if the given path represents an existing block and if block at that parent path
+     * is not a section (is a mapping), returns an empty optional.
+     * <p>
+     * If the given path is <code>null</code>, provides the same functionality as {@link #getParent(Object)} called
+     * with <code>null</code> parameter, effectively returning encapsulated instance of this section.
+     *
+     * @param path the path to get the parent section from
+     * @return section at the parent path from the given one encapsulated in an optional
+     */
+    public Optional<Section> getParent(@Nullable Path path) {
         return getSafeInternal(path, 0, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
-    public Optional<Section> getParent(Object key) {
+    /**
+     * Returns parent section for the (not necessarily existing) block at the given key in this section, encapsulated in
+     * an instance of {@link Optional}. Said differently, unless the given key refers, according to the root's path mode
+     * (see {@link #getBlockSafe(Object)}), to a full string path (is not a direct key), the returned instance is
+     * <b>always</b> an encapsulation of this section.
+     * <p>
+     * Similarly to {@link #getParent(Path)}, this method ignores if the given key represents an existing block. If
+     * the key represents a full string path (according to the path mode) and block at parent path of that path is not a
+     * section (is a mapping), returns an empty optional.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the key/string path to get the parent section from
+     * @return this section, or section at the parent path from the given string path (by the root's path mode),
+     * encapsulated in an instance of {@link Optional}
+     */
+    public Optional<Section> getParent(@Nullable Object key) {
         //If is string mode and contains sub-key
-        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
+        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key != null && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
             //Return
-            return getSafeInternalString(key.toString(), 0, true).map(block -> block instanceof Section ? (Section) block : null);
-        //If does not contain
-        if (!getValue().containsKey(key))
-            return Optional.empty();
-
+            return getSafeInternalString(key.toString(), -1, true).map(block -> block instanceof Section ? (Section) block : null);
         //Return
-        return Optional.of(getValue().get(key)).map(block -> block instanceof Section ? (Section) block : null);
+        return Optional.of(this);
     }
 
-    private Optional<Block<?>> getSafeInternalString(String path, int i, boolean parent) {
+    /**
+     * Internal method which returns a block, encapsulated in an instance of {@link Optional}, at the given string path,
+     * starting from the given index, in this section.
+     * <p>
+     * If the given path does not contain a separator (as configured in root's general settings), returns the result of
+     * {@link #getSectionSafe(Object)} called on this section, with <code>path.substring(i+1)</code> as the key.
+     * <p>
+     * If it does, calls this method recursively with the index of the next separator.
+     *
+     * @param path   the full string path that's searched
+     * @param i      index of the last separator found by the caller (in case of recursive call of this same method), or
+     *               <code>-1</code> if starting to search from the start of the given path (if called by a public
+     *               method)
+     * @param parent if searching for the parent section of the given path
+     * @return the block at the given string path, starting from the given index, in this section, or it's parent
+     * section
+     */
+    private Optional<Block<?>> getSafeInternalString(@NotNull String path, int i, boolean parent) {
         //Next separator
         int next = path.indexOf(i + 1, root.getGeneralSettings().getSeparator());
         //If -1
         if (next == -1)
-            return parent ? Optional.of(this) : getBlockSafe(path.substring(i));
+            return parent ? Optional.of(this) : getBlockSafe(path.substring(i + 1));
         //Call subsection
-        return getSectionSafe(path.substring(i, next)).flatMap(section -> section.getSafeInternalString(path, next, parent));
+        return getSectionSafe(path.substring(i + 1, next)).flatMap(section -> section.getSafeInternalString(path, next, parent));
     }
 
-    private Optional<Block<?>> getSafeInternal(Path path, int i, boolean parent) {
-        //If length is 0
-        if (path.getLength() == 0)
-            return Optional.of(this);
-
-        //If at last index
-        if (i + 1 >= path.getLength())
-            return parent ? Optional.of(this) : getBlockSafe(path.getKey(i));
-
-        //Section
-        Optional<Block<?>> section = getBlockSafe(path.getKey(i));
-        //If not present
-        if (!section.isPresent())
-            return Optional.empty();
-        //If not a section
-        if (!(section.get() instanceof Section))
-            return Optional.empty();
+    /**
+     * Internal method which returns a block, encapsulated in an instance of {@link Optional}, at the given path,
+     * starting from the given index, in this section.
+     * <p>
+     * If the given path is <code>null</code>, returns the result of {@link #getParent()} if <code>parent</code> is
+     * <code>true</code>, result of {@link #getBlockSafe(Object)} (with <code>null</code> parameter) otherwise.
+     * <p>
+     * If <code>i</code> represents the last element (key) in the given path, returns this section if
+     * <code>parent</code> is <code>true</code>, or the result of {@link #getBlockSafe(Object)}.
+     *
+     * @param path   the path that's searched
+     * @param i      current index in the path
+     * @param parent if searching for the parent section of the given path
+     * @return the block at the given path, starting from the given index, in this section, or it's parent section
+     */
+    private Optional<Block<?>> getSafeInternal(@Nullable Path path, int i, boolean parent) {
+        //If null or at last index
+        if (path == null || i + 1 >= path.getLength())
+            return path == null ? parent ? Optional.of(getParent()) : getBlockSafe((Object) null) : parent ? Optional.of(this) : getBlockSafe(path.getKey(i));
         //Return
-        return ((Section) section.get()).getSafeInternal(path, i + 1, parent);
+        return getBlockSafe(path.getKey(i)).flatMap(block -> block instanceof Section ? ((Section) block).getSafeInternal(path, i + 1, parent) : Optional.empty());
     }
 
-    public Optional<Object> getSafe(Path path) {
-        return getSafeInternal(path, 0, false).map(Block::getValue);
+    /**
+     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
+     * {@link Section} instance, encapsulated in an instance of {@link Optional}.
+     * <p>
+     * If there is no block present at the given path (therefore no value can be returned), returns an empty optional.
+     * <p>
+     * More formally, returns the result of {@link #getBlockSafe(Path)}. If the returned optional is not empty and
+     * does not contain an instance of {@link Section}, returns the encapsulated value returned by
+     * {@link Block#getValue()}.
+     * <p>
+     * If the given path is <code>null</code>, effectively returns the same as {@link #getSafe(Object)} called with
+     * <code>null</code> parameter. Please read more about this behaviour here: {@link #getBlockSafe(Path)}.
+     *
+     * @param path the path to get value at
+     * @return the value, or section at the given path
+     */
+    public Optional<Object> getSafe(@Nullable Path path) {
+        return getBlockSafe(path).map(block -> block instanceof Section ? block : block.getValue());
     }
 
-    public Optional<Object> getSafe(Object key) {
-        //If is string mode and contains sub-key
-        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
-            //Return
-            return getSafeInternalString(key.toString(), 0, false).map(Block::getValue);
-        //If does not contain
-        if (!getValue().containsKey(key))
-            return Optional.empty();
-
-        //Return
-        return Optional.of(getValue().get(key).getValue());
+    /**
+     * Returns the value of the block (the actual value - list, integer) at the given key/string path in the underlying
+     * map, or if it is a section, the corresponding {@link Section} instance, encapsulated in an instance of
+     * {@link Optional}.
+     * <p>
+     * If the key represents a full string path (according to the path mode) processes the block at that path and
+     * returns by the rules specified above.
+     * <p>
+     * If there is no block present at the given path (therefore no value can be returned), returns an empty optional.
+     * <p>
+     * More formally, returns the result of {@link #getBlockSafe(Object)}. If the returned optional is not empty and
+     * does not contain an instance of {@link Section}, returns the encapsulated value returned by
+     * {@link Block#getValue()} - the actual value (list, integer).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the key/string path to get the value from
+     * @return the value, or section at the given path
+     */
+    public Optional<Object> getSafe(@Nullable Object key) {
+        return getBlockSafe(key).map(block -> block instanceof Section ? block : block.getValue());
     }
 
+    /**
+     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
+     * {@link Section} instance, in both cases casted to instance of the given class; encapsulated in an instance of
+     * {@link Optional}.
+     * <p>
+     * If there is no block present at the given path (therefore no value can be returned), or the value (mapping's
+     * value or section instance) is not castable to the given type class, returns an empty optional.
+     * <p>
+     * More formally, returns the result of {@link #getSafe(Path)} casted to the given class if not empty (or an empty
+     * optional if types are incompatible).
+     *
+     * @param path the path to get value from
+     * @return the value (result of {@link #getSafe(Path)}) casted to the given type
+     */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAsSafe(Path path, Class<T> clazz) {
-        //The value
-        Optional<?> value = getSafe(path);
-        //If empty or if not an instance of the target type
-        if (!value.isPresent() || !clazz.isInstance(value.get()))
-            return Optional.empty();
-
-        //Return
-        return Optional.of((T) value.get());
+    public <T> Optional<T> getAsSafe(@Nullable Path path, Class<T> clazz) {
+        return getSafe(path).map((object) -> clazz.isInstance(object) ? (T) object : null);
     }
 
+
+    /**
+     * Returns the value of the block (the actual value) at the given key/string path (according to the root's path
+     * mode), or if it is a section, the corresponding {@link Section} instance, in both cases casted to instance of the
+     * given class; encapsulated in an instance of {@link Optional}.
+     * <p>
+     * If there is no block present at the given key (therefore no value can be returned), or the value (mapping's value
+     * or section instance) is not castable to the given type class, returns an empty optional.
+     * <p>
+     * More formally, returns the result of {@link #getSafe(Object)} casted to the given class if not empty (or an empty
+     * optional if types are incompatible).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the key/string path to get the value from
+     * @return the value (result of {@link #getSafe(Object)}) casted to the given type
+     */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAsSafe(Object key, Class<T> clazz) {
-        //The value
-        Optional<?> value = getSafe(key);
-        //If empty or if not an instance of the target type
-        if (!value.isPresent() || !clazz.isInstance(value.get()))
-            return Optional.empty();
-
-        //Return
-        return Optional.of((T) value.get());
+    public <T> Optional<T> getAsSafe(@Nullable Object key, Class<T> clazz) {
+        return getSafe(key).map((object) -> clazz.isInstance(object) ? (T) object : null);
     }
 
-
+    /**
+     * Returns the value encapsulated in the result of {@link #getSafe(Path)}. If the returned optional is empty,
+     * returns default value as defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
+     * <p>
+     * According to {@link #getSafe(Object)} documentation, the returned object might also be an instance of
+     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
+     *
+     * @param path the path to get the value from
+     * @return the value at the given path, or default if not found
+     * @see #getSafe(Path)
+     */
     public Object get(Path path) {
         return getSafe(path).orElse(root.getGeneralSettings().getDefaultObject());
     }
 
+    /**
+     * Returns the value encapsulated in the result of {@link #getSafe(Object)}. If the returned optional is empty,
+     * returns default value as defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
+     * <p>
+     * According to {@link #getSafe(Object)} documentation, the returned object might also be an instance of
+     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the key/string path to get the value from
+     * @return the value at the given key/string path, or default if not found
+     * @see #getSafe(Object)
+     */
     public Object get(Object key) {
         return getSafe(key).orElse(root.getGeneralSettings().getDefaultObject());
     }
 
-    @SuppressWarnings("unchecked")
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+
+    /**
+     * Returns the value encapsulated in the result of {@link #getAsSafe(Path, Class)} (indirectly). If the returned
+     * optional is empty, returns <code>null</code> (configurable global default value is not implemented as the only
+     * "instance" that is compatible with all the possible types in Java is <code>null</code>).
+     * <p>
+     * For custom defaults, please use {@link #getAs(Path, Class, Object)}.
+     *
+     * @param path  the path to get the value from
+     * @param clazz target class
+     * @return the value at the given path, or default if not found
+     * @see #getAsSafe(Path, Class)
+     * @see #getAs(Path, Class, Object)
+     */
     public <T> T getAs(Path path, Class<T> clazz) {
-        //The value
-        Optional<?> value = getSafe(path);
-        //If empty
-        if (!value.isPresent())
-            return null;
-        //If not an instance of the target type
-        if (!clazz.isInstance(value.get()))
-            return null;
-
-        //Return
-        return (T) value.get();
+        return getAs(path, clazz, null);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Returns the value encapsulated in the result of {@link #getAsSafe(Object, Class)} (indirectly). If the returned
+     * optional is empty, returns <code>null</code> (configurable default value is not implemented as the only
+     * "instance" that is compatible with all the possible types in Java is <code>null</code>).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     * <p>
+     * For custom defaults, please use {@link #getAs(Object, Class, Object)}.
+     *
+     * @param key   the key/string path to get the value from
+     * @param clazz target class
+     * @return the value at the given key/string path, or default if not found
+     * @see #getAsSafe(Object, Class)
+     * @see #getAs(Object, Class, Object)
+     */
     public <T> T getAs(Object key, Class<T> clazz) {
-        //The value
-        Optional<?> value = getSafe(key);
-        //If empty
-        if (!value.isPresent())
-            return null;
-        //If not an instance of the target type
-        if (!clazz.isInstance(value.get()))
-            return null;
-
-        //Return
-        return (T) value.get();
+        return getAs(key, clazz, null);
     }
 
+    /**
+     * Returns the value encapsulated in the result of {@link #getSafe(Path)}. If the returned optional is empty,
+     * returns the provided default.
+     * <p>
+     * According to {@link #getSafe(Path)} documentation, the returned object might also be an instance of
+     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
+     *
+     * @param path the path to get the value from
+     * @param def  the default object to return if there is nothing at the given path
+     * @return the value at the given path, or default if not found
+     * @see #getSafe(Path)
+     */
     public Object get(Path path, Object def) {
         return getSafe(path).orElse(def);
     }
 
+    /**
+     * Returns the value encapsulated in the result of {@link #getSafe(Object)}. If the returned optional is empty,
+     * returns the provided default.
+     * <p>
+     * According to {@link #getSafe(Object)} documentation, the returned object might also be an instance of
+     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path (determined by the root's path mode) to get the value from
+     * @param def the default object to return if there is nothing at the given path
+     * @return the value at the given direct key/string path, or default if not found
+     * @see #getSafe(Path)
+     */
     public Object get(Object key, Object def) {
         return getSafe(key).orElse(def);
     }
 
+    /**
+     * Returns the value encapsulated in the result of {@link #getAsSafe(Path, Class)}. If the returned optional is
+     * empty, returns the provided default.
+     *
+     * @param path  the path to get the value from
+     * @param clazz target class
+     * @param def   default value returned if no value is present, or is not an instance of the given class
+     * @return the value at the given path, or default if not found
+     * @see #getAsSafe(Path, Class)
+     */
     public <T> T getAs(Path path, Class<T> clazz, T def) {
         return getAsSafe(path, clazz).orElse(def);
     }
 
+    /**
+     * Returns the value encapsulated in the result of {@link #getAsSafe(Object, Class)}. If the returned optional is
+     * empty, returns the provided default.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key   the direct key/string path (determined by the root's path mode) to get the value from
+     * @param clazz target class
+     * @param def   default value returned if no value is present, or is not an instance of the given class
+     * @return the value at the given key/string path, or default if not found
+     * @see #getAsSafe(Object, Class)
+     */
     public <T> T getAs(Object key, Class<T> clazz, T def) {
         return getAsSafe(key, clazz).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only n value at the given path exists and it is an instance of the given class.
+     * <p>
+     * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Path, Class)}.
+     *
+     * @param path  the path to check
+     * @param clazz target class
+     * @param <T>   the type of of the target class
+     * @return if a value exists at the path and it is an instance of the given class
+     */
     public <T> boolean is(Path path, Class<T> clazz) {
         return getAsSafe(path, clazz).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only n value at the given direct key/string path (determined by the root's path
+     * mode) exists and it is an instance
+     * of the given class.
+     * <p>
+     * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Object, Class)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key   the direct key/string path to check
+     * @param clazz target class
+     * @param <T>   the type of of the target class
+     * @return if a value exists at the path and it is an instance of the given class
+     */
     public <T> boolean is(Object key, Class<T> clazz) {
         return getAsSafe(key, clazz).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Section methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a section, returns an empty optional.
+     *
+     * @param path the path to get the section from
+     * @return the section at the given path
+     * @see #getSectionSafe(Object)
+     */
     public Optional<Section> getSectionSafe(Path path) {
         return getAsSafe(path, Section.class);
     }
 
+    /**
+     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an
+     * instance of {@link Optional}. If nothing exists at the given key (path), or is not a section, returns an empty optional.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the section from
+     * @return the section at the given path
+     * @see #getSectionSafe(Path)
+     */
     public Optional<Section> getSectionSafe(Object key) {
         return getAsSafe(key, Section.class);
     }
 
+    /**
+     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns default
+     * value as defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
+     *
+     * @param path the path to get the section from
+     * @return the section at the given path, or default if not found
+     * @see #getSection(Path, Section)
+     */
     public Section getSection(Path path) {
         return getSection(path, root.getGeneralSettings().getDefaultSection());
     }
 
+    /**
+     * Returns section at the given direct key/string path (determined by the root's path mode). If nothing exists at
+     * the given key (path), or is not a section, returns default value as defined by root's general settings
+     * {@link GeneralSettings#getDefaultSection()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the section from
+     * @return the section at the given path, or default if not found
+     * @see #getSection(Object, Section)
+     */
     public Section getSection(Object key) {
         return getSection(key, root.getGeneralSettings().getDefaultSection());
     }
 
+    /**
+     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns the provided
+     * default.
+     *
+     * @param path the path to get the section from
+     * @return the section at the given path, or default if not found
+     */
     public Section getSection(Path path, Section def) {
         return getSectionSafe(path).orElse(def);
     }
 
+    /**
+     * Returns section at the given direct key/string path (determined by the root's path mode). If nothing exists at
+     * the given path, or is not a section, returns the provided default.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the section from
+     * @return the section at the given path, or default if not found
+     */
     public Section getSection(Object key, Section def) {
         return getSectionSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a section.
+     *
+     * @param path the path to check
+     * @return if a value exists at the path and it is a section
+     */
     public boolean isSection(Path path) {
         return getSectionSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given direct key/string path (determined by the root's path
+     * mode) exists and it is a section.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to check
+     * @return if a value exists at the path and it is a section
+     */
     public boolean isSection(Object key) {
         return getSectionSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          String methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not an instance of any of the types "properly" convertible to string (see below), returns an empty optional.
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     *
+     * @param path the path to get the string from
+     * @return the string at the given path
+     * @see #getStringSafe(Object)
+     */
     public Optional<String> getStringSafe(Path path) {
-        return getAsSafe(path, String.class);
+        return getSafe(path).map((object) -> object instanceof String || object instanceof Number || object instanceof Boolean ? object.toString() : null);
     }
 
+    /**
+     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an
+     * instance of {@link Optional}. If nothing exists at the given key (path), or is not an instance of any of the types
+     * "properly" convertible to string (see below), returns an empty optional.
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the string from
+     * @return the string at the given path
+     * @see #getStringSafe(Path)
+     */
     public Optional<String> getStringSafe(Object key) {
-        return getAsSafe(key, String.class);
+        return getSafe(key).map((object) -> object instanceof String || object instanceof Number || object instanceof Boolean ? object.toString() : null);
     }
 
+    /**
+     * Returns string at the given path. If nothing exists at the given path, or is not an instance of any of the types
+     * "properly" convertible to string (see below), returns default value as defined by root's general settings
+     * {@link GeneralSettings#getDefaultString()}.
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     *
+     * @param path the path to get the string from
+     * @return the string at the given path, or default if not found
+     * @see #getString(Path, String)
+     */
     public String getString(Path path) {
         return getString(path, root.getGeneralSettings().getDefaultString());
     }
 
+    /**
+     * Returns string at the given direct key/string path (determined by the root's path mode). If nothing exists at
+     * the given key (path), or is not an instance of any of the types "properly" convertible to string (see below),
+     * returns default value as defined by root's general settings {@link GeneralSettings#getDefaultString()}.
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the string from
+     * @return the string at the given path, or default if not found
+     * @see #getString(Object, String)
+     */
     public String getString(Object key) {
         return getString(key, root.getGeneralSettings().getDefaultString());
     }
 
+    /**
+     * Returns string at the given path. If nothing exists at the given path, or is not an instance of any of the types
+     * "properly" convertible to string (see below), returns the provided default.
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     *
+     * @param path the path to get the string from
+     * @return the string at the given path, or default if not found
+     */
     public String getString(Path path, String def) {
         return getStringSafe(path).orElse(def);
     }
 
+    /**
+     * Returns string at the given direct key/string path (determined by the root's path mode). If nothing exists at
+     * the given path, or is not an instance of any of the types "properly" convertible to string (see below), returns
+     * the provided default.
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the string from
+     * @return the string at the given path, or default if not found
+     */
     public String getString(Object key, String def) {
         return getStringSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a string, or any other type
+     * "properly" convertible to string (see below).
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     *
+     * @param path the path to check
+     * @return if a value exists at the path and it is a string, number or boolean
+     */
     public boolean isString(Path path) {
         return getStringSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given direct key/string path (determined by the root's path
+     * mode) exists and it is a string, or any other type "properly" convertible to string (see below).
+     * <p>
+     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
+     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.\
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to check
+     * @return if a value exists at the path and it is a string, number or boolean
+     */
     public boolean isString(Object key) {
         return getStringSafe(key).isPresent();
     }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         Character methods
+    //
+    //
+    //      -----------------------
+    //
+    //
 
     public Optional<Character> getCharSafe(Path path) {
         return parseChar(getStringSafe(path));
