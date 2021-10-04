@@ -29,9 +29,6 @@ public class Path {
     public Object getKey(int i) {
         return path[i];
     }
-    public Object[] getPath() {
-        return path;
-    }
     public Path add(Object element) {
         //New path
         Object[] path = Arrays.copyOf(this.path, this.path.length + 1);

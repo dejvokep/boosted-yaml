@@ -11,16 +11,39 @@ import org.snakeyaml.engine.v2.nodes.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.NumericConversions.*;
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions.*;
 
 /**
- * Represents one YAML section, while storing it's contents and comments. Section can also be referred to as
+ * Represents one YAML section (map), while storing it's contents and comments. Section can also be referred to as
  * <i>collection of mappings (key=value pairs)</i>.
+ * <p>
+ * Functionality of this class is heavily dependent on the root file (instance of root {@link YamlFile}), to be more
+ * specific, on it's settings.
+ * <p>
+ * The public methods of this class are divided into 2 groups, by what they require as the path and therefore, what should be used for certain path mode:
+ * <ul>
+ *     <li>{@link Path} - works <b>independently</b> of the root's path mode, please see {@link #getBlockSafe(Path)}</li>
+ *     <li>{@link Object} - works (functions) <b>dependently</b> of the root's path mode, please see {@link #getBlockSafe(Object)}</li>
+ * </ul>
+ * <p>
+ * Also, it is important to note that mappings stored in sections are key=value pairs, where the value is the actual
+ * value encapsulated in a {@link Block}. If the actual value is a map, it is treated as section and therefore,
+ * encapsulated in an instance of {@link Section}, otherwise {@link Mapping}. There is no other encapsulation object provided.
+ * <p>
+ * Modification/extension of those two classes, or additional extension of {@link Block} class is rather complicated and
+ * rather dangerous action. If doing so, the source code of this library should properly be examined (and in detail).
  */
+@SuppressWarnings("unused")
 public class Section extends Block<Map<Object, Block<?>>> {
+
+    /**
+     * An empty instance used if this section represents the root file. See {@link #getCallablePath()} for more information.
+     * <p>
+     * <b>This is only used to create other paths, as keeping and using an empty path is illegal and may cause unexpected issues as well.</b>
+     */
+    private static final Path EMPTY = new Path();
 
     //Root file
     private YamlFile root;
@@ -104,8 +127,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Set
         this.root = null;
         this.parent = null;
-        this.name = "";
-        this.path = new Path();
+        this.name = null;
+        this.path = null;
     }
 
     /**
@@ -150,8 +173,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * returned value by this method <code>false</code>.
      * <p>
      * More formally, if <code>deep == true</code>, contents of this section are iterated. If any of the values is a
-     * mapping (not a subsection), returns <code>false</code>. Similarly, if it is a section, runs
-     * {@link #isEmpty(boolean)} (with <code>deep</code> set to <code>true</code>) and returns <code>false</code> if the
+     * mapping (not a subsection), returns <code>false</code>. Similarly, if it is a section, runs this method
+     * recursively (with <code>deep</code> set to <code>true</code>) and returns <code>false</code> if the
      * result of that call is <code>false</code>. If the iteration finished and none of these conditions were met,
      * returns <code>true</code>.
      *
@@ -183,12 +206,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, if {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode} returned by
      * the settings is {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#STRING_BASED},
-     * returns the result of {@link Object#toString()} on the given key object, the key object otherwise.
+     * returns the result of {@link Object#toString()} on the given key object, the key object given otherwise.
+     * <p>
+     * If the given key is <code>null</code>, returns <code>null</code>.
      *
      * @param key the key object to adapt
      * @return the adapted key
      */
-    public Object adaptKey(Object key) {
+    public Object adaptKey(@Nullable Object key) {
         return key == null ? null : root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
     }
 
@@ -289,7 +314,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param current  the path to the currently iterated section, relative to the main caller section
      * @param deep     if to iterate deeply
      */
-    private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @Nullable Path current, boolean deep) {
+    private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @NotNull Path current, boolean deep) {
         //All keys
         for (Map.Entry<?, Block<?>> entry : getValue().entrySet()) {
             //Path to this entry
@@ -478,11 +503,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the newly created section or the already existing one
      */
     public Section createSection(@Nullable Object key, @Nullable Block<?> previous) {
-        return getSectionSafe(key).orElseGet(() -> {
+        //Adapt
+        Object adapted = adaptKey(key);
+
+        return getSectionSafe(adapted).orElseGet(() -> {
             //The new section
-            Section section = new Section(root, Section.this, key, path.add(key), previous, root.getGeneralSettings().getDefaultMap());
+            Section section = new Section(root, Section.this, adapted, path.add(adapted), previous, root.getGeneralSettings().getDefaultMap());
             //Add
-            getValue().put(key, section);
+            getValue().put(adapted, section);
             //Return
             return section;
         });
@@ -533,13 +561,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param value the value to set, processed as described above
      */
     public void set(Object key, Object value) {
+        //Adapt
+        key = adaptKey(key);
+
         //If null (remove)
         // TODO: 2. 10. 2021 Deprecated?
         if (value == null)
             remove(key);
-
-        //Adapt
-        key = adaptKey(key);
 
         //If is string mode
         if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED) {
@@ -607,7 +635,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Call other method
             remove((Object) null);
         //Remove
-        return removeInternal(getParent(path).orElse(null), path.getKey(path.getLength() - 1));
+        return removeInternal(getParent(path).orElse(null), adaptKey(path.getKey(path.getLength() - 1)));
     }
 
     /**
@@ -645,7 +673,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * key.
      *
      * @param parent the parent section, or <code>null</code> if does not exist
-     * @param key    the last key; key to check in the parent section
+     * @param key    the last key; key to check in the parent section, adapted using {@link #adaptKey(Object)}
      * @return if any value has been removed
      */
     private boolean removeInternal(@Nullable Section parent, @Nullable Object key) {
@@ -664,7 +692,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * returns block at <code>null</code> key in the underlying map.
      * <p>
      * Each value is encapsulated in a {@link Mapping} (if the value is not a section) or {@link Section} (the value is
-     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}.
+     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached to the declaration of this class.
+     * <p>
+     * <p>
+     * <b>Functionality notes:</b> This method works independently of the root's path mode (as opposed to object-oriented
+     * version of this method - {@link #getBlockSafe(Object)}).
+     * However, when individual elements (keys) of the given path are traversed, they are (without modifying the path
+     * object given - it is immutable) adapted to the current path mode setting (see {@link #adaptKey(Object)}).
      * <p>
      * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
      *
@@ -680,7 +714,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * value) at the given key, returns an empty optional.
      * <p>
      * Each value is encapsulated in a {@link Mapping} (if the value is not a section) or {@link Section} (the value is
-     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}.
+     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached to the declaration of this class.
      * <p>
      * <p>
      * <b>Functionality notes:</b> If root's path mode (general settings) is set to
@@ -711,6 +745,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return block at the given path encapsulated in an optional
      */
     public Optional<Block<?>> getBlockSafe(@Nullable Object key) {
+        //Adapt
+        key = adaptKey(key);
         //If is string mode and contains sub-key
         if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key != null && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
             //Return
@@ -756,6 +792,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * encapsulated in an instance of {@link Optional}
      */
     public Optional<Section> getParent(@Nullable Object key) {
+        //Adapt
+        key = adaptKey(key);
         //If is string mode and contains sub-key
         if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key != null && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
             //Return
@@ -1121,34 +1159,34 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the section from
      * @return the section at the given path
-     * @see #getSectionSafe(Object)
+     * @see #getSafe(Path)
      */
     public Optional<Section> getSectionSafe(Path path) {
         return getAsSafe(path, Section.class);
     }
 
     /**
-     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an
-     * instance of {@link Optional}. If nothing exists at the given key (path), or is not a section, returns an empty optional.
+     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a section, returns an empty optional.
      * <p>
      * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
      * @param key the direct key/string path to get the section from
-     * @return the section at the given path
-     * @see #getSectionSafe(Path)
+     * @return the section at the given direct key/string path
+     * @see #getSafe(Object)
      */
     public Optional<Section> getSectionSafe(Object key) {
         return getAsSafe(key, Section.class);
     }
 
     /**
-     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns default
-     * value as defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
+     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a section, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
      *
      * @param path the path to get the section from
-     * @return the section at the given path, or default if not found
+     * @return the section at the given path, or default if no supported type (specified above) was found
      * @see #getSection(Path, Section)
      */
     public Section getSection(Path path) {
@@ -1156,16 +1194,15 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns section at the given direct key/string path (determined by the root's path mode). If nothing exists at
-     * the given key (path), or is not a section, returns default value as defined by root's general settings
-     * {@link GeneralSettings#getDefaultSection()}.
+     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a section, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
      * <p>
      * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
      * @param key the direct key/string path to get the section from
-     * @return the section at the given path, or default if not found
+     * @return the section at the given direct key/string path, or default if no supported type (specified above) was found
      * @see #getSection(Object, Section)
      */
     public Section getSection(Object key) {
@@ -1173,26 +1210,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns the provided
-     * default.
+     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a section, returns the provided default.
      *
      * @param path the path to get the section from
-     * @return the section at the given path, or default if not found
+     * @param def default value returned if no value convertible to section is present (or no value at all)
+     * @return the section at the given path, or default if no supported type (specified above) was found
+     * @see #getSectionSafe(Path)
      */
     public Section getSection(Path path, Section def) {
         return getSectionSafe(path).orElse(def);
     }
 
     /**
-     * Returns section at the given direct key/string path (determined by the root's path mode). If nothing exists at
-     * the given path, or is not a section, returns the provided default.
+     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a section, returns the provided default.
      * <p>
      * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
      * @param key the direct key/string path to get the section from
-     * @return the section at the given path, or default if not found
+     * @param def default value returned if no value convertible to section is present (or no value at all)
+     * @return the section at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getSectionSafe(Object)
      */
     public Section getSection(Object key, Section def) {
         return getSectionSafe(key).orElse(def);
@@ -1237,49 +1278,47 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not an instance of any of the types "properly" convertible to string (see below), returns an empty optional.
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      *
      * @param path the path to get the string from
      * @return the string at the given path
-     * @see #getStringSafe(Object)
+     * @see #getSafe(Path)
      */
     public Optional<String> getStringSafe(Path path) {
         return getSafe(path).map((object) -> object instanceof String || object instanceof Number || object instanceof Boolean ? object.toString() : null);
     }
 
     /**
-     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an
-     * instance of {@link Optional}. If nothing exists at the given key (path), or is not an instance of any of the types
-     * "properly" convertible to string (see below), returns an empty optional.
+     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      * <p>
      * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
      * @param key the direct key/string path to get the string from
-     * @return the string at the given path
-     * @see #getStringSafe(Path)
+     * @return the string at the given direct key/string path
+     * @see #getSafe(Object)
      */
     public Optional<String> getStringSafe(Object key) {
         return getSafe(key).map((object) -> object instanceof String || object instanceof Number || object instanceof Boolean ? object.toString() : null);
     }
 
     /**
-     * Returns string at the given path. If nothing exists at the given path, or is not an instance of any of the types
-     * "properly" convertible to string (see below), returns default value as defined by root's general settings
-     * {@link GeneralSettings#getDefaultString()}.
+     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not an instance of any of the compatible types (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      *
      * @param path the path to get the string from
-     * @return the string at the given path, or default if not found
+     * @return the string at the given path, or default if no supported type (specified above) was found
      * @see #getString(Path, String)
      */
     public String getString(Path path) {
@@ -1287,19 +1326,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns string at the given direct key/string path (determined by the root's path mode). If nothing exists at
-     * the given key (path), or is not an instance of any of the types "properly" convertible to string (see below),
-     * returns default value as defined by root's general settings {@link GeneralSettings#getDefaultString()}.
+     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not an instance of any of the compatible types (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      * <p>
      * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
      * @param key the direct key/string path to get the string from
-     * @return the string at the given path, or default if not found
+     * @return the string at the given direct key/string path, or default if no supported type (specified above) was found
      * @see #getString(Object, String)
      */
     public String getString(Object key) {
@@ -1307,66 +1345,45 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns string at the given path. If nothing exists at the given path, or is not an instance of any of the types
-     * "properly" convertible to string (see below), returns the provided default.
+     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not an instance of any of the compatible types (see below), returns the provided default.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      *
      * @param path the path to get the string from
-     * @return the string at the given path, or default if not found
+     * @param def default value returned if no value convertible to string is present (or no value at all)
+     * @return the string at the given path, or default if no supported type (specified above) was found
+     * @see #getStringSafe(Path)
      */
     public String getString(Path path, String def) {
         return getStringSafe(path).orElse(def);
     }
 
     /**
-     * Returns string at the given direct key/string path (determined by the root's path mode). If nothing exists at
-     * the given path, or is not an instance of any of the types "properly" convertible to string (see below), returns
-     * the provided default.
+     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not an instance of any of the compatible types (see below), returns the provided default.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      * <p>
      * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
      * @param key the direct key/string path to get the string from
-     * @return the string at the given path, or default if not found
+     * @param def default value returned if no value convertible to string is present (or no value at all)
+     * @return the string at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getStringSafe(Object)
      */
     public String getString(Object key, String def) {
         return getStringSafe(key).orElse(def);
     }
 
-    /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a string, or any other type
-     * "properly" convertible to string (see below).
-     * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.
-     *
-     * @param path the path to check
-     * @return if a value exists at the path and it is a string, number or boolean
-     */
     public boolean isString(Path path) {
         return getStringSafe(path).isPresent();
     }
 
-    /**
-     * Returns <code>true</code> if and only a value at the given direct key/string path (determined by the root's path
-     * mode) exists and it is a string, or any other type "properly" convertible to string (see below).
-     * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are also treated like if they were strings, by converting and returning them as one.\
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
-     *
-     * @param key the direct key/string path to check
-     * @return if a value exists at the path and it is a string, number or boolean
-     */
     public boolean isString(Object key) {
         return getStringSafe(key).isPresent();
     }
@@ -1383,34 +1400,114 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
     //
 
+    /**
+     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a char, string or integer (see below), returns an empty optional.
+     * <p>
+     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
+     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
+     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * <p>
+     * {@link GeneralSettings#getDefaultChar()}
+     *
+     * @param path the path to get the char from
+     * @return the char at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Character> getCharSafe(Path path) {
-        return parseChar(getStringSafe(path));
+        return getSafe(path).map((object) -> object instanceof String ? object.toString().length() != 1 ? null : object.toString().charAt(0) : object instanceof Integer ? (char) ((int) object) : null);
     }
 
+    /**
+     * Returns char at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a char, string or integer (see below), returns an empty optional.
+     * <p>
+     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
+     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
+     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the char from
+     * @return the char at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Character> getCharSafe(Object key) {
-        return parseChar(getStringSafe(key));
+        return getSafe(key).map((object) -> object instanceof String ? object.toString().length() != 1 ? null : object.toString().charAt(0) : object instanceof Integer ? (char) ((int) object) : null);
     }
 
-    private Optional<Character> parseChar(Optional<String> value) {
-        //If empty or the string is longer
-        if (!value.isPresent() || value.get().length() != 1)
-            return Optional.empty();
-        //Return
-        return Optional.of(value.get().charAt(0));
-    }
-
+    /**
+     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a char, string or integer (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultChar()}.
+     * <p>
+     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
+     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
+     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     *
+     * @param path the path to get the char from
+     * @return the char at the given path, or default if no supported type (specified above) was found
+     * @see #getChar(Path, Character)
+     */
     public Character getChar(Path path) {
         return getChar(path, root.getGeneralSettings().getDefaultChar());
     }
 
+    /**
+     * Returns char at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a char, string or integer (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultChar()}.
+     * <p>
+     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
+     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
+     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the char from
+     * @return the char at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getChar(Object, Character)
+     */
     public Character getChar(Object key) {
         return getChar(key, root.getGeneralSettings().getDefaultChar());
     }
 
+    /**
+     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a char, string or integer (see below), returns the provided default.
+     * <p>
+     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
+     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
+     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     *
+     * @param path the path to get the char from
+     * @param def  default value returned if no value convertible to char is present (or no value at all)
+     * @return the char at the given path, or default if no supported type (specified above) was found
+     * @see #getCharSafe(Path)
+     */
     public Character getChar(Path path, Character def) {
         return getCharSafe(path).orElse(def);
     }
 
+    /**
+     * Returns char at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a char, string or integer (see below), returns the provided default.
+     * <p>
+     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
+     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
+     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the char from
+     * @param def default value returned if no value convertible to char is present (or no value at all)
+     * @return the char at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getCharSafe(Object)
+     */
     public Character getChar(Object key, Character def) {
         return getCharSafe(key).orElse(def);
     }
@@ -1423,28 +1520,114 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getCharSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         Integer methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a number (see below), returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     *
+     * @param path the path to get the integer from
+     * @return the integer at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Integer> getIntSafe(Path path) {
         return toInt(getAsSafe(path, Number.class));
     }
 
+    /**
+     * Returns integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a number (see below), returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the integer from
+     * @return the integer at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Integer> getIntSafe(Object key) {
         return toInt(getAsSafe(key, Number.class));
     }
 
-    public Integer getInt(Path path, Integer def) {
-        return getIntSafe(path).orElse(def);
-    }
-
-    public Integer getInt(Object key, Integer def) {
-        return getIntSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     *
+     * @param path the path to get the integer from
+     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @see #getInt(Path, Integer)
+     */
     public Integer getInt(Path path) {
         return getInt(path, root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
+    /**
+     * Returns integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the integer from
+     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getInt(Object, Integer)
+     */
     public Integer getInt(Object key) {
         return getInt(key, root.getGeneralSettings().getDefaultNumber().intValue());
+    }
+
+    /**
+     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a number (see below), returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     *
+     * @param path the path to get the integer from
+     * @param def  default value returned if no value convertible to integer is present (or no value at all)
+     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @see #getIntSafe(Path)
+     */
+    public Integer getInt(Path path, Integer def) {
+        return getIntSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a number (see below), returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the integer from
+     * @param def default value returned if no value convertible to integer is present (or no value at all)
+     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getIntSafe(Object)
+     */
+    public Integer getInt(Object key, Integer def) {
+        return getIntSafe(key).orElse(def);
     }
 
     public boolean isInt(Path path) {
@@ -1455,28 +1638,220 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getIntSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         BigInteger methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a big integer/number (see below), returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     *
+     * @param path the path to get the integer from
+     * @return the integer at the given path
+     * @see #getSafe(Path)
+     */
+    public Optional<BigInteger> getBigIntSafe(Path path) {
+        return getAsSafe(path, Number.class).map(number -> number instanceof BigInteger ? (BigInteger) number : BigInteger.valueOf(number.longValue()));
+    }
+
+    /**
+     * Returns big integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a big integer/number (see below), returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the integer from
+     * @return the integer at the given direct key/string path
+     * @see #getSafe(Object)
+     */
+    public Optional<BigInteger> getBigIntSafe(Object key) {
+        return getAsSafe(key, Number.class).map(number -> number instanceof BigInteger ? (BigInteger) number : BigInteger.valueOf(number.longValue()));
+    }
+
+    /**
+     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a big integer/number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     *
+     * @param path the path to get the integer from
+     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @see #getInt(Path, Integer)
+     */
+    public BigInteger getBigInt(Path path) {
+        return getBigInt(path, BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
+    }
+
+    /**
+     * Returns big integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a big integer/number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the integer from
+     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getInt(Object, Integer)
+     */
+    public BigInteger getBigInt(Object key) {
+        return getBigInt(key, BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
+    }
+
+    /**
+     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a big integer/number (see below), returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     *
+     * @param path the path to get the integer from
+     * @param def  default value returned if no value convertible to integer is present (or no value at all)
+     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @see #getIntSafe(Path)
+     */
+    public BigInteger getBigInt(Path path, BigInteger def) {
+        return getBigIntSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns big integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a big integer/number (see below), returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the integer from
+     * @param def default value returned if no value convertible to integer is present (or no value at all)
+     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getIntSafe(Object)
+     */
+    public BigInteger getBigInt(Object key, BigInteger def) {
+        return getBigIntSafe(key).orElse(def);
+    }
+
+    public boolean isBigInt(Path path) {
+        return getBigIntSafe(path).isPresent();
+    }
+
+    public boolean isBigInt(Object key) {
+        return getBigIntSafe(key).isPresent();
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         Boolean methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a boolean, returns an empty optional.
+     *
+     * @param path the path to get the boolean from
+     * @return the boolean at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Boolean> getBooleanSafe(Path path) {
         return getAsSafe(path, Boolean.class);
     }
 
+    /**
+     * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a boolean, returns an empty optional.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the boolean from
+     * @return the boolean at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Boolean> getBooleanSafe(Object key) {
         return getAsSafe(key, Boolean.class);
     }
 
-    public Boolean getBoolean(Path path, Boolean def) {
-        return getBooleanSafe(path).orElse(def);
-    }
-
-    public Boolean getBoolean(Object key, Boolean def) {
-        return getBooleanSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a boolean, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
+     *
+     * @param path the path to get the boolean from
+     * @return the boolean at the given path, or default if no supported type (specified above) was found
+     * @see #getBoolean(Path, Boolean)
+     */
     public Boolean getBoolean(Path path) {
         return getBoolean(path, root.getGeneralSettings().getDefaultBoolean());
     }
 
+    /**
+     * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a boolean, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the boolean from
+     * @return the boolean at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getBoolean(Object, Boolean)
+     */
     public Boolean getBoolean(Object key) {
         return getBoolean(key, root.getGeneralSettings().getDefaultBoolean());
+    }
+
+    /**
+     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a boolean, returns the provided default.
+     *
+     * @param path the path to get the boolean from
+     * @param def  default value returned if no value convertible to boolean is present (or no value at all)
+     * @return the boolean at the given path, or default if no supported type (specified above) was found
+     * @see #getBooleanSafe(Path)
+     */
+    public Boolean getBoolean(Path path, Boolean def) {
+        return getBooleanSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a boolean, returns the provided default.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the boolean from
+     * @param def default value returned if no value convertible to boolean is present (or no value at all)
+     * @return the boolean at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getBooleanSafe(Object)
+     */
+    public Boolean getBoolean(Object key, Boolean def) {
+        return getBooleanSafe(key).orElse(def);
     }
 
     public boolean isBoolean(Path path) {
@@ -1487,28 +1862,114 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getBooleanSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Double methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a double, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     *
+     * @param path the path to get the double from
+     * @return the double at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Double> getDoubleSafe(Path path) {
         return toDouble(getAsSafe(path, Number.class));
     }
 
+    /**
+     * Returns double at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a double, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the double from
+     * @return the double at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Double> getDoubleSafe(Object key) {
         return toDouble(getAsSafe(key, Number.class));
     }
 
-    public Double getDouble(Path path, Double def) {
-        return getDoubleSafe(path).orElse(def);
-    }
-
-    public Double getDouble(Object key, Double def) {
-        return getDoubleSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a double, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     *
+     * @param path the path to get the double from
+     * @return the double at the given path, or default if no supported type (specified above) was found
+     * @see #getDouble(Path, Double)
+     */
     public Double getDouble(Path path) {
         return getDouble(path, root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
+    /**
+     * Returns double at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a double, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the double from
+     * @return the double at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getDouble(Object, Double)
+     */
     public Double getDouble(Object key) {
         return getDouble(key, root.getGeneralSettings().getDefaultNumber().doubleValue());
+    }
+
+    /**
+     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a double, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     *
+     * @param path the path to get the double from
+     * @param def  default value returned if no value convertible to double is present (or no value at all)
+     * @return the double at the given path, or default if no supported type (specified above) was found
+     * @see #getDoubleSafe(Path)
+     */
+    public Double getDouble(Path path, Double def) {
+        return getDoubleSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns double at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a double, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the double from
+     * @param def default value returned if no value convertible to double is present (or no value at all)
+     * @return the double at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getDoubleSafe(Object)
+     */
+    public Double getDouble(Object key, Double def) {
+        return getDoubleSafe(key).orElse(def);
     }
 
     public boolean isDouble(Path path) {
@@ -1519,28 +1980,114 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getDoubleSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Float methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a float, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     *
+     * @param path the path to get the float from
+     * @return the float at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Float> getFloatSafe(Path path) {
         return toFloat(getAsSafe(path, Number.class));
     }
 
+    /**
+     * Returns float at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a float, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the float from
+     * @return the float at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Float> getFloatSafe(Object key) {
         return toFloat(getAsSafe(key, Number.class));
     }
 
-    public Float getFloat(Path path, Float def) {
-        return getFloatSafe(path).orElse(def);
-    }
-
-    public Float getFloat(Object key, Float def) {
-        return getFloatSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a float, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     *
+     * @param path the path to get the float from
+     * @return the float at the given path, or default if no supported type (specified above) was found
+     * @see #getFloat(Path, Float)
+     */
     public Float getFloat(Path path) {
         return getFloat(path, root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
+    /**
+     * Returns float at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a float, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the float from
+     * @return the float at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getFloat(Object, Float)
+     */
     public Float getFloat(Object key) {
         return getFloat(key, root.getGeneralSettings().getDefaultNumber().floatValue());
+    }
+
+    /**
+     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a float, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     *
+     * @param path the path to get the float from
+     * @param def  default value returned if no value convertible to float is present (or no value at all)
+     * @return the float at the given path, or default if no supported type (specified above) was found
+     * @see #getFloatSafe(Path)
+     */
+    public Float getFloat(Path path, Float def) {
+        return getFloatSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns float at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a float, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the float from
+     * @param def default value returned if no value convertible to float is present (or no value at all)
+     * @return the float at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getFloatSafe(Object)
+     */
+    public Float getFloat(Object key, Float def) {
+        return getFloatSafe(key).orElse(def);
     }
 
     public boolean isFloat(Path path) {
@@ -1551,28 +2098,114 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getFloatSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Byte methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a byte, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     *
+     * @param path the path to get the byte from
+     * @return the byte at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Byte> getByteSafe(Path path) {
         return toByte(getAsSafe(path, Number.class));
     }
 
+    /**
+     * Returns byte at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a byte, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the byte from
+     * @return the byte at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Byte> getByteSafe(Object key) {
         return toByte(getAsSafe(key, Number.class));
     }
 
-    public Byte getByte(Path path, Byte def) {
-        return getByteSafe(path).orElse(def);
-    }
-
-    public Byte getByte(Object key, Byte def) {
-        return getByteSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a byte, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     *
+     * @param path the path to get the byte from
+     * @return the byte at the given path, or default if no supported type (specified above) was found
+     * @see #getByte(Path, Byte)
+     */
     public Byte getByte(Path path) {
         return getByte(path, root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
+    /**
+     * Returns byte at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a byte, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the byte from
+     * @return the byte at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getByte(Object, Byte)
+     */
     public Byte getByte(Object key) {
         return getByte(key, root.getGeneralSettings().getDefaultNumber().byteValue());
+    }
+
+    /**
+     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a byte, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     *
+     * @param path the path to get the byte from
+     * @param def  default value returned if no value convertible to byte is present (or no value at all)
+     * @return the byte at the given path, or default if no supported type (specified above) was found
+     * @see #getByteSafe(Path)
+     */
+    public Byte getByte(Path path, Byte def) {
+        return getByteSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns byte at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a byte, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the byte from
+     * @param def default value returned if no value convertible to byte is present (or no value at all)
+     * @return the byte at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getByteSafe(Object)
+     */
+    public Byte getByte(Object key, Byte def) {
+        return getByteSafe(key).orElse(def);
     }
 
     public boolean isByte(Path path) {
@@ -1583,28 +2216,114 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getByteSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Long methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a long, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     *
+     * @param path the path to get the long from
+     * @return the long at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Long> getLongSafe(Path path) {
         return toLong(getAsSafe(path, Number.class));
     }
 
+    /**
+     * Returns long at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a long, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the long from
+     * @return the long at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Long> getLongSafe(Object key) {
         return toLong(getAsSafe(key, Number.class));
     }
 
-    public Long getLong(Path path, Long def) {
-        return getLongSafe(path).orElse(def);
-    }
-
-    public Long getLong(Object key, Long def) {
-        return getLongSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a long, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     *
+     * @param path the path to get the long from
+     * @return the long at the given path, or default if no supported type (specified above) was found
+     * @see #getLong(Path, Long)
+     */
     public Long getLong(Path path) {
         return getLong(path, root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
+    /**
+     * Returns long at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a long, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the long from
+     * @return the long at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getLong(Object, Long)
+     */
     public Long getLong(Object key) {
         return getLong(key, root.getGeneralSettings().getDefaultNumber().longValue());
+    }
+
+    /**
+     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a long, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     *
+     * @param path the path to get the long from
+     * @param def  default value returned if no value convertible to long is present (or no value at all)
+     * @return the long at the given path, or default if no supported type (specified above) was found
+     * @see #getLongSafe(Path)
+     */
+    public Long getLong(Path path, Long def) {
+        return getLongSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns long at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a long, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the long from
+     * @param def default value returned if no value convertible to long is present (or no value at all)
+     * @return the long at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getLongSafe(Object)
+     */
+    public Long getLong(Object key, Long def) {
+        return getLongSafe(key).orElse(def);
     }
 
     public boolean isLong(Path path) {
@@ -1615,28 +2334,114 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getLongSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Short methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a short, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     *
+     * @param path the path to get the short from
+     * @return the short at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<Short> getShortSafe(Path path) {
         return toShort(getAsSafe(path, Number.class));
     }
 
+    /**
+     * Returns short at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a short, returns an empty optional.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the short from
+     * @return the short at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<Short> getShortSafe(Object key) {
         return toShort(getAsSafe(key, Number.class));
     }
 
-    public Short getShort(Path path, Short def) {
-        return getShortSafe(path).orElse(def);
-    }
-
-    public Short getShort(Object key, Short def) {
-        return getShortSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a short, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     *
+     * @param path the path to get the short from
+     * @return the short at the given path, or default if no supported type (specified above) was found
+     * @see #getShort(Path, Short)
+     */
     public Short getShort(Path path) {
         return getShort(path, root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
+    /**
+     * Returns short at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a short, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short}).
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the short from
+     * @return the short at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getShort(Object, Short)
+     */
     public Short getShort(Object key) {
         return getShort(key, root.getGeneralSettings().getDefaultNumber().shortValue());
+    }
+
+    /**
+     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a short, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     *
+     * @param path the path to get the short from
+     * @param def  default value returned if no value convertible to short is present (or no value at all)
+     * @return the short at the given path, or default if no supported type (specified above) was found
+     * @see #getShortSafe(Path)
+     */
+    public Short getShort(Path path, Short def) {
+        return getShortSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns short at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a short, returns the provided default.
+     * <p>
+     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the short from
+     * @param def default value returned if no value convertible to short is present (or no value at all)
+     * @return the short at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getShortSafe(Object)
+     */
+    public Short getShort(Object key, Short def) {
+        return getShortSafe(key).orElse(def);
     }
 
     public boolean isShort(Path path) {
@@ -1647,28 +2452,102 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getShortSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          List<?> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list, returns an empty optional.
+     *
+     * @param path the path to get the list from
+     * @return the list at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<List<?>> getListSafe(Path path) {
         return getAsSafe(path, List.class).map(list -> (List<?>) list);
     }
 
+    /**
+     * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list, returns an empty optional.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list from
+     * @return the list at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<List<?>> getListSafe(Object key) {
         return getAsSafe(key, List.class).map(list -> (List<?>) list);
     }
 
-    public List<?> getList(Path path, List<?> def) {
-        return getListSafe(path).orElse(def);
-    }
-
-    public List<?> getList(Object key, List<?> def) {
-        return getListSafe(key).orElse(def);
-    }
-
+    /**
+     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     *
+     * @param path the path to get the list from
+     * @return the list at the given path, or default if no supported type (specified above) was found
+     * @see #getList(Path, List)
+     */
     public List<?> getList(Path path) {
         return getList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list from
+     * @return the list at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getList(Object, List)
+     */
     public List<?> getList(Object key) {
         return getList(key, root.getGeneralSettings().getDefaultList());
+    }
+
+    /**
+     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list, returns the provided default.
+     *
+     * @param path the path to get the list from
+     * @param def  default value returned if no value convertible to list is present (or no value at all)
+     * @return the list at the given path, or default if no supported type (specified above) was found
+     * @see #getListSafe(Path)
+     */
+    public List<?> getList(Path path, List<?> def) {
+        return getListSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list, returns the provided default.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list from
+     * @param def default value returned if no value convertible to list is present (or no value at all)
+     * @return the list at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getListSafe(Object)
+     */
+    public List<?> getList(Object key, List<?> def) {
+        return getListSafe(key).orElse(def);
     }
 
     public boolean isList(Path path) {
@@ -1679,236 +2558,1134 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getListSafe(key).isPresent();
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //       List<String> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of strings, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     *
+     * @param path the path to get the list of strings from
+     * @return the list of strings at the given path
+     * @see #getSafe(Path)
+     * @see #getStringSafe(Path)
+     */
     public Optional<List<String>> getStringListSafe(Path path) {
         return toStringList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of strings at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of strings, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of strings from
+     * @return the list of strings at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getStringSafe(Path)
+     */
     public Optional<List<String>> getStringListSafe(Object key) {
         return toStringList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of strings, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     *
+     * @param path the path to get the list of strings from
+     * @param def  default value returned if no value convertible to list of strings is present (or no value at all)
+     * @return the list of strings at the given path, or default if no supported type (specified above) was found
+     * @see #getStringListSafe(Path)
+     * @see #getStringSafe(Path)
+     */
     public List<String> getStringList(Path path, List<String> def) {
         return getStringListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of strings at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of strings, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of strings from
+     * @param def default value returned if no value convertible to list of strings is present (or no value at all)
+     * @return the list of strings at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getStringListSafe(Object)
+     * @see #getStringSafe(Path)
+     */
     public List<String> getStringList(Object key, List<String> def) {
         return getStringListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of strings, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     *
+     * @param path the path to get the list of strings from
+     * @return the list of strings at the given path, or default if no supported type (specified above) was found
+     * @see #getStringList(Path, List)
+     * @see #getStringSafe(Path)
+     */
     public List<String> getStringList(Path path) {
         return getStringList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of strings at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of strings, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of strings from
+     * @return the list of strings at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getStringList(Object, List)
+     * @see #getStringSafe(Path)
+     */
     public List<String> getStringList(Object key) {
         return getStringList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //       List<Integer> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of integers, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     *
+     * @param path the path to get the list of integers from
+     * @return the list of integers at the given path
+     * @see #getSafe(Path)
+     * @see #getIntSafe(Path)
+     */
     public Optional<List<Integer>> getIntListSafe(Path path) {
         return toIntList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of integers, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of integers from
+     * @return the list of integers at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getIntSafe(Path)
+     */
     public Optional<List<Integer>> getIntListSafe(Object key) {
         return toIntList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of integers, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     *
+     * @param path the path to get the list of integers from
+     * @param def  default value returned if no value convertible to list of integers is present (or no value at all)
+     * @return the list of integers at the given path, or default if no supported type (specified above) was found
+     * @see #getIntListSafe(Path)
+     * @see #getIntSafe(Path)
+     */
     public List<Integer> getIntList(Path path, List<Integer> def) {
         return getIntListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of integers, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of integers from
+     * @param def default value returned if no value convertible to list of integers is present (or no value at all)
+     * @return the list of integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getIntListSafe(Object)
+     * @see #getIntSafe(Path)
+     */
     public List<Integer> getIntList(Object key, List<Integer> def) {
         return getIntListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     *
+     * @param path the path to get the list of integers from
+     * @return the list of integers at the given path, or default if no supported type (specified above) was found
+     * @see #getIntList(Path, List)
+     * @see #getIntSafe(Path)
+     */
     public List<Integer> getIntList(Path path) {
         return getIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of integers from
+     * @return the list of integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getIntList(Object, List)
+     * @see #getIntSafe(Path)
+     */
     public List<Integer> getIntList(Object key) {
         return getIntList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //     List<BigInteger> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of big integers, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     *
+     * @param path the path to get the list of big integers from
+     * @return the list of big integers at the given path
+     * @see #getSafe(Path)
+     * @see #getBigIntSafe(Path)
+     */
     public Optional<List<BigInteger>> getBigIntListSafe(Path path) {
         return toBigIntList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of big integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of big integers, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of big integers from
+     * @return the list of big integers at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getBigIntSafe(Path)
+     */
     public Optional<List<BigInteger>> getBigIntListSafe(Object key) {
         return toBigIntList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of big integers, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     *
+     * @param path the path to get the list of big integers from
+     * @param def  default value returned if no value convertible to list of big integers is present (or no value at all)
+     * @return the list of big integers at the given path, or default if no supported type (specified above) was found
+     * @see #getBigIntListSafe(Path)
+     * @see #getBigIntSafe(Path)
+     */
     public List<BigInteger> getBigIntList(Path path, List<BigInteger> def) {
         return getBigIntListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of big integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of big integers, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of big integers from
+     * @param def default value returned if no value convertible to list of big integers is present (or no value at all)
+     * @return the list of big integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getBigIntListSafe(Object)
+     * @see #getBigIntSafe(Path)
+     */
     public List<BigInteger> getBigIntList(Object key, List<BigInteger> def) {
         return getBigIntListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of big integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     *
+     * @param path the path to get the list of big integers from
+     * @return the list of big integers at the given path, or default if no supported type (specified above) was found
+     * @see #getBigIntList(Path, List)
+     * @see #getBigIntSafe(Path)
+     */
     public List<BigInteger> getBigIntList(Path path) {
         return getBigIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of big integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of big integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of big integers from
+     * @return the list of big integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getBigIntList(Object, List)
+     * @see #getBigIntSafe(Path)
+     */
     public List<BigInteger> getBigIntList(Object key) {
         return getBigIntList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         List<Byte> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of bytes, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     *
+     * @param path the path to get the list of bytes from
+     * @return the list of bytes at the given path
+     * @see #getSafe(Path)
+     * @see #getByteSafe(Path)
+     */
     public Optional<List<Byte>> getByteListSafe(Path path) {
         return toByteList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of bytes at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of bytes, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of bytes from
+     * @return the list of bytes at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getByteSafe(Path)
+     */
     public Optional<List<Byte>> getByteListSafe(Object key) {
         return toByteList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of bytes, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     *
+     * @param path the path to get the list of bytes from
+     * @param def  default value returned if no value convertible to list of bytes is present (or no value at all)
+     * @return the list of bytes at the given path, or default if no supported type (specified above) was found
+     * @see #getByteListSafe(Path)
+     * @see #getByteSafe(Path)
+     */
     public List<Byte> getByteList(Path path, List<Byte> def) {
         return getByteListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of bytes at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of bytes, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of bytes from
+     * @param def default value returned if no value convertible to list of bytes is present (or no value at all)
+     * @return the list of bytes at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getByteListSafe(Object)
+     * @see #getByteSafe(Path)
+     */
     public List<Byte> getByteList(Object key, List<Byte> def) {
         return getByteListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of bytes, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     *
+     * @param path the path to get the list of bytes from
+     * @return the list of bytes at the given path, or default if no supported type (specified above) was found
+     * @see #getByteList(Path, List)
+     * @see #getByteSafe(Path)
+     */
     public List<Byte> getByteList(Path path) {
         return getByteList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of bytes at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of bytes, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of bytes from
+     * @return the list of bytes at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getByteList(Object, List)
+     * @see #getByteSafe(Path)
+     */
     public List<Byte> getByteList(Object key) {
         return getByteList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         List<Long> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of longs, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     *
+     * @param path the path to get the list of longs from
+     * @return the list of longs at the given path
+     * @see #getSafe(Path)
+     * @see #getLongSafe(Path)
+     */
     public Optional<List<Long>> getLongListSafe(Path path) {
         return toLongList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of longs at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of longs, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of longs from
+     * @return the list of longs at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getLongSafe(Path)
+     */
     public Optional<List<Long>> getLongListSafe(Object key) {
         return toLongList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of longs, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     *
+     * @param path the path to get the list of longs from
+     * @param def  default value returned if no value convertible to list of longs is present (or no value at all)
+     * @return the list of longs at the given path, or default if no supported type (specified above) was found
+     * @see #getLongListSafe(Path)
+     * @see #getLongSafe(Path)
+     */
     public List<Long> getLongList(Path path, List<Long> def) {
         return getLongListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of longs at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of longs, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of longs from
+     * @param def default value returned if no value convertible to list of longs is present (or no value at all)
+     * @return the list of longs at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getLongListSafe(Object)
+     * @see #getLongSafe(Path)
+     */
     public List<Long> getLongList(Object key, List<Long> def) {
         return getLongListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of longs, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     *
+     * @param path the path to get the list of longs from
+     * @return the list of longs at the given path, or default if no supported type (specified above) was found
+     * @see #getLongList(Path, List)
+     * @see #getLongSafe(Path)
+     */
     public List<Long> getLongList(Path path) {
         return getLongList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of longs at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of longs, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of longs from
+     * @return the list of longs at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getLongList(Object, List)
+     * @see #getLongSafe(Path)
+     */
     public List<Long> getLongList(Object key) {
         return getLongList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //       List<Double> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of doubles, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     *
+     * @param path the path to get the list of doubles from
+     * @return the list of doubles at the given path
+     * @see #getSafe(Path)
+     * @see #getDoubleSafe(Path)
+     */
     public Optional<List<Double>> getDoubleListSafe(Path path) {
         return toDoubleList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of doubles at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of doubles, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of doubles from
+     * @return the list of doubles at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getDoubleSafe(Path)
+     */
     public Optional<List<Double>> getDoubleListSafe(Object key) {
         return toDoubleList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of doubles, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     *
+     * @param path the path to get the list of doubles from
+     * @param def  default value returned if no value convertible to list of doubles is present (or no value at all)
+     * @return the list of doubles at the given path, or default if no supported type (specified above) was found
+     * @see #getDoubleListSafe(Path)
+     * @see #getDoubleSafe(Path)
+     */
     public List<Double> getDoubleList(Path path, List<Double> def) {
         return getDoubleListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of doubles at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of doubles, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of doubles from
+     * @param def default value returned if no value convertible to list of doubles is present (or no value at all)
+     * @return the list of doubles at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getDoubleListSafe(Object)
+     * @see #getDoubleSafe(Path)
+     */
     public List<Double> getDoubleList(Object key, List<Double> def) {
         return getDoubleListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of doubles, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     *
+     * @param path the path to get the list of doubles from
+     * @return the list of doubles at the given path, or default if no supported type (specified above) was found
+     * @see #getDoubleList(Path, List)
+     * @see #getDoubleSafe(Path)
+     */
     public List<Double> getDoubleList(Path path) {
         return getDoubleList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of doubles at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of doubles, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of doubles from
+     * @return the list of doubles at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getDoubleList(Object, List)
+     * @see #getDoubleSafe(Path)
+     */
     public List<Double> getDoubleList(Object key) {
         return getDoubleList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //        List<Float> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of floats, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     *
+     * @param path the path to get the list of floats from
+     * @return the list of floats at the given path
+     * @see #getSafe(Path)
+     * @see #getFloatSafe(Path)
+     */
     public Optional<List<Float>> getFloatListSafe(Path path) {
         return toFloatList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of floats at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of floats, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of floats from
+     * @return the list of floats at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getFloatSafe(Path)
+     */
     public Optional<List<Float>> getFloatListSafe(Object key) {
         return toFloatList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of floats, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     *
+     * @param path the path to get the list of floats from
+     * @param def  default value returned if no value convertible to list of floats is present (or no value at all)
+     * @return the list of floats at the given path, or default if no supported type (specified above) was found
+     * @see #getFloatListSafe(Path)
+     * @see #getFloatSafe(Path)
+     */
     public List<Float> getFloatList(Path path, List<Float> def) {
         return getFloatListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of floats at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of floats, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of floats from
+     * @param def default value returned if no value convertible to list of floats is present (or no value at all)
+     * @return the list of floats at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getFloatListSafe(Object)
+     * @see #getFloatSafe(Path)
+     */
     public List<Float> getFloatList(Object key, List<Float> def) {
         return getFloatListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of floats, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     *
+     * @param path the path to get the list of floats from
+     * @return the list of floats at the given path, or default if no supported type (specified above) was found
+     * @see #getFloatList(Path, List)
+     * @see #getFloatSafe(Path)
+     */
     public List<Float> getFloatList(Path path) {
         return getFloatList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of floats at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of floats, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of floats from
+     * @return the list of floats at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getFloatList(Object, List)
+     * @see #getFloatSafe(Path)
+     */
     public List<Float> getFloatList(Object key) {
         return getFloatList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //        List<Short> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of shorts, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     *
+     * @param path the path to get the list of shorts from
+     * @return the list of shorts at the given path
+     * @see #getSafe(Path)
+     * @see #getShortSafe(Path)
+     */
     public Optional<List<Short>> getShortListSafe(Path path) {
         return toShortList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of shorts at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of shorts, returns an empty optional.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of shorts from
+     * @return the list of shorts at the given direct key/string path
+     * @see #getSafe(Object)
+     * @see #getShortSafe(Path)
+     */
     public Optional<List<Short>> getShortListSafe(Object key) {
         return toShortList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of shorts, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     *
+     * @param path the path to get the list of shorts from
+     * @param def  default value returned if no value convertible to list of shorts is present (or no value at all)
+     * @return the list of shorts at the given path, or default if no supported type (specified above) was found
+     * @see #getShortListSafe(Path)
+     * @see #getShortSafe(Path)
+     */
     public List<Short> getShortList(Path path, List<Short> def) {
         return getShortListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of shorts at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of shorts, returns the provided default.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of shorts from
+     * @param def default value returned if no value convertible to list of shorts is present (or no value at all)
+     * @return the list of shorts at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getShortListSafe(Object)
+     * @see #getShortSafe(Path)
+     */
     public List<Short> getShortList(Object key, List<Short> def) {
         return getShortListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of shorts, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     *
+     * @param path the path to get the list of shorts from
+     * @return the list of shorts at the given path, or default if no supported type (specified above) was found
+     * @see #getShortList(Path, List)
+     * @see #getShortSafe(Path)
+     */
     public List<Short> getShortList(Path path) {
         return getShortList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of shorts at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of shorts, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
+     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of shorts from
+     * @return the list of shorts at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getShortList(Object, List)
+     * @see #getShortSafe(Path)
+     */
     public List<Short> getShortList(Object key) {
         return getShortList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //      List<Map<?, ?>> methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of maps, returns an empty optional.
+     *
+     * @param path the path to get the list of maps from
+     * @return the list of maps at the given path
+     * @see #getSafe(Path)
+     */
     public Optional<List<Map<?, ?>>> getMapListSafe(Path path) {
         return toMapList(getAsSafe(path, List.class));
     }
 
+    /**
+     * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of maps, returns an empty optional.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of maps from
+     * @return the list of maps at the given direct key/string path
+     * @see #getSafe(Object)
+     */
     public Optional<List<Map<?, ?>>> getMapListSafe(Object key) {
         return toMapList(getAsSafe(key, List.class));
     }
 
+    /**
+     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of maps, returns the provided default.
+     *
+     * @param path the path to get the list of maps from
+     * @param def  default value returned if no value convertible to list of maps is present (or no value at all)
+     * @return the list of maps at the given path, or default if no supported type (specified above) was found
+     * @see #getMapListSafe(Path)
+     */
     public List<Map<?, ?>> getMapList(Path path, List<Map<?, ?>> def) {
         return getMapListSafe(path).orElse(def);
     }
 
+    /**
+     * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of maps, returns the provided default.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of maps from
+     * @param def default value returned if no value convertible to list of maps is present (or no value at all)
+     * @return the list of maps at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getMapListSafe(Object)
+     */
     public List<Map<?, ?>> getMapList(Object key, List<Map<?, ?>> def) {
         return getMapListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a list of maps, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     *
+     * @param path the path to get the list of maps from
+     * @return the list of maps at the given path, or default if no supported type (specified above) was found
+     * @see #getMapList(Path, List)
+     */
     public List<Map<?, ?>> getMapList(Path path) {
         return getMapList(path, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * direct key/string path, or is not a list of maps, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list of maps from
+     * @return the list of maps at the given direct key/string path, or default if no supported type (specified above) was found
+     * @see #getMapList(Object, List)
+     */
     public List<Map<?, ?>> getMapList(Object key) {
         return getMapList(key, root.getGeneralSettings().getDefaultList());
     }
 
+    /**
+     * Returns the root file of this section.
+     *
+     * @return the root file
+     */
     public YamlFile getRoot() {
         return root;
     }
 
+    /**
+     * Returns the parent section, or <code>null</code> if this section has no parent - represents the root file (check {@link #isRoot()}).
+     *
+     * @return the parent section, or <code>null</code> if unavailable
+     */
     public Section getParent() {
         return parent;
     }
 
+    /**
+     * Returns the name of this section. A name is considered to be the direct key to this section in the parent section.
+     * If this section represents the root file (check {@link #isRoot()}), returns <code>null</code>.
+     * <p>
+     * This is incompatible with Spigot/BungeeCord APIs, where those, if this section represented the root file, would return an empty string.
+     *
+     * @return the name of this section
+     */
     public Object getName() {
         return name;
     }
 
+    /**
+     * Returns the path to this section from the root file. If this section represents the root file (check {@link #isRoot()}), returns <code>null</code>.
+     * <p>
+     * This is incompatible with Spigot/BungeeCord APIs, where those, if this section represented the root file, would return an empty string.
+     *
+     * @return the name of this section
+     * @see #getRoot()
+     */
     public Path getPath() {
         return path;
+    }
+
+    /**
+     * Returns <b>always</b> callable (e.g. never <code>null</code>) path to this section from the root file. This method
+     * is for internal use only, as holding and using an empty path is illegal and might cause unexpected issues.
+     * <p>
+     * More formally, returns the result of {@link Path}, or if <code>null</code>, {@link #EMPTY}.
+     *
+     * @return path to this section (as specified by {@link #getPath()}), or an empty path
+     * @see #getPath()
+     * @see #EMPTY
+     */
+    private Path getCallablePath() {
+        return path != null ? path : EMPTY;
     }
 
 }

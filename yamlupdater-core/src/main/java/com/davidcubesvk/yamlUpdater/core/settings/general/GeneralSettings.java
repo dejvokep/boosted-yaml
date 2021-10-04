@@ -99,7 +99,7 @@ public class GeneralSettings {
         return defaultString;
     }
 
-    public char getDefaultChar() {
+    public Character getDefaultChar() {
         return defaultChar;
     }
 
@@ -107,7 +107,7 @@ public class GeneralSettings {
         return defaultNumber;
     }
 
-    public boolean getDefaultBoolean() {
+    public Boolean getDefaultBoolean() {
         return defaultBoolean;
     }
 

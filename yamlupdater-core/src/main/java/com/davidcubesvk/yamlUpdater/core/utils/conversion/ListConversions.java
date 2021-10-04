@@ -1,7 +1,5 @@
 package com.davidcubesvk.yamlUpdater.core.utils.conversion;
 
-import com.davidcubesvk.yamlUpdater.core.utils.conversion.NumericConversions;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +10,7 @@ import java.util.function.Function;
 public class ListConversions {
 
     public static Optional<List<String>> toStringList(Optional<List> value) {
-        return construct(value, o -> Optional.of(o.toString()));
+        return construct(value, o -> Optional.ofNullable(o instanceof String || o instanceof Number || o instanceof Boolean ? o.toString() : null));
     }
     public static Optional<List<Integer>> toIntList(Optional<List> value) {
         return construct(value, NumericConversions::toInt);
