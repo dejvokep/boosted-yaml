@@ -974,33 +974,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getSafe(key).orElse(root.getGeneralSettings().getDefaultObject());
     }
 
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-
     /**
      * Returns the value encapsulated in the result of {@link #getAsSafe(Path, Class)} (indirectly). If the returned
      * optional is empty, returns <code>null</code> (configurable global default value is not implemented as the only
@@ -1108,7 +1081,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only n value at the given path exists and it is an instance of the given class.
+     * Returns <code>true</code> if and only value at the given path exists and it is an instance of the given class.
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Path, Class)}.
      *
@@ -1122,7 +1095,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only n value at the given direct key/string path (determined by the root's path
+     * Returns <code>true</code> if and only value at the given direct key/string path (determined by the root's path
      * mode) exists and it is an instance
      * of the given class.
      * <p>
@@ -1242,8 +1215,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns <code>true</code> if and only a value at the given path exists and it is a section.
      *
-     * @param path the path to check
-     * @return if a value exists at the path and it is a section
+     * @param path the path to get the section from
+     * @return the section at the given path
+     * @see #getSectionSafe(Path)
      */
     public boolean isSection(Path path) {
         return getSectionSafe(path).isPresent();
@@ -1257,8 +1231,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
-     * @param key the direct key/string path to check
-     * @return if a value exists at the path and it is a section
+     * @param key the direct key/string path to get the section from
+     * @return the section at the given direct key/string path
+     * @see #getSectionSafe(Object)
      */
     public boolean isSection(Object key) {
         return getSectionSafe(key).isPresent();
@@ -1380,10 +1355,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getStringSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a string, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     *
+     * @param path the path to get the string from
+     * @return the string at the given path
+     * @see #getStringSafe(Path)
+     */
     public boolean isString(Path path) {
         return getStringSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a string, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the string from
+     * @return the string at the given direct key/string path
+     * @see #getStringSafe(Object)
+     */
     public boolean isString(Object key) {
         return getStringSafe(key).isPresent();
     }
@@ -1407,8 +1402,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * {@link GeneralSettings#getDefaultChar()}
      *
      * @param path the path to get the char from
      * @return the char at the given path
@@ -1512,10 +1505,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getCharSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a char, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getCharSafe(Path)}.
+     *
+     * @param path the path to get the char from
+     * @return the char at the given path
+     * @see #getCharSafe(Path)
+     */
     public boolean isChar(Path path) {
         return getCharSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a char, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getCharSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the char from
+     * @return the char at the given direct key/string path
+     * @see #getCharSafe(Object)
+     */
     public boolean isChar(Object key) {
         return getCharSafe(key).isPresent();
     }
@@ -1630,10 +1643,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getIntSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a integer, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     *
+     * @param path the path to get the integer from
+     * @return the integer at the given path
+     * @see #getIntSafe(Path)
+     */
     public boolean isInt(Path path) {
         return getIntSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a integer, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the integer from
+     * @return the integer at the given direct key/string path
+     * @see #getIntSafe(Object)
+     */
     public boolean isInt(Object key) {
         return getIntSafe(key).isPresent();
     }
@@ -1748,10 +1781,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getBigIntSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a big integer, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     *
+     * @param path the path to get the big integer from
+     * @return the big integer at the given path
+     * @see #getBigIntSafe(Path)
+     */
     public boolean isBigInt(Path path) {
         return getBigIntSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a big integer, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the big integer from
+     * @return the big integer at the given direct key/string path
+     * @see #getBigIntSafe(Object)
+     */
     public boolean isBigInt(Object key) {
         return getBigIntSafe(key).isPresent();
     }
@@ -1854,10 +1907,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getBooleanSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a boolean, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getBooleanSafe(Path)}.
+     *
+     * @param path the path to get the boolean from
+     * @return the boolean at the given path
+     * @see #getBooleanSafe(Path)
+     */
     public boolean isBoolean(Path path) {
         return getBooleanSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a boolean, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getBooleanSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the boolean from
+     * @return the boolean at the given direct key/string path
+     * @see #getBooleanSafe(Object)
+     */
     public boolean isBoolean(Object key) {
         return getBooleanSafe(key).isPresent();
     }
@@ -1972,10 +2045,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getDoubleSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a double, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     *
+     * @param path the path to get the double from
+     * @return the double at the given path
+     * @see #getDoubleSafe(Path)
+     */
     public boolean isDouble(Path path) {
         return getDoubleSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a double, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the double from
+     * @return the double at the given direct key/string path
+     * @see #getDoubleSafe(Object)
+     */
     public boolean isDouble(Object key) {
         return getDoubleSafe(key).isPresent();
     }
@@ -2090,10 +2183,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getFloatSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a float, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     *
+     * @param path the path to get the float from
+     * @return the float at the given path
+     * @see #getFloatSafe(Path)
+     */
     public boolean isFloat(Path path) {
         return getFloatSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a float, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the float from
+     * @return the float at the given direct key/string path
+     * @see #getFloatSafe(Object)
+     */
     public boolean isFloat(Object key) {
         return getFloatSafe(key).isPresent();
     }
@@ -2208,10 +2321,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getByteSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a byte, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     *
+     * @param path the path to get the byte from
+     * @return the byte at the given path
+     * @see #getByteSafe(Path)
+     */
     public boolean isByte(Path path) {
         return getByteSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a byte, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the byte from
+     * @return the byte at the given direct key/string path
+     * @see #getByteSafe(Object)
+     */
     public boolean isByte(Object key) {
         return getByteSafe(key).isPresent();
     }
@@ -2326,10 +2459,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getLongSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a long, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     *
+     * @param path the path to get the long from
+     * @return the long at the given path
+     * @see #getLongSafe(Path)
+     */
     public boolean isLong(Path path) {
         return getLongSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a long, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the long from
+     * @return the long at the given direct key/string path
+     * @see #getLongSafe(Object)
+     */
     public boolean isLong(Object key) {
         return getLongSafe(key).isPresent();
     }
@@ -2444,10 +2597,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getShortSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a short, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     *
+     * @param path the path to get the short from
+     * @return the short at the given path
+     * @see #getShortSafe(Path)
+     */
     public boolean isShort(Path path) {
         return getShortSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a short, or any other compatible type.
+     * Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the short from
+     * @return the short at the given direct key/string path
+     * @see #getShortSafe(Object)
+     */
     public boolean isShort(Object key) {
         return getShortSafe(key).isPresent();
     }
@@ -2550,10 +2723,28 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return getListSafe(key).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a list.
+     *
+     * @param path the path to get the list from
+     * @return the list at the given path
+     * @see #getListSafe(Path)
+     */
     public boolean isList(Path path) {
         return getListSafe(path).isPresent();
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given path exists and it is a list.
+     * <p>
+     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * usage.</b>
+     *
+     * @param key the direct key/string path to get the list from
+     * @return the list at the given direct key/string path
+     * @see #getListSafe(Object)
+     */
     public boolean isList(Object key) {
         return getListSafe(key).isPresent();
     }
