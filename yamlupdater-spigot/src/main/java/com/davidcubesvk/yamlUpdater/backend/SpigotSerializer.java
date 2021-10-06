@@ -13,7 +13,7 @@ public class SpigotSerializer implements YamlSerializer {
     @Override
     public Object deserialize(Map<Object, Object> map) {
         //If does not contain the key
-        if (!map.containsKey(getClassKey()))
+        if (!map.containsKey(getClassIdentifierKey()))
             return null;
 
         //If is not a valid class
@@ -37,7 +37,7 @@ public class SpigotSerializer implements YamlSerializer {
         Map<Object, Object> serialized = supplier.supply(1);
         //Add
         serialized.putAll(((ConfigurationSerializable) object).serialize());
-        serialized.computeIfAbsent(getClassKey(), k -> object.getClass().getCanonicalName());
+        serialized.computeIfAbsent(getClassIdentifierKey(), k -> object.getClass().getCanonicalName());
         //Return
         return serialized;
     }
@@ -48,7 +48,7 @@ public class SpigotSerializer implements YamlSerializer {
     }
 
     @Override
-    public Object getClassKey() {
+    public Object getClassIdentifierKey() {
         return ConfigurationSerialization.SERIALIZED_TYPE_KEY;
     }
 }

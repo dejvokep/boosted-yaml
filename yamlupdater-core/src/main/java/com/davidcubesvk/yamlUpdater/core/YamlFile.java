@@ -154,6 +154,8 @@ public class YamlFile extends Section {
 
         //Init
         init(this, null, (MappingNode) node, constructor);
+        //Clear
+        constructor.clear();
     }
 
     public YamlFile getDefaults() {

@@ -84,7 +84,7 @@ public class Relocator {
         if (!parent.isPresent())
             return;
         //The block
-        Optional<Block<?>> block = parent.get().getBlockSafe(to.getKey(to.getLength() - 1));
+        Optional<Block<?>> block = parent.get().getBlockSafe(to.get(to.getLength() - 1));
         //If absent
         if (!block.isPresent())
             return;
@@ -104,7 +104,7 @@ public class Relocator {
         //Create
         Section section = file.createSection(path.parent());
         //Set
-        section.set(path.getKey(path.getLength() - 1), block);
+        section.set(path.get(path.getLength() - 1), block);
     }
 
     private void removeParents(Section section) {

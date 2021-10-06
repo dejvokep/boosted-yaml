@@ -65,12 +65,8 @@ public class Merger {
                     continue;
                 }
 
-                System.out.println(entry.getKey() + ": USER=" + userBlock + " (value=" + userBlock.getValue() + "), DEFAULT=" + defBlock + " (value=" + defBlock.getValue() + ")");
                 //Set preserved value
                 userSection.set(key, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
-                System.out.println("merge rule preserve user=" + (settings.getMergeRules().get(MergeRule.getFor(isUserBlockSection, isDefBlockSection))));
-                System.out.println(entry.getKey() + " preserving " + userSection.get(key) + userSection.getBlockSafe(key).get().getValue());
-                System.out.println();
                 continue;
             }
 
@@ -85,7 +81,7 @@ public class Merger {
         //Loop through all default keys
         for (Object userKey : userKeys) {
             //If force copy disabled
-            if (!forceCopy.contains(userSection.getPath().add(userKey)))
+            if (!forceCopy.contains(userSection.getSubPath(userKey)))
                 //Remove
                 userSection.remove(userKey);
         }
@@ -102,7 +98,7 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new LibRepresenter(root.getDumperSettings().getSettings(), generalSettings.getSerializer());
+        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().getSettings());
         //Create the constructor
         LibConstructor constructor = new LibConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
         //Represent
@@ -111,7 +107,11 @@ public class Merger {
         constructor.constructSingleDocument(Optional.of(represented));
 
         //Create
-        return new Section(newParent.getRoot(), newParent.isRoot() ? null : newParent.getParent(), section.getName(), section.getPath(), null, (MappingNode) constructor.getConstructed().get(represented), constructor);
+        section = new Section(newParent.getRoot(), newParent.isRoot() ? null : newParent.getParent(), section.getName(), section.getPath(), null, (MappingNode) constructor.getConstructed(represented), constructor);
+        //Clear
+        constructor.clear();
+        //Create
+        return section;
     }
 
     private Mapping cloneMapping(Mapping mapping, Section newParent) {
@@ -121,7 +121,7 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new LibRepresenter(root.getDumperSettings().getSettings(), generalSettings.getSerializer());
+        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().getSettings());
         //Create the constructor
         LibConstructor constructor = new LibConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
         //Represent
@@ -129,9 +129,12 @@ public class Merger {
         //Construct
         constructor.constructSingleDocument(Optional.of(represented));
 
-        System.out.println("Cloning Mapping: " + mapping + " with value=" + mapping.getValue() + " to=" + constructor.getConstructed().get(represented));
         //Create
-        return new Mapping(mapping, constructor.getConstructed().get(represented));
+        mapping = new Mapping(mapping, constructor.getConstructed(represented));
+        //Clear
+        constructor.clear();
+        //Return
+        return mapping;
     }
 
     private Block<?> getPreservedValue(Map<MergeRule, Boolean> rules, Block<?> userValue, Supplier<Block<?>> defaultValue, boolean userValueIsSection, boolean defaultValueIsSection) {

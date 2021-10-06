@@ -38,13 +38,6 @@ import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions
 @SuppressWarnings("unused")
 public class Section extends Block<Map<Object, Block<?>>> {
 
-    /**
-     * An empty instance used if this section represents the root file. See {@link #getCallablePath()} for more information.
-     * <p>
-     * <b>This is only used to create other paths, as keeping and using an empty path is illegal and may cause unexpected issues as well.</b>
-     */
-    private static final Path EMPTY = new Path();
-
     //Root file
     private YamlFile root;
     //Parent section
@@ -156,7 +149,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
             //Add
             getValue().put(key, value instanceof Map ?
-                    new Section(root, this, key, path.add(key), superNodeComments ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
+                    new Section(root, this, key, getSubPath(key), superNodeComments ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
                     new Mapping(superNodeComments ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
             //Set to true
             superNodeComments = true;
@@ -233,7 +226,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create set
         Set<Path> keys = new HashSet<>();
         //Add
-        addData((path, entry) -> keys.add(path), new Path(), deep);
+        addData((path, entry) -> keys.add(path), null, deep);
         //Return
         return keys;
     }
@@ -272,7 +265,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create map
         Map<Path, Object> values = new HashMap<>();
         //Add
-        addData((path, entry) -> values.put(path, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getValue()), new Path(), deep);
+        addData((path, entry) -> values.put(path, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getValue()), null, deep);
         //Return
         return values;
     }
@@ -297,7 +290,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create map
         Map<Path, Block<?>> blocks = new HashMap<>();
         //Add
-        addData((path, entry) -> blocks.put(path, entry.getValue()), new Path(), deep);
+        addData((path, entry) -> blocks.put(path, entry.getValue()), null, deep);
         //Return
         return blocks;
     }
@@ -314,11 +307,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param current  the path to the currently iterated section, relative to the main caller section
      * @param deep     if to iterate deeply
      */
-    private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @NotNull Path current, boolean deep) {
+    private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @Nullable Path current, boolean deep) {
         //All keys
         for (Map.Entry<?, Block<?>> entry : getValue().entrySet()) {
             //Path to this entry
-            Path entryPath = current.add(entry.getKey());
+            Path entryPath = Path.addTo(current, entry.getKey());
             //Call
             consumer.accept(current, entry);
             //If a section and deep is enabled
@@ -421,12 +414,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //If null or at the last index
         if (path == null || i + 1 >= path.getLength()) {
             //Call the direct method
-            set(path == null ? null : adaptKey(path.getKey(i)), value);
+            set(path == null ? null : adaptKey(path.get(i)), value);
             return;
         }
 
         //Key
-        Object key = adaptKey(path.getKey(i));
+        Object key = adaptKey(path.get(i));
         //The block at the key
         Block<?> block = getValue().getOrDefault(key, null);
         //If null
@@ -462,7 +455,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //All keys
         for (int i = 0; i < path.getLength(); i++)
             //Create
-            current = current.createSection(path.getKey(i));
+            current = current.createSection(path.get(i));
         //Return
         return current;
     }
@@ -508,7 +501,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
         return getSectionSafe(adapted).orElseGet(() -> {
             //The new section
-            Section section = new Section(root, Section.this, adapted, path.add(adapted), previous, root.getGeneralSettings().getDefaultMap());
+            Section section = new Section(root, Section.this, adapted, getSubPath(adapted), previous, root.getGeneralSettings().getDefaultMap());
             //Add
             getValue().put(adapted, section);
             //Return
@@ -591,7 +584,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Set
             getValue().put(key, section);
             //Adapt
-            section.adapt(root, this, key, path.add(key));
+            section.adapt(root, this, key, getSubPath(key));
             return;
         } else if (value instanceof Mapping) {
             //Set
@@ -602,7 +595,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //If a map
         if (value instanceof Map) {
             //Add
-            getValue().put(key, new Section(root, this, key, path.add(key), getValue().getOrDefault(key, null), (Map<?, ?>) value));
+            getValue().put(key, new Section(root, this, key, getSubPath(key), getValue().getOrDefault(key, null), (Map<?, ?>) value));
             return;
         }
 
@@ -635,7 +628,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Call other method
             remove((Object) null);
         //Remove
-        return removeInternal(getParent(path).orElse(null), adaptKey(path.getKey(path.getLength() - 1)));
+        return removeInternal(getParent(path).orElse(null), adaptKey(path.get(path.getLength() - 1)));
     }
 
     /**
@@ -728,7 +721,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <code>section.value</code> key (with separator set to <code>.</code>), attempts to get the section at key
      * <code>section</code> in <b>this</b> section and <b>then</b> the block at key <code>value</code> in
      * <b>that</b> section. We can also interpret this behaviour as a call to {@link #getBlockSafe(Path)} with path
-     * created via constructor {@link Path#Path(String, char)} (which effectively splits the given string path into
+     * created via constructor {@link Path#fromString(String, char)} (which effectively splits the given string path into
      * separate keys according to the separator).
      * <p>
      * If no separator is contained within the given key, treats the key as a direct one (returns block at the given key
@@ -847,9 +840,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     private Optional<Block<?>> getSafeInternal(@Nullable Path path, int i, boolean parent) {
         //If null or at last index
         if (path == null || i + 1 >= path.getLength())
-            return path == null ? parent ? Optional.of(getParent()) : getBlockSafe((Object) null) : parent ? Optional.of(this) : getBlockSafe(path.getKey(i));
+            return path == null ? parent ? Optional.of(getParent()) : getBlockSafe((Object) null) : parent ? Optional.of(this) : getBlockSafe(path.get(i));
         //Return
-        return getBlockSafe(path.getKey(i)).flatMap(block -> block instanceof Section ? ((Section) block).getSafeInternal(path, i + 1, parent) : Optional.empty());
+        return getBlockSafe(path.get(i)).flatMap(block -> block instanceof Section ? ((Section) block).getSafeInternal(path, i + 1, parent) : Optional.empty());
     }
 
     /**
@@ -1187,7 +1180,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * path, or is not a section, returns the provided default.
      *
      * @param path the path to get the section from
-     * @param def default value returned if no value convertible to section is present (or no value at all)
+     * @param def  default value returned if no value convertible to section is present (or no value at all)
      * @return the section at the given path, or default if no supported type (specified above) was found
      * @see #getSectionSafe(Path)
      */
@@ -1327,7 +1320,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      *
      * @param path the path to get the string from
-     * @param def default value returned if no value convertible to string is present (or no value at all)
+     * @param def  default value returned if no value convertible to string is present (or no value at all)
      * @return the string at the given path, or default if no supported type (specified above) was found
      * @see #getStringSafe(Path)
      */
@@ -3866,17 +3859,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <b>always</b> callable (e.g. never <code>null</code>) path to this section from the root file. This method
-     * is for internal use only, as holding and using an empty path is illegal and might cause unexpected issues.
+     * Returns sub-path for this section; for this specified key. This section, therefore, patches nullable result of
+     * {@link #getPath()}.
      * <p>
-     * More formally, returns the result of {@link Path}, or if <code>null</code>, {@link #EMPTY}.
+     * More formally, returns the result of {@link Path#addTo(Path, Object)}.
      *
-     * @return path to this section (as specified by {@link #getPath()}), or an empty path
-     * @see #getPath()
-     * @see #EMPTY
+     * @return sub-path for path of this section
+     * @see Path#addTo(Path, Object)
      */
-    private Path getCallablePath() {
-        return path != null ? path : EMPTY;
+    public Path getSubPath(Object key) {
+        return Path.addTo(path, key);
     }
 
 }
