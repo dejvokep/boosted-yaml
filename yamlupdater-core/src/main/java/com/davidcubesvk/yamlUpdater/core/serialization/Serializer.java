@@ -5,6 +5,9 @@ import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Standard library serializer.
+ */
 public class Serializer implements YamlSerializer {
 
     /**

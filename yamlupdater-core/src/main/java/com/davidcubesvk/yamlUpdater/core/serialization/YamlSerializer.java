@@ -5,6 +5,9 @@ import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 
 import java.util.Map;
 
+/**
+ * Interface for custom serializers.
+ */
 public interface YamlSerializer {
 
     /**

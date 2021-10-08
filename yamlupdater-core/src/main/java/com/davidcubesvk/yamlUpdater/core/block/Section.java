@@ -712,7 +712,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * <b>Functionality notes:</b> If root's path mode (general settings) is set to
      * {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#OBJECT_BASED}, treats the key
-     * as direct one (e.g. searches and returns block at the given key in the underlying map).
+     * as direct one (e.g. searches and returns block at the given key in the underlying map, does not traverse sub-sections).
      * <p>
      * Otherwise (with path mode set to {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#STRING_BASED}),
      * treats the key like a string key representing full path to the value (like in Spigot/BungeeCord API). Therefore,
@@ -724,7 +724,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * created via constructor {@link Path#fromString(String, char)} (which effectively splits the given string path into
      * separate keys according to the separator).
      * <p>
-     * If no separator is contained within the given key, treats the key as a direct one (returns block at the given key
+     * According to the specification above, if no separator is contained within the given key, treats the key as a direct one (returns block at the given key
      * in this section - not subsections).
      * <p>
      * <p>

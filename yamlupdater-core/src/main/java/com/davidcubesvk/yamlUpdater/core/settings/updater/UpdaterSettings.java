@@ -10,7 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class UpdaterSettings {
+
+    public static final UpdaterSettings DEFAULT = builder().build();
 
     public static final boolean DEFAULT_MANAGE_USER_FILE = true;
     public static final boolean DEFAULT_ENABLE_DOWNGRADING = false;
@@ -22,8 +25,6 @@ public class UpdaterSettings {
         put(MergeRule.SECTION_AT_MAPPING, false);
     }};
     public static final Versioning DEFAULT_VERSIONING = null;
-
-    public static final UpdaterSettings DEFAULT = builder().build();
 
     //If to update disk file
     private final boolean autoSave;
@@ -44,6 +45,38 @@ public class UpdaterSettings {
         this.forceCopy = builder.forceCopy;
         this.relocations = builder.relocations;
         this.versioning = builder.versioning;
+    }
+
+    public Map<MergeRule, Boolean> getMergeRules() {
+        return mergeRules;
+    }
+
+    public Map<String, Set<Path>> getForceCopy() {
+        return forceCopy;
+    }
+
+    public Map<String, Map<Path, Path>> getRelocations() {
+        return relocations;
+    }
+
+    public Versioning getVersioning() {
+        return versioning;
+    }
+
+    public boolean isEnableDowngrading() {
+        return enableDowngrading;
+    }
+
+    public boolean isSilentErrors() {
+        return silentErrors;
+    }
+
+    public boolean isForceCopyAll() {
+        return forceCopyAll;
+    }
+
+    public boolean isAutoSave() {
+        return autoSave;
     }
 
     public static Builder builder() {
@@ -130,37 +163,5 @@ public class UpdaterSettings {
         public UpdaterSettings build() {
             return new UpdaterSettings(this);
         }
-    }
-
-    public Map<MergeRule, Boolean> getMergeRules() {
-        return mergeRules;
-    }
-
-    public Map<String, Set<Path>> getForceCopy() {
-        return forceCopy;
-    }
-
-    public Map<String, Map<Path, Path>> getRelocations() {
-        return relocations;
-    }
-
-    public Versioning getVersioning() {
-        return versioning;
-    }
-
-    public boolean isEnableDowngrading() {
-        return enableDowngrading;
-    }
-
-    public boolean isSilentErrors() {
-        return silentErrors;
-    }
-
-    public boolean isForceCopyAll() {
-        return forceCopyAll;
-    }
-
-    public boolean isAutoSave() {
-        return autoSave;
     }
 }
