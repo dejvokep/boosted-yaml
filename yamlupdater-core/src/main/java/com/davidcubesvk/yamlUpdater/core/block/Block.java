@@ -18,6 +18,8 @@ public class Block<T> {
     private List<CommentLine> keyBlockComments, keyInlineComments, keyEndComments, valueBlockComments, valueInlineComments, valueEndComments;
     //Value
     private final T value;
+    //Force copy (updater)
+    private boolean forceCopy = false;
 
     /**
      * Creates a block using the given parameters; while storing references to comments from the given nodes.
@@ -86,6 +88,22 @@ public class Block<T> {
             valueInlineComments = value.getInLineComments();
             valueEndComments = value.getEndComments();
         }
+    }
+
+    /**
+     * Sets whether to force copy this block. Used only internally during updater process.
+     * @param forceCopy if to force copy
+     */
+    public void setForceCopy(boolean forceCopy) {
+        this.forceCopy = forceCopy;
+    }
+
+    /**
+     * Returns whether to force copy this block. Used only internally during updater process.
+     * @return if to force copy this block
+     */
+    public boolean isForceCopy() {
+        return forceCopy;
     }
 
     /**

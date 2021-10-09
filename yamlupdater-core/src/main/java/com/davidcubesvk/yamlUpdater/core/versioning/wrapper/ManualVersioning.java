@@ -23,4 +23,9 @@ public class ManualVersioning implements Versioning {
     public Version getUserFileId(YamlFile file) {
         return userFileVersion;
     }
+
+    @Override
+    public Version getOldest() {
+        return null;
+    }
 }

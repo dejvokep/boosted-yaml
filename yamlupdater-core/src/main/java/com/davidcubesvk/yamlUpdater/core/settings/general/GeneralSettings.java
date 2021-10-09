@@ -8,13 +8,13 @@ import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.SetSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.snakeyaml.engine.v2.api.DumpSettingsBuilder;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * A class covering all the update settings. Looking at the API wiki is strongly advised. Mainly, if you are working
- * with relocations and section values.
+ * General settings; immutable object.
  */
 @SuppressWarnings("unused")
 public class GeneralSettings {
@@ -312,6 +312,9 @@ public class GeneralSettings {
         return new Builder();
     }
 
+    /**
+     * Builder for general settings.
+     */
     public static class Builder {
         //Path mode
         private PathMode pathMode = DEFAULT_PATH_MODE;
@@ -347,6 +350,8 @@ public class GeneralSettings {
         /**
          * Sets the path mode used and affects functionality of all object-key-based methods (please read more at
          * {@link Section#getBlockSafe(Object)} method, upon which all others are built).
+         * <p>
+         * <b>Default: </b>{@link #DEFAULT_PATH_MODE}
          *
          * @param pathMode the path mode to use
          * @return the builder
@@ -363,6 +368,8 @@ public class GeneralSettings {
          * <p>
          * Assuming separator <code>'.'</code>, path <code>a.b</code> represents object at key <code>b</code> in section
          * at key <code>a</code> in the root file (section).
+         * <p>
+         * <b>Default: </b>{@link #DEFAULT_SEPARATOR}
          *
          * @param separator the separator to use
          * @return the builder

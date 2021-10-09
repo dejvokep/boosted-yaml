@@ -7,5 +7,6 @@ public interface Versioning {
 
     Version getUserFileId(YamlFile file);
     Version getDefaultFileId(YamlFile file);
+    Version getOldest();
 
 }

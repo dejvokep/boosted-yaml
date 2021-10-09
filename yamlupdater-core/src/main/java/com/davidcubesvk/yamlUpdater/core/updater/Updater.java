@@ -54,18 +54,29 @@ public class Updater {
 
         //Versions
         Version user = versioning.getUserFileId(userFile), def = versioning.getDefaultFileId(defaultFile);
+        //If user ID is not null
+        if (user != null) {
+            //Go through all force copy paths
+            for (Path path : settings.getForceCopy().get(user.asID()))
+                //Set
+                userFile.getBlockSafe(path).ifPresent(block -> block.setForceCopy(true));
+        } else {
+            //Set to oldest (to go through all relocations supplied)
+            user = versioning.getOldest();
+        }
+
         //Compare
         int compared = user.compareTo(def);
         //If downgrading
         if (compared > 0) {
-            //If enabled or if to make the error silent
-            if (settings.isEnableDowngrading() || settings.isSilentErrors())
+            //If enabled
+            if (settings.isEnableDowngrading())
                 return def;
 
             throw new UnsupportedOperationException(String.format("Downgrading is not enabled (%s > %s)!", def.asID(), user.asID()));
         }
 
-        //No updating needed
+        //No relocating needed
         if (compared == 0)
             return def;
 
