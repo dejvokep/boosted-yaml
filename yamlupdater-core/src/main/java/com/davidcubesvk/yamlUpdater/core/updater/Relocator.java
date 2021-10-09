@@ -5,6 +5,8 @@ import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -12,17 +14,17 @@ import java.util.Optional;
 
 public class Relocator {
 
-    //The disk file
+    //The file
     private final YamlFile file;
     //Versions
     private final Version userVersion, defVersion;
 
     /**
-     * Initializes the relocator with the given disk file and file versions.
+     * Initializes the relocator with the given file (user; to relocate contents in) and file versions.
      *
-     * @param file            the disk file
-     * @param userVersion         version of the disk file
-     * @param defVersion     version of the resource (latest) file
+     * @param file        the (user) file
+     * @param userVersion version of the user file
+     * @param defVersion  version of the default file
      */
     public Relocator(YamlFile file, Version userVersion, Version defVersion) {
         this.file = file;
@@ -31,15 +33,11 @@ public class Relocator {
     }
 
     /**
-     * Applies all the given relocations to the given disk file on initialization. The value of the given map should be
-     * of type {@link Map}, otherwise, an {@link IllegalArgumentException} is thrown. The key type is not restricted,
-     * but should be a {@link String}. Key and value specifications are objects only for convenience, when loading from
-     * an YAML settings file.
+     * Applies all the given relocations to the given file (in constructor).
      *
-     * @param relocations the relocations to apply (immediately)
-     * @throws IllegalArgumentException if the given map's value type is not an instance of {@link Map}
+     * @param relocations the relocations to apply
      */
-    public void apply(Map<String, Map<Path, Path>> relocations) throws IllegalArgumentException {
+    public void apply(Map<String, Map<Path, Path>> relocations) {
         //Copy
         Version current = this.userVersion.copy();
         //Move to the next version
@@ -64,15 +62,17 @@ public class Relocator {
     }
 
     /**
-     * Applies a relocation (specified by the <code>from</code> parameter). This method also checks if there are any
-     * relocations for the to (target) path and if yes, relocates that first. Cyclic relocations are also patched. If
-     * there is no element at the from path, no relocation is executed.
+     * Applies a relocation from the given map, whose key is defined by <code>from</code> parameter.
+     * <p>
+     * This method also checks if there are any relocations for the to (target) path and if yes, relocates that first.
+     * Cyclic relocations are also supported (<code>a > b</code> and <code>b > a</code> for example). If there is no
+     * element to relocate, nothing is changed.
      *
      * @param relocations all the relocations
-     * @param keyIterator iterator used to remove applied relocation(s)
+     * @param keyIterator iterator used to remove applied relocation(s) - key set iterator of the given map
      * @param from        from where to relocate
      */
-    private void apply(Map<Path, Path> relocations, Iterator<Path> keyIterator, Path from) {
+    private void apply(Map<Path, Path> relocations, Iterator<Path> keyIterator, @Nullable Path from) {
         //If there is no relocation
         if (from == null || !relocations.containsKey(from))
             return;
@@ -97,14 +97,7 @@ public class Relocator {
         apply(relocations, keyIterator, to);
 
         //Relocate
-        relocate(from, block.get());
-    }
-
-    private void relocate(Path path, Block<?> block) {
-        //Create
-        Section section = file.createSection(path.parent());
-        //Set
-        section.set(path.get(path.getLength() - 1), block);
+        file.set(to, block.get());
     }
 
     private void removeParents(Section section) {

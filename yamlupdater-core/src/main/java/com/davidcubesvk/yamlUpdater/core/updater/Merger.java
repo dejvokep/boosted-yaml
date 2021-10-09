@@ -10,6 +10,7 @@ import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.MergeRule;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
+import org.jetbrains.annotations.NotNull;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.representer.BaseRepresenter;
@@ -20,7 +21,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * A class responsible for merging the old file with the latest one and therefore, update the file.
+ * Class responsible for merging the user file with the default file. Final stage of the updating process.
  */
 public class Merger {
 
@@ -30,24 +31,29 @@ public class Merger {
     private static final Merger MERGER = new Merger();
 
     /**
-     * Merges the given files.
+     * Merges the given files into the given user file.
      *
-     * @param userFile        the disk (old, to be updated) file
-     * @param resourceFile    the resource (latest) file
-     * @return the merged file as a string
+     * @param userFile    the user file
+     * @param defaultFile the default file
+     * @param settings    updater settings used
      */
-    public static void merge(YamlFile userFile, YamlFile resourceFile, UpdaterSettings settings, Set<Path> forceCopy) {
-        MERGER.iterate(userFile, resourceFile, settings, forceCopy);
+    public static void merge(@NotNull YamlFile userFile, @NotNull YamlFile defaultFile, @NotNull UpdaterSettings settings) {
+        MERGER.iterate(userFile, defaultFile, settings);
     }
 
-    private void iterate(Section userSection, Section defSection, UpdaterSettings settings, Set<Path> forceCopy) {
+    /**
+     * Iterates and merges the given sections.
+     *
+     * @param userSection section in the user file
+     * @param defSection  section equivalent in the default file
+     * @param settings    updater settings used
+     */
+    private void iterate(Section userSection, Section defSection, UpdaterSettings settings) {
         //Keys
         Set<Object> userKeys = userSection.getKeys();
-        System.out.println("DEFAULT KEYS " + defSection.getKeys());
 
         //Loop through all default entries
         for (Map.Entry<Object, Block<?>> entry : defSection.getValue().entrySet()) {
-            System.out.println("MERGER key:" + entry.getKey());
             //Key
             Object key = entry.getKey();
             //Delete
@@ -61,7 +67,7 @@ public class Merger {
                 //If both are sections
                 if (isDefBlockSection && isUserBlockSection) {
                     //Iterate
-                    iterate((Section) userBlock, (Section) defBlock, settings, forceCopy);
+                    iterate((Section) userBlock, (Section) defBlock, settings);
                     continue;
                 }
 
@@ -80,17 +86,40 @@ public class Merger {
 
         //Loop through all default keys
         for (Object userKey : userKeys) {
-            //If force copy disabled
-            if (!forceCopy.contains(userSection.getSubPath(userKey)))
-                //Remove
-                userSection.remove(userKey);
+            //If present
+            userSection.getBlockSafe(userKey).ifPresent(block -> {
+                //If force copy disabled
+                if (!block.isForceCopy())
+                    //Remove
+                    userSection.remove(userKey);
+            });
         }
     }
 
+    /**
+     * Deep clones the given block.
+     * <p>
+     * More formally, represents the value of the block into nodes and then, constructs them back into Java objects.
+     *
+     * @param block     the block to clone
+     * @param newParent new parent section of the block to clone
+     * @return the cloned block (with relatives set already)
+     * @see #cloneSection(Section, Section)
+     * @see #cloneMapping(Mapping, Section)
+     */
     private Block<?> cloneBlock(Block<?> block, Section newParent) {
         return block instanceof Section ? cloneSection((Section) block, newParent) : cloneMapping((Mapping) block, newParent);
     }
 
+    /**
+     * Deep clones the given section.
+     * <p>
+     * More formally, represents the underlying map of the section into nodes and then, constructs them back into Java map.
+     *
+     * @param section   the section to clone
+     * @param newParent new parent section of the section to clone
+     * @return the cloned section (with relatives set already)
+     */
     private Section cloneSection(Section section, Section newParent) {
         //Root
         YamlFile root = section.getRoot();
@@ -114,6 +143,15 @@ public class Merger {
         return section;
     }
 
+    /**
+     * Deep clones the given mapping.
+     * <p>
+     * More formally, represents the value of the mapping into nodes and then, constructs them back into Java object.
+     *
+     * @param mapping   the mapping to clone
+     * @param newParent new parent section of the mapping to clone
+     * @return the cloned mapping (with relatives set already)
+     */
     private Mapping cloneMapping(Mapping mapping, Section newParent) {
         //Root
         YamlFile root = newParent.getRoot();
@@ -137,8 +175,18 @@ public class Merger {
         return mapping;
     }
 
-    private Block<?> getPreservedValue(Map<MergeRule, Boolean> rules, Block<?> userValue, Supplier<Block<?>> defaultValue, boolean userValueIsSection, boolean defaultValueIsSection) {
-        return rules.get(MergeRule.getFor(userValueIsSection, defaultValueIsSection)) ? userValue : defaultValue.get();
+    /**
+     * Returns the preserved block as defined by the given merge rules, blocks and information.
+     *
+     * @param rules              the merge rules
+     * @param userBlock          block in the user file
+     * @param defBlock           block equivalent in the default file
+     * @param userBlockIsSection if user block is a section
+     * @param defBlockIsSection  if default block is a section
+     * @return the preserved block
+     */
+    private Block<?> getPreservedValue(Map<MergeRule, Boolean> rules, Block<?> userBlock, Supplier<Block<?>> defBlock, boolean userBlockIsSection, boolean defBlockIsSection) {
+        return rules.get(MergeRule.getFor(userBlockIsSection, defBlockIsSection)) ? userBlock : defBlock.get();
     }
 
 

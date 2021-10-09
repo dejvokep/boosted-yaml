@@ -33,9 +33,6 @@ public class Updater {
      * @throws ClassCastException     if an object failed to cast (usually compatibility problem)
      */
     public static void update(YamlFile user, YamlFile def, UpdaterSettings settings) throws NullPointerException, ClassCastException {
-        if (user == null || def == null )
-            throw new NullPointerException("User, default file or updater settings are null!");
-
         //Apply versioning stuff
         Version defVersion = applyVersioning(user, def, settings);
         //Merge
