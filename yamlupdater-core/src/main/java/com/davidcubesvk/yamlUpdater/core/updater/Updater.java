@@ -1,62 +1,91 @@
 package com.davidcubesvk.yamlUpdater.core.updater;
 
+import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
-import com.davidcubesvk.yamlUpdater.core.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
+import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.Objects;
 
 /**
- * Class responsible for reacting everything together.
+ * Updater class responsible for executing the whole process:
+ * <ol>
+ *     <li>loading file version IDs</li>
+ *     <li>comparing IDs (to check if updating, downgrading...)</li>
+ *     <li>marking force copy blocks in the user section</li>
+ *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(Map)}</li>
+ *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}</li>
+ * </ol>
  */
 public class Updater {
 
-    private static final Set<Path> EMPTY_PATH_SET = new HashSet<>();
+    /**
+     * Updater instance for calling non-static methods.
+     */
+    private static final Updater UPDATER = new Updater();
 
     /**
-     * Reacts and updates a file per the given settings object. Full reacting consists of:
+     * Updates the given user section using the given default equivalent and settings; with the result reflected in the
+     * user section given. The process consists of:
      * <ol>
-     *     <li>loading (or creating if does not exist) the disk file,</li>
-     *     <li>parsing both files using SnakeYAML,</li>
-     *     <li>getting file versions from the files,</li>
-     *     <li>parsing both files,</li>
-     *     <li>applying relocations (see {@link Relocator}),</li>
-     *     <li>merging together (see {@link Merger}),</li>
+     *     <li>loading file version IDs,</li>
+     *     <li>comparing IDs (to check if updating, downgrading...),</li>
+     *     <li>marking force copy blocks in the user section,</li>
+     *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(Map)}),</li>
+     *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
      * </ol>
      *
-     * @param settings     the settings
-     * @return the updated file
-     * @throws NullPointerException   if disk or resource file path is not set
-     * @throws ClassCastException     if an object failed to cast (usually compatibility problem)
+     * @param userSection the user section to update
+     * @param defSection  section equivalent in the default file (to update against)
+     * @param settings    the settings
      */
-    public static void update(YamlFile user, YamlFile def, UpdaterSettings settings) throws NullPointerException, ClassCastException {
+    public static void update(Section userSection, Section defSection, UpdaterSettings settings) {
         //Apply versioning stuff
-        Version defVersion = applyVersioning(user, def, settings);
+        UPDATER.runVersionDependent(userSection, defSection, settings);
         //Merge
-        Merger.merge(user, def, settings, defVersion == null ? EMPTY_PATH_SET : settings.getForceCopy().getOrDefault(defVersion.asID(), EMPTY_PATH_SET));
+        Merger.merge(userSection, defSection, settings);
         //If auto save is enabled
         if (settings.isAutoSave())
-            user.save();
+            userSection.getRoot().save();
     }
 
-    private static Version applyVersioning(YamlFile userFile, YamlFile defaultFile, UpdaterSettings settings) {
+    /**
+     * Runs version-dependent mechanics.
+     * <ol>
+     *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
+     *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
+     *     {@link Versioning#getUserFileId(Section)}), assigns the oldest version specified by the underlying pattern
+     *     (see {@link Versioning#getOldest()}). If provided, marks all blocks which have force copy option enabled
+     *     (determined by the set of paths, see {@link UpdaterSettings#getForceCopy()}).</li>
+     *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
+     *     {@link UnsupportedOperationException}.</li>
+     *     <li>If version IDs equal, does not proceed as well.</li>
+     *     <li>Applies all relocations needed.</li>
+     * </ol>
+     *
+     * @param userSection    the user section
+     * @param defaultSection the default section equivalent
+     * @param settings       updater settings to use
+     */
+    private void runVersionDependent(Section userSection, Section defaultSection, UpdaterSettings settings) {
         //Versioning
         Versioning versioning = settings.getVersioning();
         //If the versioning is not set
         if (versioning == null)
-            return null;
+            return;
 
         //Versions
-        Version user = versioning.getUserFileId(userFile), def = versioning.getDefaultFileId(defaultFile);
+        Version user = versioning.getUserFileId(userSection), def = versioning.getDefaultFileId(defaultSection);
+        //Check default file version
+        Objects.requireNonNull(def, "Version ID of the default file cannot be null!");
         //If user ID is not null
         if (user != null) {
             //Go through all force copy paths
             for (Path path : settings.getForceCopy().get(user.asID()))
                 //Set
-                userFile.getBlockSafe(path).ifPresent(block -> block.setForceCopy(true));
+                userSection.getBlockSafe(path).ifPresent(block -> block.setForceCopy(true));
         } else {
             //Set to oldest (to go through all relocations supplied)
             user = versioning.getOldest();
@@ -68,20 +97,20 @@ public class Updater {
         if (compared > 0) {
             //If enabled
             if (settings.isEnableDowngrading())
-                return def;
+                return;
 
+            //Throw an error
             throw new UnsupportedOperationException(String.format("Downgrading is not enabled (%s > %s)!", def.asID(), user.asID()));
         }
 
         //No relocating needed
         if (compared == 0)
-            return def;
+            return;
 
         //Initialize relocator
-        Relocator relocator = new Relocator(userFile, user, def);
+        Relocator relocator = new Relocator(userSection, user, def);
         //Apply all
         relocator.apply(settings.getRelocations());
-        return def;
     }
 
 }

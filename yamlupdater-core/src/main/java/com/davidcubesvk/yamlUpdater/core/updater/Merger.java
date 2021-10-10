@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * Class responsible for merging the user file with the default file. Final stage of the updating process.
+ * Class responsible for merging the user file with the default file. Merging is the final stage of the updating process.
  */
 public class Merger {
 
@@ -31,21 +31,40 @@ public class Merger {
     private static final Merger MERGER = new Merger();
 
     /**
-     * Merges the given files into the given user file.
+     * Merges the given sections, with the result being the given user section.
+     * <p>
+     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default block)
+     * outputs the preserved one (according to the merging rules) into the user section. If the preserved block is the
+     * default one, deep copies it (so it is isolated from the defaults). If both blocks represent sections, iterates
+     * through these pair of subsections.
+     * <p>
+     * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
+     * in the defaults) from the user section, unless {@link UpdaterSettings#isForceCopyAll()} is enabled or if they are
+     * marked as force copy ({@link Block#isForceCopy()}).
      *
-     * @param userFile    the user file
-     * @param defaultFile the default file
+     * @param userSection the user section
+     * @param defSection  the default section equivalent to the user section
      * @param settings    updater settings used
+     * @see #iterate(Section, Section, UpdaterSettings)
      */
-    public static void merge(@NotNull YamlFile userFile, @NotNull YamlFile defaultFile, @NotNull UpdaterSettings settings) {
-        MERGER.iterate(userFile, defaultFile, settings);
+    public static void merge(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings settings) {
+        MERGER.iterate(userSection, defSection, settings);
     }
 
     /**
-     * Iterates and merges the given sections.
+     * Merges the given sections into the user section.
+     * <p>
+     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default block)
+     * outputs the preserved one (according to the merging rules) into the user section. If the preserved block is the
+     * default one, deep copies it (so it is isolated from the defaults). If both blocks represent sections, iterates
+     * through these pair of subsections.
+     * <p>
+     * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
+     * in the defaults) from the user section, unless {@link UpdaterSettings#isForceCopyAll()} is enabled or if they are
+     * marked as force copy ({@link Block#isForceCopy()}).
      *
-     * @param userSection section in the user file
-     * @param defSection  section equivalent in the default file
+     * @param userSection the user section
+     * @param defSection  the default section equivalent to the user section
      * @param settings    updater settings used
      */
     private void iterate(Section userSection, Section defSection, UpdaterSettings settings) {

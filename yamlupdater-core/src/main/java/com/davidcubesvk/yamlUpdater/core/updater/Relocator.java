@@ -15,27 +15,32 @@ import java.util.Optional;
 public class Relocator {
 
     //The file
-    private final YamlFile file;
+    private final Section file;
     //Versions
     private final Version userVersion, defVersion;
 
     /**
      * Initializes the relocator with the given file (user; to relocate contents in) and file versions.
      *
-     * @param file        the (user) file
-     * @param userVersion version of the user file
+     * @param section     the (user) section
+     * @param userVersion version of the user file (parent of the given section)
      * @param defVersion  version of the default file
      */
-    public Relocator(YamlFile file, Version userVersion, Version defVersion) {
-        this.file = file;
+    public Relocator(Section section, Version userVersion, Version defVersion) {
+        this.file = section;
         this.userVersion = userVersion;
         this.defVersion = defVersion;
     }
 
     /**
-     * Applies all the given relocations to the given file (in constructor).
+     * Applies all the given relocations to the given file (in constructor), one by one using
+     * {@link #apply(Map, Iterator, Path)}.
+     * <p>
+     * More formally, iterates through all version IDs, starting from the just next version ID of the user file version ID,
+     * ending (inclusive) when the currently iterated version ID is equal to the version ID of the default file.
      *
      * @param relocations the relocations to apply
+     * @see #apply(Map, Iterator, Path)
      */
     public void apply(Map<String, Map<Path, Path>> relocations) {
         //Copy
@@ -100,6 +105,12 @@ public class Relocator {
         file.set(to, block.get());
     }
 
+    /**
+     * If the given section is empty, removes it from the parent. Then calls this method for the parent section (unless
+     * it's not the root section).
+     *
+     * @param section the section to check
+     */
     private void removeParents(Section section) {
         //If empty
         if (section.isEmpty(false) && !section.isRoot()) {
