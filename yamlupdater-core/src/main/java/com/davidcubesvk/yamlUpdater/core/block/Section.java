@@ -2767,7 +2767,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getStringSafe(Path)
      */
     public Optional<List<String>> getStringListSafe(Path path) {
-        return toStringList(getAsSafe(path, List.class));
+        return toStringList(getListSafe(path));
     }
 
     /**
@@ -2787,7 +2787,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getStringSafe(Path)
      */
     public Optional<List<String>> getStringListSafe(Object key) {
-        return toStringList(getAsSafe(key, List.class));
+        return toStringList(getListSafe(key));
     }
 
     /**
@@ -2889,7 +2889,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getIntSafe(Path)
      */
     public Optional<List<Integer>> getIntListSafe(Path path) {
-        return toIntList(getAsSafe(path, List.class));
+        return toIntList(getListSafe(path));
     }
 
     /**
@@ -2909,7 +2909,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getIntSafe(Path)
      */
     public Optional<List<Integer>> getIntListSafe(Object key) {
-        return toIntList(getAsSafe(key, List.class));
+        return toIntList(getListSafe(key));
     }
 
     /**
@@ -3011,7 +3011,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getBigIntSafe(Path)
      */
     public Optional<List<BigInteger>> getBigIntListSafe(Path path) {
-        return toBigIntList(getAsSafe(path, List.class));
+        return toBigIntList(getListSafe(path));
     }
 
     /**
@@ -3031,7 +3031,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getBigIntSafe(Path)
      */
     public Optional<List<BigInteger>> getBigIntListSafe(Object key) {
-        return toBigIntList(getAsSafe(key, List.class));
+        return toBigIntList(getListSafe(key));
     }
 
     /**
@@ -3133,7 +3133,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getByteSafe(Path)
      */
     public Optional<List<Byte>> getByteListSafe(Path path) {
-        return toByteList(getAsSafe(path, List.class));
+        return toByteList(getListSafe(path));
     }
 
     /**
@@ -3153,7 +3153,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getByteSafe(Path)
      */
     public Optional<List<Byte>> getByteListSafe(Object key) {
-        return toByteList(getAsSafe(key, List.class));
+        return toByteList(getListSafe(key));
     }
 
     /**
@@ -3255,7 +3255,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getLongSafe(Path)
      */
     public Optional<List<Long>> getLongListSafe(Path path) {
-        return toLongList(getAsSafe(path, List.class));
+        return toLongList(getListSafe(path));
     }
 
     /**
@@ -3275,7 +3275,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getLongSafe(Path)
      */
     public Optional<List<Long>> getLongListSafe(Object key) {
-        return toLongList(getAsSafe(key, List.class));
+        return toLongList(getListSafe(key));
     }
 
     /**
@@ -3377,7 +3377,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getDoubleSafe(Path)
      */
     public Optional<List<Double>> getDoubleListSafe(Path path) {
-        return toDoubleList(getAsSafe(path, List.class));
+        return toDoubleList(getListSafe(path));
     }
 
     /**
@@ -3397,7 +3397,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getDoubleSafe(Path)
      */
     public Optional<List<Double>> getDoubleListSafe(Object key) {
-        return toDoubleList(getAsSafe(key, List.class));
+        return toDoubleList(getListSafe(key));
     }
 
     /**
@@ -3499,7 +3499,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getFloatSafe(Path)
      */
     public Optional<List<Float>> getFloatListSafe(Path path) {
-        return toFloatList(getAsSafe(path, List.class));
+        return toFloatList(getListSafe(path));
     }
 
     /**
@@ -3519,7 +3519,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getFloatSafe(Path)
      */
     public Optional<List<Float>> getFloatListSafe(Object key) {
-        return toFloatList(getAsSafe(key, List.class));
+        return toFloatList(getListSafe(key));
     }
 
     /**
@@ -3621,7 +3621,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getShortSafe(Path)
      */
     public Optional<List<Short>> getShortListSafe(Path path) {
-        return toShortList(getAsSafe(path, List.class));
+        return toShortList(getListSafe(path));
     }
 
     /**
@@ -3641,7 +3641,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getShortSafe(Path)
      */
     public Optional<List<Short>> getShortListSafe(Object key) {
-        return toShortList(getAsSafe(key, List.class));
+        return toShortList(getListSafe(key));
     }
 
     /**
@@ -3739,7 +3739,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getSafe(Path)
      */
     public Optional<List<Map<?, ?>>> getMapListSafe(Path path) {
-        return toMapList(getAsSafe(path, List.class));
+        return toMapList(getListSafe(path));
     }
 
     /**
@@ -3755,7 +3755,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getSafe(Object)
      */
     public Optional<List<Map<?, ?>>> getMapListSafe(Object key) {
-        return toMapList(getAsSafe(key, List.class));
+        return toMapList(getListSafe(key));
     }
 
     /**

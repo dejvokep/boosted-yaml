@@ -415,7 +415,7 @@ public class UpdaterSettings {
          * @param path    the path to version IDs (of both files) in both files
          * @return the builder
          */
-        public Builder setVersioning(Pattern pattern, String path) {
+        public Builder setVersioning(@NotNull Pattern pattern, @NotNull Path path) {
             return setVersioning(new AutomaticVersioning(pattern, path));
         }
 
