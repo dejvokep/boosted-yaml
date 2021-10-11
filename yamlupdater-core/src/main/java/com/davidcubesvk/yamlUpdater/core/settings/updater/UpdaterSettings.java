@@ -4,7 +4,6 @@ import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
-import com.davidcubesvk.yamlUpdater.core.utils.exception.VersioningException;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.AutomaticVersioning;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.ManualVersioning;
 import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
@@ -210,7 +209,7 @@ public class UpdaterSettings {
          * <p>
          * Effective if and only there are version IDs found for both files (supplied via
          * {@link #setVersioning(Pattern, String, String)} or automatically from files via
-         * {@link #setVersioning(Pattern, String)}) and ID of the user file represents newer
+         * {@link #setVersioning(Pattern, Path)}) and ID of the user file represents newer
          * file version than default file's version ID.
          * <p>
          * In this case, if this option is set to <code>true</code>, skips version-dependent operations (relocations)
@@ -306,7 +305,7 @@ public class UpdaterSettings {
          * Please learn more about blocks at {@link Block} and {wiki}.
          * <p>
          * At the start of each updating process, set of paths representing blocks which to copy is obtained using the
-         * user file's version ID (if available, see {@link #setVersioning(Pattern, String)}) from the force copy map
+         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the force copy map
          * {@link #getForceCopy()}. Then, each block in the user file, whose path is contained in the set, is marked
          * to be copied (via {@link Block#setForceCopy(boolean)}).
          * <p>
@@ -361,14 +360,14 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets versioning information. A {@link VersioningException}
-         * might be thrown (now/during updating process) in certain cases (always make sure to read the documentation of
+         * Sets versioning information. An {@link IllegalArgumentException}
+         * might be thrown during updating process in certain cases (always make sure to read the documentation of
          * the object you are giving).
          *
          * @param versioning the versioning
          * @return the builder
          * @see #setVersioning(Pattern, String, String)
-         * @see #setVersioning(Pattern, String)
+         * @see #setVersioning(Pattern, Path)
          */
         public Builder setVersioning(Versioning versioning) {
             this.versioning = versioning;
@@ -382,8 +381,8 @@ public class UpdaterSettings {
          * this library/updater), force copy paths are not effective and it's version will be treated like the oldest
          * one specified by the given pattern (which effectively means all relocations given will be applied to it).
          * <p>
-         * If any of the version IDs do not follow the given pattern (cannot be parsed), a
-         * {@link VersioningException} will be thrown.
+         * If any of the version IDs do not follow the given pattern (cannot be parsed), an
+         * {@link IllegalArgumentException} will be thrown during the updating process. Please read the documentation of {@link ManualVersioning}.
          * <p>
          * <i>You may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
          * and rather update manually by calling {@link YamlFile#update()} (because if an error is thrown, you won't be able to initialize the file).</i>
@@ -405,8 +404,8 @@ public class UpdaterSettings {
          * this library/updater), force copy paths are not effective and it's version will be treated like the oldest
          * one specified by the given pattern (which effectively means all relocations given will be applied to it).
          * <p>
-         * If any of the version IDs obtained from the files do not follow the given pattern/could not be found (cannot be parsed), a
-         * {@link VersioningException} will be thrown.
+         * If any of the version IDs obtained from the files do not follow the given pattern an
+         * {@link IllegalArgumentException} will be thrown. Please read the documentation of {@link AutomaticVersioning}.
          * <p>
          * <i>You may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
          * and rather update manually by calling {@link YamlFile#update()} (because if an error is thrown, you won't be able to initialize the file).</i>

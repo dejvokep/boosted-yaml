@@ -56,7 +56,7 @@ public class Updater {
      * <ol>
      *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
-     *     {@link Versioning#getUserFileId(Section)}), assigns the oldest version specified by the underlying pattern
+     *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
      *     (see {@link Versioning#getOldest()}). If provided, marks all blocks which have force copy option enabled
      *     (determined by the set of paths, see {@link UpdaterSettings#getForceCopy()}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
@@ -77,7 +77,7 @@ public class Updater {
             return;
 
         //Versions
-        Version user = versioning.getUserFileId(userSection), def = versioning.getDefaultFileId(defaultSection);
+        Version user = versioning.getUserSectionVersion(userSection), def = versioning.getDefSectionVersion(defaultSection);
         //Check default file version
         Objects.requireNonNull(def, "Version ID of the default file cannot be null!");
         //If user ID is not null
