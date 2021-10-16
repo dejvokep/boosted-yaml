@@ -3,9 +3,7 @@ package com.davidcubesvk.yamlUpdater.core.updater;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
-import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -89,7 +87,7 @@ public class Relocator {
         if (!parent.isPresent())
             return;
         //The block
-        Optional<Block<?>> block = parent.get().getBlockSafe(to.get(to.getLength() - 1));
+        Optional<Block<?>> block = parent.get().getDirectBlockSafe(to.get(to.getLength() - 1));
         //If absent
         if (!block.isPresent())
             return;

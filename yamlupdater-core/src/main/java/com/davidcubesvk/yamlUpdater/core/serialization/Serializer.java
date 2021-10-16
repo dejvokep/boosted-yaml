@@ -71,7 +71,7 @@ public class Serializer implements YamlSerializer {
     @Override
     public Map<Object, Object> serialize(Object object, MapSupplier supplier) {
         //If not serializable
-        if (!(object instanceof Serializable) || !classes.containsKey(object.getClass()))
+        if (!(object instanceof Serializable))
             return null;
 
         //Create a map

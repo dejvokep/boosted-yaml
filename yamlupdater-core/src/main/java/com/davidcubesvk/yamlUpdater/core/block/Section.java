@@ -25,7 +25,7 @@ import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions
  * The public methods of this class are divided into 2 groups, by what they require as the path and therefore, what should be used for certain path mode:
  * <ul>
  *     <li>{@link Path} - works <b>independently</b> of the root's path mode, please see {@link #getBlockSafe(Path)}</li>
- *     <li>{@link Object} - works (functions) <b>dependently</b> of the root's path mode, please see {@link #getBlockSafe(Object)}</li>
+ *     <li>{@link Object} - works (functions) <b>dependently</b> of the root's path mode, please see {@link #getDirectBlockSafe(Object)}</li>
  * </ul>
  * <p>
  * Also, it is important to note that mappings stored in sections are key=value pairs, where the value is the actual
@@ -124,6 +124,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
         this.path = null;
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //    General and utility methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
     /**
      * Initializes this section and it's contents using the given parameters, while also initializing the superclass by
      * calling {@link Block#init(Node, Node)}.
@@ -194,169 +206,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Adapts the given key, so it fits the path mode configured via the root's general settings
-     * ({@link YamlFile#getGeneralSettings()}).
-     * <p>
-     * More formally, if {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode} returned by
-     * the settings is {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#STRING_BASED},
-     * returns the result of {@link Object#toString()} on the given key object, the key object given otherwise.
-     * <p>
-     * If the given key is <code>null</code>, returns <code>null</code>.
-     *
-     * @param key the key object to adapt
-     * @return the adapted key
-     */
-    public Object adaptKey(@Nullable Object key) {
-        return key == null ? null : root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
-    }
-
-    /**
-     * Returns set of paths in this section; while not keeping any reference to this (or sub-) sections, therefore,
-     * enabling the caller to modify it freely.
-     * <p>
-     * If <code>deep</code> is set to <code>false</code>, (practically) returns the result of {@link #getKeys()} with
-     * the keys converted to paths each with one element - the key itself.
-     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete set of
-     * paths relative to this section; including paths to sections.
-     *
-     * @param deep if to get paths deeply
-     * @return the complete set of paths
-     */
-    public Set<Path> getKeys(boolean deep) {
-        //Create set
-        Set<Path> keys = new HashSet<>();
-        //Add
-        addData((path, entry) -> keys.add(path), null, deep);
-        //Return
-        return keys;
-    }
-
-    /**
-     * Returns a complete set of paths in this section only (not deep), including paths to sections. More formally,
-     * returns the key set of the underlying map.
-     * The set, however, is a <i>shallow</i> copy of the map's key set, therefore, the caller is able to modify it
-     * freely, without modifying this section.
-     *
-     * @return the complete set of paths directly contained by this section
-     */
-    public Set<Object> getKeys() {
-        return new HashSet<>(getValue().keySet());
-    }
-
-    /**
-     * Returns a complete map of path=value pairs; while not keeping any reference to this (or sub-) sections,
-     * therefore, enabling the caller to modify it freely.
-     * <p>
-     * If <code>deep</code> is set to <code>false</code>, returns a copy of the underlying map with keys (which are
-     * stored as object instances) converted to paths each with one element - the key itself; with their appropriate
-     * values (obtained from the block, if not a section, stored at those paths).
-     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
-     * path=value (obtained from the block, if not a section, stored at those paths) pairs, with paths relative to this
-     * section.
-     * <p>
-     * Practically, it is a result of {@link #getKeys(boolean)} with appropriate values to each path assigned. <b>It is
-     * also a copy of {@link #getValue()} converted from nested to flat map (with the blocks, if a mapping - not a
-     * section, represented by their values).</b>
-     *
-     * @param deep if to get values from sub-sections too
-     * @return the complete map of path=value pairs, including sections
-     */
-    public Map<Path, Object> getValues(boolean deep) {
-        //Create map
-        Map<Path, Object> values = new HashMap<>();
-        //Add
-        addData((path, entry) -> values.put(path, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getValue()), null, deep);
-        //Return
-        return values;
-    }
-
-    /**
-     * Returns a complete map of path=block pairs; while not keeping any reference to this (or sub-) sections,
-     * therefore, enabling the caller to modify it freely.
-     * <p>
-     * If <code>deep</code> is set to <code>false</code>, returns a copy of the underlying map with keys (which are
-     * stored as object instances) converted to paths each with one element - the key itself; with their appropriate
-     * blocks.
-     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
-     * path=block pairs, with paths relative to this section.
-     * <p>
-     * Practically, it is a result of {@link #getKeys(boolean)} with blocks to each path assigned, or <b>a copy of
-     * {@link #getValue()} converted from nested to flat map.</b>
-     *
-     * @param deep if to get values from sub-sections too
-     * @return the complete map of path=value pairs
-     */
-    public Map<Path, Block<?>> getBlocks(boolean deep) {
-        //Create map
-        Map<Path, Block<?>> blocks = new HashMap<>();
-        //Add
-        addData((path, entry) -> blocks.put(path, entry.getValue()), null, deep);
-        //Return
-        return blocks;
-    }
-
-    /**
-     * Iterates through all entries in the underlying map, while calling the given consumer for each entry. The path
-     * given is the path relative to this section.
-     * <p>
-     * If any of the entries contain an instance of {@link Section} as their value and <code>deep</code> is set to
-     * <code>true</code>, this method is called on each sub-section with the same consumer (while the path is managed to
-     * be always relative to this section).
-     *
-     * @param consumer the consumer to call for each entry
-     * @param current  the path to the currently iterated section, relative to the main caller section
-     * @param deep     if to iterate deeply
-     */
-    private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @Nullable Path current, boolean deep) {
-        //All keys
-        for (Map.Entry<?, Block<?>> entry : getValue().entrySet()) {
-            //Path to this entry
-            Path entryPath = Path.addTo(current, entry.getKey());
-            //Call
-            consumer.accept(current, entry);
-            //If a section and deep is enabled
-            if (deep && entry.getValue() instanceof Section)
-                ((Section) entry.getValue()).addData(consumer, entryPath, true);
-        }
-    }
-
-    /**
      * Returns whether this section is simultaneously the root section (file).
      *
      * @return if this section is the root section
      */
     public boolean isRoot() {
         return false;
-    }
-
-    /**
-     * Returns whether this section contains anything at the given path.
-     *
-     * @param path the path to check
-     * @return if this section contains anything at the given path
-     * @see #contains(Object)
-     */
-    public boolean contains(@NotNull Path path) {
-        return getSafe(path).isPresent();
-    }
-
-    /**
-     * Returns whether this section contains any object at the given direct key (not sub-key, use
-     * {@link #contains(Path)} instead).
-     * <p>
-     * More formally, returns the result of {@link Optional#isPresent()} called on {@link #getSafe(Object)}, with the
-     * given key as the parameter.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
-     *
-     * @param key the direct key, or full string path to check
-     * @return if this section contains anything at the given key, or full string path
-     * @see #contains(Path)
-     */
-    public boolean contains(@Nullable Object key) {
-        return getSafe(key).isPresent();
     }
 
     /**
@@ -369,7 +224,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param path   new path for this section
      * @see #adapt(YamlFile, Path)
      */
-    private void adapt(@NotNull YamlFile root, @Nullable Section parent, @NotNull Object name, @NotNull Path path) {
+    private void adapt(@NotNull YamlFile root, @Nullable Section parent, @Nullable Object name, @NotNull Path path) {
         //Set
         this.parent = parent;
         this.name = name;
@@ -397,86 +252,424 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Internal method which sets the given value into the appropriate section, at path derived from the given path,
-     * starting from the given index.
+     * Adapts the given key, so it fits the path mode configured via the root's general settings
+     * ({@link GeneralSettings#getPathMode()}).
      * <p>
-     * If <code>i</code> represents the last element in the given path or if the path is <code>null</code>, calls
-     * {@link #set(Object, Object)} to set the value into this section.
-     * If not, gets the block at the current key (<code>path.getKey(i)</code>). If it is a mapping or does not exist,
-     * (overwrites it and) creates a new section at the key. Finally, calls this method recursively on the section
-     * currently present at the key.
+     * More formally, if path mode is {@link GeneralSettings.PathMode#STRING_BASED STRING_BASED}, returns the result of
+     * {@link Object#toString()} on the given key object, the key object given otherwise.
+     * <p>
+     * If the given key is <code>null</code>, returns <code>null</code>.
      *
-     * @param path  the path to set the value at
-     * @param value value to set
-     * @param i     the current index of the path
+     * @param key the key object to adapt
+     * @return the adapted key
      */
-    private void setInternal(@Nullable Path path, @Nullable Object value, int i) {
-        //If null or at the last index
-        if (path == null || i + 1 >= path.getLength()) {
-            //Call the direct method
-            set(path == null ? null : adaptKey(path.get(i)), value);
-            return;
-        }
+    public Object adaptKey(@Nullable Object key) {
+        return key == null ? null : root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
+    }
 
-        //Key
-        Object key = adaptKey(path.get(i));
-        //The block at the key
-        Block<?> block = getValue().getOrDefault(key, null);
-        //If null
-        if (block == null || block instanceof Mapping)
-            //Create
-            createSection(key, block).setInternal(path, value, i + 1);
-        else
-            //Call subsection
-            ((Section) block).setInternal(path, value, i + 1);
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //           Path methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns set of paths in this section; while not keeping any reference to this (or sub-) sections, therefore,
+     * enabling the caller to modify it freely. The returned set is an instance of {@link GeneralSettings#getDefaultSet()}.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, (effectively) returns the result of {@link #getKeys()} with
+     * the keys converted to paths each with one element - the key itself.
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete set of
+     * paths relative to this section; including paths to sections.
+     * <p>
+     * It is guaranteed that call to {@link #contains(Path)} with any path from the returned set will always return
+     * <code>true</code> (unless modified in between).
+     *
+     * @param deep if to get paths deeply
+     * @return the complete set of paths
+     */
+    public Set<Path> getPaths(boolean deep) {
+        //Create a set
+        Set<Path> keys = root.getGeneralSettings().getDefaultSet();
+        //Add
+        addData((path, entry) -> keys.add(path), null, deep);
+        //Return
+        return keys;
     }
 
     /**
-     * Attempts to create a section at the given path and overwrites a mapping if there is one in the way; returns the
-     * section. If there is a section already, nothing is overwritten and the already existing section is returned.
+     * Returns set of string paths in this section; while not keeping any reference to this (or sub-) sections, therefore,
+     * enabling the caller to modify it freely. The returned set is an instance of {@link GeneralSettings#getDefaultSet()}.
      * <p>
-     * Calls {@link #createSection(Object)} subsequently for each path's element (in the appropriate sub-sections).
+     * If <code>deep</code> is set to <code>false</code>, (effectively) returns the result of {@link #getKeys()}.
      * <p>
-     * If the given path is <code>null</code>, calls and returns the result of {@link #createSection(Object)} with
-     * <code>null</code> as the key.
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete set of
+     * paths relative to this section; including paths to sections. The returned paths will have their keys separated by
+     * the root's separator ({@link GeneralSettings#getSeparator()}).
+     * <p>
+     * It is guaranteed that call to {@link #contains(String)} with any path from the returned set will always return
+     * <code>true</code> (unless modified in between).
+     * <p>
+     * This is, however, not guaranteed if the root's path mode is set to {@link GeneralSettings.PathMode#OBJECT_BASED OBJECT_BASED},
+     * therefore, in this case, <b>an {@link UnsupportedOperationException} will be thrown.</b>
      *
-     * @param path the path to create a section at
-     * @return the created section at the given path, or already existing one
-     * @see #createSection(Object)
-     * @see #createSection(Object, Block)
+     * @param deep if to get paths deeply
+     * @return the complete set of string paths
      */
-    public Section createSection(@Nullable Path path) {
-        //If null
-        if (path == null)
-            return createSection((Object) null);
+    public Set<String> getStrPaths(boolean deep) {
+        //If not string mode
+        if (root.getGeneralSettings().getPathMode() != GeneralSettings.PathMode.STRING_BASED)
+            throw new UnsupportedOperationException("Cannot build string paths if the path mode is not set to STRING_BASED!");
 
+        //Create a set
+        Set<String> keys = root.getGeneralSettings().getDefaultSet();
+        //Add
+        addData((path, entry) -> keys.add(path), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        //Return
+        return keys;
+    }
+
+    /**
+     * Returns a complete set of direct keys - in this section only (not deep), including keys to sections. More formally,
+     * returns the key set of the underlying map. The returned set is an instance of {@link GeneralSettings#getDefaultSet()}.
+     * <p>
+     * The set, however, is a <i>shallow</i> copy of the map's key set, therefore, the caller is able to modify it
+     * freely, without modifying this section.
+     *
+     * @return the complete set of paths directly contained by this section
+     */
+    public Set<Object> getKeys() {
+        //Create a set
+        Set<Object> set = root.getGeneralSettings().getDefaultSet(getValue().size());
+        //Add all
+        set.addAll(getValue().keySet());
+        //Return
+        return set;
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Value methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns a complete map of <i>path=value</i> pairs; while not keeping any reference to this (or sub-) sections,
+     * therefore, enabling the caller to modify it freely. The returned map is an instance of {@link GeneralSettings#getDefaultMap()}.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, returns (effectively) a copy of the underlying map with keys
+     * (which are stored as object instances) converted to paths each with one element - the key itself; with their
+     * appropriate values (obtained from the block, if not a section, stored at those paths).
+     * <p>
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
+     * <i>path=value</i> (obtained from the block, if not a section, stored at those paths) pairs, with paths relative to this
+     * section.
+     * <p>
+     * Practically, it is a result of {@link #getPaths(boolean)} with appropriate values to each path assigned.
+     * <p>
+     * It is guaranteed that call to {@link #get(Path)} with any path from the returned map's key set will always
+     * return the value assigned to that path in the returned map. (unless modified in between).
+     *
+     * @param deep if to get values from sub-sections too
+     * @return the complete map of <i>path=value</i> pairs, including sections
+     */
+    public Map<Path, Object> getValues(boolean deep) {
+        //Create a map
+        Map<Path, Object> values = root.getGeneralSettings().getDefaultMap();
+        //Add
+        addData((path, entry) -> values.put(path, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getValue()), null, deep);
+        //Return
+        return values;
+    }
+
+    /**
+     * Returns a complete map of <i>string path=value</i> pairs; while not keeping any reference to this (or sub-) sections,
+     * therefore, enabling the caller to modify it freely. The returned map is an instance of {@link GeneralSettings#getDefaultMap()}.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, returns (effectively) a copy of the underlying map with keys
+     * (which are stored as object instances) converted to paths each with one element - the key itself; with their
+     * appropriate values (obtained from the block, if not a section, stored at those paths).
+     * <p>
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
+     * <i>string path=value</i> (obtained from the block, if not a section, stored at those paths) pairs, with string paths
+     * relative to this section. The returned paths will have their keys separated by the root's separator
+     * ({@link GeneralSettings#getSeparator()}).
+     * <p>
+     * Practically, it is a result of {@link #getStrPaths(boolean)} with appropriate values to each path assigned.
+     * <p>
+     * It is guaranteed that call to {@link #get(String)} with any path from the returned map's key set will always
+     * return the value assigned to that path in the returned map. (unless modified in between).
+     * <p>
+     * This is, however, not guaranteed if the root's path mode is set to {@link GeneralSettings.PathMode#OBJECT_BASED OBJECT_BASED},
+     * therefore, in this case, <b>an {@link UnsupportedOperationException} will be thrown.</b>
+     *
+     * @param deep if to get values from sub-sections too
+     * @return the complete map of <i>string path=value</i> pairs, including sections
+     */
+    public Map<String, Object> getStrPathValues(boolean deep) {
+        //If not string mode
+        if (root.getGeneralSettings().getPathMode() != GeneralSettings.PathMode.STRING_BASED)
+            throw new UnsupportedOperationException("Cannot build string paths if the path mode is not set to STRING_BASED!");
+
+        //Create a map
+        Map<String, Object> values = root.getGeneralSettings().getDefaultMap();
+        //Add
+        addData((path, entry) -> values.put(path, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        //Return
+        return values;
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //           Block methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns a complete map of <i>path=block</i> pairs; while not keeping any reference to this (or sub-) sections,
+     * therefore, enabling the caller to modify it freely. The returned map is an instance of {@link GeneralSettings#getDefaultMap()}.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, returns a copy of the underlying map with keys (which are
+     * stored as object instances) converted to paths each with one element - the key itself; with their appropriate
+     * blocks.
+     * <p>
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
+     * <i>path=block</i> pairs, with paths relative to this section.
+     * <p>
+     * Practically, it is a result of {@link #getPaths(boolean)} with blocks to each path assigned, or <b>a copy of
+     * {@link #getValue()} converted from nested to flat map.</b>
+     * <p>
+     * It is guaranteed that call to {@link #getBlock(Path)} with any path from the returned map's key set will always
+     * return the block assigned to that path in the returned map. (unless modified in between).
+     *
+     * @param deep if to get values from sub-sections too
+     * @return the complete map of <i>path=value</i> pairs
+     */
+    public Map<Path, Block<?>> getBlocks(boolean deep) {
+        //Create map
+        Map<Path, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
+        //Add
+        addData((path, entry) -> blocks.put(path, entry.getValue()), null, deep);
+        //Return
+        return blocks;
+    }
+
+    /**
+     * Returns a complete map of <i>string path=block</i> pairs; while not keeping any reference to this (or sub-) sections,
+     * therefore, enabling the caller to modify it freely. The returned map is an instance of {@link GeneralSettings#getDefaultMap()}.
+     * <p>
+     * If <code>deep</code> is set to <code>false</code>, returns (effectively) a copy of the underlying map with keys
+     * (which are stored as object instances) converted to paths each with one element - the key itself; with their
+     * appropriate values (obtained from the block, if not a section, stored at those paths).
+     * <p>
+     * Otherwise, iterates through <b>all</b> (direct and indirect) sub-sections, while returning a complete map of
+     * <i>string path=block</i> (obtained from the block, if not a section, stored at those paths) pairs, with string paths
+     * relative to this section. The returned paths will have their keys separated by the root's separator
+     * ({@link GeneralSettings#getSeparator()}).
+     * <p>
+     * Practically, it is a result of {@link #getStrPaths(boolean)} with appropriate blocks to each path assigned. <b>It is
+     * also a copy of {@link #getValue()} converted from nested to flat map (with the blocks, if a mapping - not a
+     * section, represented by their values).</b>
+     * <p>
+     * It is guaranteed that call to {@link #getBlock(String)} with any path from the returned map's key set will always
+     * return the value assigned to that path in the returned map. (unless modified in between).
+     * <p>
+     * This is, however, not guaranteed if the root's path mode is set to {@link GeneralSettings.PathMode#OBJECT_BASED OBJECT_BASED},
+     * therefore, in this case, <b>an {@link UnsupportedOperationException} will be thrown.</b>
+     *
+     * @param deep if to get values from sub-sections too
+     * @return the complete map of <i>string path=block</i> pairs, including sections
+     */
+    public Map<String, Block<?>> getStrPathBlocks(boolean deep) {
+        //Create map
+        Map<String, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
+        //Add
+        addData((path, entry) -> blocks.put(path, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        //Return
+        return blocks;
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Data handlers
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Iterates through all entries in the underlying map, while calling the given consumer for each entry. The path
+     * given is the path relative to the main caller section.
+     * <p>
+     * If any of the entries contain an instance of {@link Section} as their value and <code>deep</code> is set to
+     * <code>true</code>, this method is called on each sub-section with the same consumer (while the path is managed to
+     * be always relative to this section).
+     *
+     * @param consumer the consumer to call for each entry
+     * @param current  the path to the currently iterated section, relative to the main caller section
+     * @param deep     if to iterate deeply
+     */
+    private void addData(@NotNull BiConsumer<Path, Map.Entry<?, Block<?>>> consumer, @Nullable Path current, boolean deep) {
+        //All keys
+        for (Map.Entry<?, Block<?>> entry : getValue().entrySet()) {
+            //Path to this entry
+            Path entryPath = Path.addTo(current, entry.getKey());
+            //Call
+            consumer.accept(current, entry);
+            //If a section and deep is enabled
+            if (deep && entry.getValue() instanceof Section)
+                ((Section) entry.getValue()).addData(consumer, entryPath, true);
+        }
+    }
+
+    /**
+     * Iterates through all entries in the underlying map, while calling the given consumer for each entry. The string
+     * path builder given must contain path relative to the main caller section.
+     * <p>
+     * If any of the entries contain an instance of {@link Section} as their value and <code>deep</code> is set to
+     * <code>true</code>, this method is called on each sub-section with the same consumer (while the path is managed to
+     * be always relative to this section).
+     *
+     * @param consumer    the consumer to call for each entry
+     * @param pathBuilder the path to the currently iterated section, relative to the main caller section
+     * @param separator   the separator to use to separate individual keys in the string paths
+     * @param deep        if to iterate deeply
+     */
+    private void addData(@NotNull BiConsumer<String, Map.Entry<?, Block<?>>> consumer, @NotNull StringBuilder pathBuilder, char separator, boolean deep) {
+        //All keys
+        for (Map.Entry<?, Block<?>> entry : getValue().entrySet()) {
+            //Current length
+            int length = pathBuilder.length();
+            //Call
+            consumer.accept(pathBuilder.append(entry.getKey().toString()).toString(), entry);
+            //If a section and deep is enabled
+            if (deep && entry.getValue() instanceof Section)
+                ((Section) entry.getValue()).addData(consumer, pathBuilder, separator, true);
+            //Reset
+            pathBuilder.setLength(length);
+        }
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         Contains methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns whether this section contains anything at the given path.
+     *
+     * @param path the path to check
+     * @return if this section contains anything at the given path
+     * @see #getBlockSafe(Path)
+     */
+    public boolean contains(@NotNull Path path) {
+        return getBlockSafe(path).isPresent();
+    }
+
+    /**
+     * Returns whether this section contains anything at the given path.
+     *
+     * @param path the path to check
+     * @return if this section contains anything at the given path
+     * @see #getBlockSafe(String)
+     */
+    public boolean contains(@NotNull String path) {
+        return getBlockSafe(path).isPresent();
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //      Create section methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Attempts to create sections at the given path, overwrites a mapping if there is one in the way and creates
+     * sections along the way; returns the deepest section created (the one at the given path). If there is a section
+     * already, nothing is overwritten and the already existing section is returned.
+     *
+     * @param path the path to create a section at (with all parent sections)
+     * @return the created section at the given path, or already existing one
+     * @see #createSectionInternal(Object, Block)
+     */
+    public Section createSection(@NotNull Path path) {
         //Current section
         Section current = this;
         //All keys
         for (int i = 0; i < path.getLength(); i++)
             //Create
-            current = current.createSection(path.get(i));
+            current = current.createSectionInternal(path.get(i), null);
         //Return
         return current;
     }
 
     /**
-     * Attempts to create a section at the given direct key in this section and returns it. If there already is a
-     * mapping existing at the key, it is overwritten with a new section. If there is a section already, does not
-     * overwrite anything and the already existing section is returned.
-     * <p>
-     * Calls {@link #createSection(Object, Block)} to do so.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Attempts to create sections at the given path, overwrites a mapping if there is one in the way and creates
+     * sections along the way; returns the deepest section created (the one at the given path). If there is a section
+     * already, nothing is overwritten and the already existing section is returned.
      *
-     * @param key the key to create a section at
-     * @return the newly created section or the already existing one
-     * @see #createSection(Object, Block)
+     * @param path the path to create a section at (with all parent sections)
+     * @return the created section at the given path, or already existing one
+     * @see #createSectionInternal(Object, Block)
      */
-    public Section createSection(@Nullable Object key) {
-        return createSection(key, null);
+    public Section createSection(@NotNull String path) {
+        //Index of the last separator + 1
+        int lastSeparator = 0;
+        //Section
+        Section section = this;
+
+        //While true (control statements are inside)
+        while (true) {
+            //Next separator
+            int nextSeparator = path.indexOf(lastSeparator, root.getGeneralSettings().getSeparator());
+            //If found
+            if (nextSeparator != -1)
+                //Create section
+                section = section.createSectionInternal(path.substring(lastSeparator, nextSeparator), null);
+            else
+                //Break
+                break;
+            //Set
+            lastSeparator = nextSeparator + 1;
+        }
+
+        //Return
+        return createSectionInternal(path.substring(lastSeparator), null);
     }
 
     /**
@@ -486,20 +679,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If the method ends up creating a new section, previous block's comments are copied (see
      * {@link #Section(YamlFile, Section, Object, Path, Block, Map)}).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
      *
      * @param key      the key to create a section at
      * @param previous the previous block at this key
      * @return the newly created section or the already existing one
      */
-    public Section createSection(@Nullable Object key, @Nullable Block<?> previous) {
+    private Section createSectionInternal(@Nullable Object key, @Nullable Block<?> previous) {
         //Adapt
         Object adapted = adaptKey(key);
 
-        return getSectionSafe(adapted).orElseGet(() -> {
+        return getSectionSafe(Path.fromSingleKey(adapted)).orElseGet(() -> {
             //The new section
             Section section = new Section(root, Section.this, adapted, getSubPath(adapted), previous, root.getGeneralSettings().getDefaultMap());
             //Add
@@ -509,35 +698,74 @@ public class Section extends Block<Map<Object, Block<?>>> {
         });
     }
 
-    /**
-     * Sets the given value at the given path in this section. If there are sections missing to the path where the
-     * object should be set, they are created along the way using {@link #createSection(Object, Block)}.
-     * <p>
-     * At the end, this method ends up calling {@link #set(Object, Object)}, meaning the limitations to the given value
-     * are the same for both methods. Please read more regarding that there.
-     * <p>
-     * If the given path is <code>null</code>, calls {@link #set(Object, Object)} (indirectly) to set the value at
-     * <code>null</code> key.
-     *
-     * @param path  the path to set at
-     * @param value the value to set
-     * @see #set(Object, Object)
-     */
-    public void set(Path path, Object value) {
-        setInternal(path, value, 0);
-    }
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Setter methods
+    //
+    //
+    //      -----------------------
+    //
+    //
 
     /**
-     * Sets the given value at the given direct key in this section. If there is an already existing value for this key
-     * in this section, it is overwritten.
+     * Sets the given value at the given path in this section - overwrites the already existing value (if any). If there
+     * are sections missing to the path where the object should be set, they are created along the way.
      * <p>
      * As the value to set, you can give instances of:
      * <ul>
      *     <li><code>null</code>: the object currently stored at the given key in the section will be removed (if any);
-     *     only implemented to support Spigot API (usage like that is <b>deprecated and will likely be removed</b>) -
-     *     please use {@link #remove(Object)} to do so,</li>
-     *     <li>{@link Section}: the given section will be <i>pasted</i> here,</li>
-     *     <li>{@link Mapping}: the given mapping will be <i>pasted</i> here,</li>
+     *     only implemented to support Spigot API (such usage is <b>deprecated and will likely be removed</b>) -
+     *     please use {@link #remove(Path)} to do so,</li>
+     *     <li>{@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
+     *     <li>{@link Mapping}: the given mapping will be <i>pasted</i> here (including comments),</li>
+     *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
+     *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
+     *     instances; please see {@link #Section(YamlFile, Section, Object, Path, Block, Map)} for more information),</li>
+     *     <li><i>anything else</i>: the given value will be encapsulated with {@link Mapping} object and set at the
+     *     given key.</li>
+     * </ul>
+     *
+     * @param path  the path to set at
+     * @param value the value to set, or <code>null</code> if to delete (<b>deprecated, please use {@link #remove(String)}</b>)
+     */
+    public void set(@NotNull Path path, @Nullable Object value) {
+        //Starting index
+        int i = -1;
+        //Section
+        Section section = this;
+
+        //While not out of bounds
+        while (++i < path.getLength()) {
+            //If at the last index
+            if (i + 1 >= path.getLength()) {
+                //Call the direct method
+                section.setInternal(adaptKey(path.get(i)), value);
+                return;
+            }
+
+            //Key
+            Object key = adaptKey(path.get(i));
+            //The block at the key
+            Block<?> block = section.getValue().getOrDefault(key, null);
+            //Set next section
+            section = !(block instanceof Section) ? section.createSectionInternal(key, block) : (Section) block;
+        }
+    }
+
+    /**
+     * Sets the given value at the given path in this section - overwrites the already existing value (if any). If there
+     * are sections missing to the path where the object should be set, they are created along the way.
+     * <p>
+     * As the value to set, you can give instances of:
+     * <ul>
+     *     <li><code>null</code>: the object currently stored at the given key in the section will be removed (if any);
+     *     only implemented to support Spigot API (such usage is <b>deprecated and will likely be removed</b>) -
+     *     please use {@link #remove(String)} to do so,</li>
+     *     <li>{@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
+     *     <li>{@link Mapping}: the given mapping will be <i>pasted</i> here (including comments),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
      *     instances; please see {@link #Section(YamlFile, Section, Object, Path, Block, Map)} for more information),</li>
@@ -545,37 +773,62 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *     given key.</li>
      * </ul>
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
-     * @param key   the key/string path to set the value at, or <code>null</code> if to delete (<b>deprecated, please
-     *              use {@link #remove(Object)}</b>)
-     * @param value the value to set, processed as described above
+     * @param path  the path to set at
+     * @param value the value to set, or <code>null</code> if to delete (<b>deprecated, please use {@link #remove(String)}</b>)
      */
-    public void set(Object key, Object value) {
-        //Adapt
-        key = adaptKey(key);
+    public void set(@NotNull String path, @Nullable Object value) {
+        //Index of the last separator + 1
+        int lastSeparator = 0;
+        //Section
+        Section section = this;
 
+        //While true (control statements are inside)
+        while (true) {
+            //Next separator
+            int nextSeparator = path.indexOf(lastSeparator, root.getGeneralSettings().getSeparator());
+            //If found
+            if (nextSeparator != -1) {
+                //Create section
+                section = section.createSection(path.substring(lastSeparator, nextSeparator));
+            } else {
+                //Set
+                section.setInternal(path.substring(lastSeparator), value);
+                return;
+            }
+            //Set
+            lastSeparator = nextSeparator + 1;
+        }
+    }
+
+    /**
+     * Internally sets the given value at the given direct key in this section and overwrites the already existing value
+     * (if any).
+     * <p>
+     * <i>Copied from {@link #set(Path, Object)} documentation:</i> As the value to set, you can give instances of:
+     * <ul>
+     *     <li><code>null</code>: the object currently stored at the given key in the section will be removed (if any);
+     *     only implemented to support Spigot API (such usage is <b>deprecated and will likely be removed</b>),</li>
+     *     <li>{@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
+     *     <li>{@link Mapping}: the given mapping will be <i>pasted</i> here (including comments),</li>
+     *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
+     *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
+     *     instances; please see {@link #Section(YamlFile, Section, Object, Path, Block, Map)} for more information),</li>
+     *     <li><i>anything else</i>: the given value will be encapsulated with {@link Mapping} object and set at the
+     *     given key.</li>
+     * </ul>
+     *
+     * @param key   the (already adapted) key at which to set the value
+     * @param value the value to set, or <code>null</code> if to delete (<b>deprecated</b>)
+     */
+    public void setInternal(@Nullable Object key, @Nullable Object value) {
         //If null (remove)
         // TODO: 2. 10. 2021 Deprecated?
         if (value == null)
-            remove(key);
-
-        //If is string mode
-        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED) {
-            //String key
-            String stringKey = key.toString();
-            //Last separator
-            int lastSeparator = key.toString().indexOf(root.getGeneralSettings().getSeparator());
-            //If found
-            if (lastSeparator != -1) {
-                //Create sections
-                createSection(key.toString().substring(0, lastSeparator));
-                //Change the key
-                key = stringKey.substring(lastSeparator + 1);
-            }
-        }
+            getValue().remove(key);
 
         //If a section
         if (value instanceof Section) {
@@ -612,49 +865,42 @@ public class Section extends Block<Map<Object, Block<?>>> {
         getValue().put(key, new Mapping(previous, value));
     }
 
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Remove methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
     /**
-     * Removes value at the given path (if any); returns <code>true</code> if successfully removed. The method returns
-     * <code>false</code> if and only value at the path does not exist.
-     * <p>
-     * If the given path is <code>null</code>, calls and returns the result of {@link #remove(Object)} with
-     * <code>null</code> as the key.
+     * Removes value (block, to be more specific) at the given path (if any); returns <code>true</code> if successfully
+     * removed. The method returns <code>false</code> if and only value at the path does not exist.
      *
-     * @param path the path to remove the object at
-     * @return if any value has been removed
+     * @param path the path to remove the value at
+     * @return if any value was removed
      */
-    public boolean remove(@Nullable Path path) {
-        //If null
-        if (path == null)
-            //Call other method
-            remove((Object) null);
-        //Remove
+    public boolean remove(@NotNull Path path) {
         return removeInternal(getParent(path).orElse(null), adaptKey(path.get(path.getLength() - 1)));
     }
 
     /**
-     * Removes value at the given path (if any); returns <code>true</code> if successfully removed. The method returns
-     * <code>false</code> if value at the path does not exist.
+     * Removes value (block, to be more specific) at the given path (if any); returns <code>true</code> if successfully
+     * removed. The method returns <code>false</code> if and only value at the path does not exist.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
-     * @param key the key/string path to remove the object at in this section (supports <code>null</code> keys)
-     * @return if any value has been removed
+     * @param path the path to remove the value at
+     * @return if any value was removed
      */
-    public boolean remove(@Nullable Object key) {
-        //Adapt
-        key = adaptKey(key);
-        //If object based, does not contain a sub-key or is null
-        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED || key == null || key.toString().indexOf(root.getGeneralSettings().getSeparator()) == -1)
-            return getValue().remove(key) != null;
-
-        //String key
-        String stringKey = key.toString();
-        //Last index of the separator
-        int lastSeparator = stringKey.lastIndexOf(root.getGeneralSettings().getSeparator());
-        //Remove
-        return removeInternal(getSection(stringKey.substring(0, lastSeparator)), stringKey.substring(lastSeparator + 1));
+    public boolean remove(@NotNull String path) {
+        return removeInternal(getParent(path).orElse(null), path.substring(path.lastIndexOf(root.getGeneralSettings().getSeparator()) + 1));
     }
 
     /**
@@ -662,8 +908,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * methods.
      * <p>
      * Returns <code>false</code> if the parent section is <code>null</code> (meaning there is not any value at the
-     * given key as there is not a parent section), then returns the result of {@link #remove(Object)} with the given
-     * key.
+     * given key as there is not a parent section), otherwise, returns if anything was present (and removed) at the
+     * given key.
      *
      * @param parent the parent section, or <code>null</code> if does not exist
      * @param key    the last key; key to check in the parent section, adapted using {@link #adaptKey(Object)}
@@ -674,59 +920,52 @@ public class Section extends Block<Map<Object, Block<?>>> {
         if (parent == null)
             return false;
         //Remove
-        return parent.remove(key);
+        return parent.getValue().remove(key) != null;
     }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Block methods
+    //
+    //
+    //      -----------------------
+    //
+    //
 
     /**
      * Returns block at the given path encapsulated in an instance of {@link Optional}. If there is no block present (no
      * value) at the given path, returns an empty optional.
      * <p>
-     * If the given path is <code>null</code>, provides the same functionality as {@link #getBlockSafe(Object)} does -
-     * returns block at <code>null</code> key in the underlying map.
+     * Each value is encapsulated in a {@link Mapping} (section map entry) or {@link Section} (the value is a section)
+     * block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached
+     * to the declaration of this class.
      * <p>
-     * Each value is encapsulated in a {@link Mapping} (if the value is not a section) or {@link Section} (the value is
-     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached to the declaration of this class.
-     * <p>
-     * <p>
-     * <b>Functionality notes:</b> This method works independently of the root's path mode (as opposed to object-oriented
-     * version of this method - {@link #getBlockSafe(Object)}).
-     * However, when individual elements (keys) of the given path are traversed, they are (without modifying the path
-     * object given - it is immutable) adapted to the current path mode setting (see {@link #adaptKey(Object)}).
+     * <b>Functionality notes:</b> When individual elements (keys) of the given path are traversed, they are (without
+     * modifying the path object given - it is immutable) adapted to the current path mode setting (see
+     * {@link #adaptKey(Object)}).
      * <p>
      * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
      *
-     * @param path the path to get the block from
+     * @param path the path to get the block at
      * @return block at the given path encapsulated in an optional
      */
-    public Optional<Block<?>> getBlockSafe(@Nullable Path path) {
-        return getSafeInternal(path, 0, false);
+    public Optional<Block<?>> getBlockSafe(@NotNull Path path) {
+        return getSafeInternal(path, false);
     }
 
     /**
-     * Returns block at the given key encapsulated in an instance of {@link Optional}. If there is no block present (no
-     * value) at the given key, returns an empty optional.
+     * Returns block at the given direct key encapsulated in an instance of {@link Optional}. If there is no block
+     * present (no value) at the given key, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Mapping} (if the value is not a section) or {@link Section} (the value is
-     * a section) block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached to the declaration of this class.
+     * Each value is encapsulated in a {@link Mapping} (section map entry) or {@link Section} (the value is a section)
+     * block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached
+     * to the declaration of this class.
      * <p>
-     * <p>
-     * <b>Functionality notes:</b> If root's path mode (general settings) is set to
-     * {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#OBJECT_BASED}, treats the key
-     * as direct one (e.g. searches and returns block at the given key in the underlying map, does not traverse sub-sections).
-     * <p>
-     * Otherwise (with path mode set to {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.PathMode#STRING_BASED}),
-     * treats the key like a string key representing full path to the value (like in Spigot/BungeeCord API). Therefore,
-     * if the given key contains any separator (configured in root's general settings), appropriate subsections are
-     * traversed (determined by the individual keys separated by the separator) - for example, for
-     * <code>section.value</code> key (with separator set to <code>.</code>), attempts to get the section at key
-     * <code>section</code> in <b>this</b> section and <b>then</b> the block at key <code>value</code> in
-     * <b>that</b> section. We can also interpret this behaviour as a call to {@link #getBlockSafe(Path)} with path
-     * created via constructor {@link Path#fromString(String, char)} (which effectively splits the given string path into
-     * separate keys according to the separator).
-     * <p>
-     * According to the specification above, if no separator is contained within the given key, treats the key as a direct one (returns block at the given key
-     * in this section - not subsections).
-     * <p>
+     * <b>A direct key</b> means the key is referring to object in this section directly (e.g. does not work like path,
+     * which might - if consisting of multiple keys - refer to subsections) - similar to {@link Map#get(Object)}.
      * <p>
      * <b>Please note</b> that this class also supports <code>null</code> keys, or empty string keys (<code>""</code>)
      * as specified by YAML 1.2 spec. This also means that compatibility with Spigot/BungeeCord API is not maintained in
@@ -734,379 +973,445 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
      *
-     * @param key the key/string path to get the object from
+     * @param key the key to get the block at
      * @return block at the given path encapsulated in an optional
      */
-    public Optional<Block<?>> getBlockSafe(@Nullable Object key) {
-        //Adapt
-        key = adaptKey(key);
-        //If is string mode and contains sub-key
-        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key != null && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
-            //Return
-            return getSafeInternalString(key.toString(), -1, false);
-        //Return
-        return Optional.ofNullable(getValue().get(key));
+    protected Optional<Block<?>> getDirectBlockSafe(@Nullable Object key) {
+        return Optional.ofNullable(getValue().get(adaptKey(key)));
     }
 
     /**
-     * Returns section for the parent path of the given one, encapsulated in an instance of {@link Optional}. Said
+     * Returns block at the given string path encapsulated in an instance of {@link Optional}. If there is no block
+     * present (no value) at the given path, returns an empty optional.
+     * <p>
+     * Each value is encapsulated in a {@link Mapping} (section map entry) or {@link Section} (the value is a section)
+     * block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached
+     * to the declaration of this class.
+     * <p>
+     * <b>Functionality notes:</b> The given path must contain individual keys separated using the separator character
+     * configured using {@link GeneralSettings.Builder#setSeparator(char)}, unlike storing each key as an array
+     * element as {@link Path} objects do, which allows for easier accessibility.
+     * <p>
+     * If the given string path does not contain the separator character (is only one key), returns the result of
+     * {@link #getDirectBlockSafe(Object)} with the given path as the parameter.
+     * <p>
+     * Otherwise, traverses appropriate subsections determined by the keys contained (sequentially until the last one)
+     * and returns the block in that subsection at the last key defined in the given path. For example, for path
+     * separator <code>'.'</code> and path <code>a.b.c</code>, this method firstly attempts to get the section at key
+     * <code>"a"</code> in <b>this</b> section, <b>then</b> section <code>b</code> in <b>that</b> (keyed as <code>"a"</code>)
+     * section and <b>finally</b> the block at <code>"c"</code> in <b>that</b> (keyed as <code>"a.b"</code>) section.
+     * <p>
+     * We can also interpret this behaviour as a call to {@link #getBlockSafe(Path)} with path created via constructor
+     * {@link Path#fromString(String, char)} (which effectively splits the given string path into separate string keys
+     * according to the separator).
+     * <p>
+     * This method works independently of the root's {@link GeneralSettings#getPathMode()}. However, as the given path
+     * contains individual <b>string</b> keys, if set to {@link GeneralSettings.PathMode#OBJECT_BASED}, you will
+     * only be able to get (traversing included) keys which were parsed as strings (no integer, boolean... or
+     * <code>null</code> keys) by SnakeYAML Engine (please see <a href="https://yaml.org/spec/1.2.2/">YAML 1.2 spec</a>).
+     * If such functionality is needed, use {@link #getBlockSafe(Path)} instead, please.
+     * <p>
+     * <b>Please note</b> that compatibility with Spigot/BungeeCord API is not maintained in regards to empty string
+     * keys, where those APIs would return the instance of the current block - this section.
+     * <p>
+     * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
+     *
+     * @param path the string path to get the block at
+     * @return block at the given path encapsulated in an optional
+     */
+    public Optional<Block<?>> getBlockSafe(@NotNull String path) {
+        return path.indexOf(root.getGeneralSettings().getSeparator()) != -1 ? getSafeInternalString(path, false) : getDirectBlockSafe(path);
+    }
+
+    //
+    //
+    //       -----------------------
+    //
+    //
+    // Internal block getter method processors
+    //
+    //
+    //       -----------------------
+    //
+    //
+
+    /**
+     * Internal method which returns a block, encapsulated in an instance of {@link Optional}, at the given string path
+     * in this section. If there is no block present, returns an empty optional.
+     * <p>
+     * This method does not interact with any others defined in this class.
+     *
+     * @param path   the path to get the block at
+     * @param parent if searching for the parent section of the given path
+     * @return block at the given path encapsulated in an optional
+     */
+    private Optional<Block<?>> getSafeInternalString(@NotNull String path, boolean parent) {
+        //Index of the last separator + 1
+        int lastSeparator = 0;
+        //Section
+        Section section = this;
+
+        //While true (control statements are inside)
+        while (true) {
+            //Next separator
+            int nextSeparator = path.indexOf(lastSeparator, root.getGeneralSettings().getSeparator());
+            //If not found
+            if (nextSeparator == -1)
+                break;
+
+            //The block at the key
+            Block<?> block = section.getValue().getOrDefault(path.substring(lastSeparator, nextSeparator), null);
+            //If not a section
+            if (!(block instanceof Section))
+                return Optional.empty();
+            //Set next section
+            section = (Section) block;
+            //Set
+            lastSeparator = nextSeparator + 1;
+        }
+
+        //Return
+        return Optional.ofNullable(parent ? this : getValue().get(path.substring(lastSeparator)));
+    }
+
+    /**
+     * Internal method which returns a block, encapsulated in an instance of {@link Optional}, at the given string path
+     * in this section. If there is no block present, returns an empty optional.
+     * <p>
+     * This method does not interact with any others defined in this class.
+     *
+     * @param path   the path to get the block at
+     * @param parent if searching for the parent section of the given path
+     * @return block at the given path encapsulated in an optional
+     */
+    private Optional<Block<?>> getSafeInternal(@NotNull Path path, boolean parent) {
+        //Starting index
+        int i = -1;
+        //Section
+        Section section = this;
+
+        //While not at the parent section
+        while (++i < path.getLength() - 1) {
+            //The block at the key
+            Block<?> block = section.getValue().getOrDefault(adaptKey(path.get(i)), null);
+            //If not a section
+            if (!(block instanceof Section))
+                return Optional.empty();
+            //Set next section
+            section = (Section) block;
+        }
+
+        //Return
+        return Optional.ofNullable(parent ? this : getValue().get(adaptKey(path.get(i))));
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //       Parent section methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns section at the parent path of the given one, encapsulated in an instance of {@link Optional}. Said
      * differently, the returned section is the result of {@link #getSection(Path)} called for the same path as given
      * here, with the last path element removed.
      * <p>
      * That means, this method ignores if the given path represents an existing block and if block at that parent path
      * is not a section (is a mapping), returns an empty optional.
-     * <p>
-     * If the given path is <code>null</code>, provides the same functionality as {@link #getParent(Object)} called
-     * with <code>null</code> parameter, effectively returning encapsulated instance of this section.
      *
      * @param path the path to get the parent section from
      * @return section at the parent path from the given one encapsulated in an optional
      */
-    public Optional<Section> getParent(@Nullable Path path) {
-        return getSafeInternal(path, 0, true).map(block -> block instanceof Section ? (Section) block : null);
+    public Optional<Section> getParent(@NotNull Path path) {
+        return getSafeInternal(path, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
     /**
-     * Returns parent section for the (not necessarily existing) block at the given key in this section, encapsulated in
-     * an instance of {@link Optional}. Said differently, unless the given key refers, according to the root's path mode
-     * (see {@link #getBlockSafe(Object)}), to a full string path (is not a direct key), the returned instance is
-     * <b>always</b> an encapsulation of this section.
+     * Returns section at the parent path of the given one, encapsulated in an instance of {@link Optional}. Said
+     * differently, the returned section is effectively the result of {@link #getSection(Path)} called for the same path
+     * as given here, with the last path element removed ({@link Path#parent()}).
      * <p>
-     * Similarly to {@link #getParent(Path)}, this method ignores if the given key represents an existing block. If
-     * the key represents a full string path (according to the path mode) and block at parent path of that path is not a
-     * section (is a mapping), returns an empty optional.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * That means, this method ignores if the given path represents an existing block and if block at that parent path
+     * is not a section (is a mapping), returns an empty optional.
      *
-     * @param key the key/string path to get the parent section from
-     * @return this section, or section at the parent path from the given string path (by the root's path mode),
-     * encapsulated in an instance of {@link Optional}
+     * @param path the path to get the parent section from
+     * @return section at the parent path from the given one encapsulated in an optional
      */
-    public Optional<Section> getParent(@Nullable Object key) {
-        //Adapt
-        key = adaptKey(key);
-        //If is string mode and contains sub-key
-        if (root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.STRING_BASED && key != null && key.toString().indexOf(root.getGeneralSettings().getSeparator()) != -1)
-            //Return
-            return getSafeInternalString(key.toString(), -1, true).map(block -> block instanceof Section ? (Section) block : null);
-        //Return
-        return Optional.of(this);
+    public Optional<Section> getParent(@NotNull String path) {
+        return getSafeInternalString(path, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
-    /**
-     * Internal method which returns a block, encapsulated in an instance of {@link Optional}, at the given string path,
-     * starting from the given index, in this section.
-     * <p>
-     * If the given path does not contain a separator (as configured in root's general settings), returns the result of
-     * {@link #getSectionSafe(Object)} called on this section, with <code>path.substring(i+1)</code> as the key.
-     * <p>
-     * If it does, calls this method recursively with the index of the next separator.
-     *
-     * @param path   the full string path that's searched
-     * @param i      index of the last separator found by the caller (in case of recursive call of this same method), or
-     *               <code>-1</code> if starting to search from the start of the given path (if called by a public
-     *               method)
-     * @param parent if searching for the parent section of the given path
-     * @return the block at the given string path, starting from the given index, in this section, or it's parent
-     * section
-     */
-    private Optional<Block<?>> getSafeInternalString(@NotNull String path, int i, boolean parent) {
-        //Next separator
-        int next = path.indexOf(i + 1, root.getGeneralSettings().getSeparator());
-        //If -1
-        if (next == -1)
-            return parent ? Optional.of(this) : getBlockSafe(path.substring(i + 1));
-        //Call subsection
-        return getSectionSafe(path.substring(i + 1, next)).flatMap(section -> section.getSafeInternalString(path, next, parent));
-    }
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //       General getter methods
+    //
+    //
+    //      -----------------------
+    //
+    //
 
     /**
-     * Internal method which returns a block, encapsulated in an instance of {@link Optional}, at the given path,
-     * starting from the given index, in this section.
-     * <p>
-     * If the given path is <code>null</code>, returns the result of {@link #getParent()} if <code>parent</code> is
-     * <code>true</code>, result of {@link #getBlockSafe(Object)} (with <code>null</code> parameter) otherwise.
-     * <p>
-     * If <code>i</code> represents the last element (key) in the given path, returns this section if
-     * <code>parent</code> is <code>true</code>, or the result of {@link #getBlockSafe(Object)}.
-     *
-     * @param path   the path that's searched
-     * @param i      current index in the path
-     * @param parent if searching for the parent section of the given path
-     * @return the block at the given path, starting from the given index, in this section, or it's parent section
-     */
-    private Optional<Block<?>> getSafeInternal(@Nullable Path path, int i, boolean parent) {
-        //If null or at last index
-        if (path == null || i + 1 >= path.getLength())
-            return path == null ? parent ? Optional.of(getParent()) : getBlockSafe((Object) null) : parent ? Optional.of(this) : getBlockSafe(path.get(i));
-        //Return
-        return getBlockSafe(path.get(i)).flatMap(block -> block instanceof Section ? ((Section) block).getSafeInternal(path, i + 1, parent) : Optional.empty());
-    }
-
-    /**
-     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
-     * {@link Section} instance, encapsulated in an instance of {@link Optional}.
+     * Returns the value of the block (the actual value - list, integer...) at the given path, or if it is a section, the
+     * corresponding {@link Section} instance; encapsulated in an instance of {@link Optional}.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), returns an empty optional.
      * <p>
      * More formally, returns the result of {@link #getBlockSafe(Path)}. If the returned optional is not empty and
      * does not contain an instance of {@link Section}, returns the encapsulated value returned by
-     * {@link Block#getValue()}.
-     * <p>
-     * If the given path is <code>null</code>, effectively returns the same as {@link #getSafe(Object)} called with
-     * <code>null</code> parameter. Please read more about this behaviour here: {@link #getBlockSafe(Path)}.
+     * {@link Block#getValue()} - the actual value (list, integer...).
      *
-     * @param path the path to get value at
+     * @param path the path to get the value at
      * @return the value, or section at the given path
      */
-    public Optional<Object> getSafe(@Nullable Path path) {
+    public Optional<Object> getSafe(@NotNull Path path) {
         return getBlockSafe(path).map(block -> block instanceof Section ? block : block.getValue());
     }
 
     /**
-     * Returns the value of the block (the actual value - list, integer) at the given key/string path in the underlying
-     * map, or if it is a section, the corresponding {@link Section} instance, encapsulated in an instance of
-     * {@link Optional}.
-     * <p>
-     * If the key represents a full string path (according to the path mode) processes the block at that path and
-     * returns by the rules specified above.
+     * Returns the value of the block (the actual value - list, integer...) at the given path, or if it is a section, the
+     * corresponding {@link Section} instance; encapsulated in an instance of {@link Optional}.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), returns an empty optional.
      * <p>
-     * More formally, returns the result of {@link #getBlockSafe(Object)}. If the returned optional is not empty and
+     * More formally, returns the result of {@link #getBlockSafe(String)}. If the returned optional is not empty and
      * does not contain an instance of {@link Section}, returns the encapsulated value returned by
-     * {@link Block#getValue()} - the actual value (list, integer).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * {@link Block#getValue()} - the actual value (list, integer...).
      *
-     * @param key the key/string path to get the value from
+     * @param path the path to get the value at
      * @return the value, or section at the given path
      */
-    public Optional<Object> getSafe(@Nullable Object key) {
-        return getBlockSafe(key).map(block -> block instanceof Section ? block : block.getValue());
+    public Optional<Object> getSafe(@NotNull String path) {
+        return getBlockSafe(path).map(block -> block instanceof Section ? block : block.getValue());
     }
+
+    /**
+     * Returns the value of the block (the actual value - list, integer...) at the given path, or if it is a section, the
+     * corresponding {@link Section} instance.
+     * <p>
+     * If there is no block present at the given path (therefore no value can be returned), returns default value
+     * defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
+     *
+     * @param path the path to get the value at
+     * @return the value at the given path, or default according to the documentation above
+     */
+    public Object get(@NotNull Path path) {
+        return getSafe(path).orElse(root.getGeneralSettings().getDefaultObject());
+    }
+
+    /**
+     * Returns the value of the block (the actual value - list, integer...) at the given path, or if it is a section, the
+     * corresponding {@link Section} instance.
+     * <p>
+     * If there is no block present at the given path (therefore no value can be returned), returns default value
+     * defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
+     *
+     * @param path the path to get the value at
+     * @return the value at the given path, or default according to the documentation above
+     */
+    public Object get(@NotNull String path) {
+        return getSafe(path).orElse(root.getGeneralSettings().getDefaultObject());
+    }
+
+    /**
+     * Returns the value of the block (the actual value - list, integer...) at the given path, or if it is a section, the
+     * corresponding {@link Section} instance.
+     * <p>
+     * If there is no block present at the given path (therefore no value can be returned), returns the provided default.
+     *
+     * @param path the path to get the value at
+     * @param def  the default value
+     * @return the value at the given path, or default according to the documentation above
+     */
+    public Object get(@NotNull Path path, @Nullable Object def) {
+        return getSafe(path).orElse(def);
+    }
+
+    /**
+     * Returns the value of the block (the actual value - list, integer...) at the given path, or if it is a section, the
+     * corresponding {@link Section} instance.
+     * <p>
+     * If there is no block present at the given path (therefore no value can be returned), returns the provided default.
+     *
+     * @param path the path to get the value at
+     * @param def  the default value
+     * @return the value at the given path, or default according to the documentation above
+     */
+    public Object get(@NotNull String path, @Nullable Object def) {
+        return getSafe(path).orElse(def);
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //        Custom type methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
 
     /**
      * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
      * {@link Section} instance, in both cases casted to instance of the given class; encapsulated in an instance of
      * {@link Optional}.
      * <p>
-     * If there is no block present at the given path (therefore no value can be returned), or the value (mapping's
-     * value or section instance) is not castable to the given type class, returns an empty optional.
+     * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
+     * value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
      * More formally, returns the result of {@link #getSafe(Path)} casted to the given class if not empty (or an empty
-     * optional if types are incompatible).
+     * optional if the returned is empty, or types are incompatible).
      *
-     * @param path the path to get value from
-     * @return the value (result of {@link #getSafe(Path)}) casted to the given type
+     * @param path the path to get the value at
+     * @param clazz class of the target type
+     * @param <T> the target type
+     * @return the value casted to the given type
      */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAsSafe(@Nullable Path path, Class<T> clazz) {
+    public <T> Optional<T> getAsSafe(@NotNull Path path, @NotNull Class<T> clazz) {
         return getSafe(path).map((object) -> clazz.isInstance(object) ? (T) object : null);
     }
 
 
     /**
-     * Returns the value of the block (the actual value) at the given key/string path (according to the root's path
-     * mode), or if it is a section, the corresponding {@link Section} instance, in both cases casted to instance of the
-     * given class; encapsulated in an instance of {@link Optional}.
+     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
+     * {@link Section} instance, in both cases casted to instance of the given class; encapsulated in an instance of
+     * {@link Optional}.
      * <p>
-     * If there is no block present at the given key (therefore no value can be returned), or the value (mapping's value
-     * or section instance) is not castable to the given type class, returns an empty optional.
+     * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
+     * value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
-     * More formally, returns the result of {@link #getSafe(Object)} casted to the given class if not empty (or an empty
-     * optional if types are incompatible).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * More formally, returns the result of {@link #getSafe(String)} casted to the given class if not empty (or an empty
+     * optional if the returned is empty, or types are incompatible).
      *
-     * @param key the key/string path to get the value from
-     * @return the value (result of {@link #getSafe(Object)}) casted to the given type
+     * @param path the path to get the value at
+     * @param clazz class of the target type
+     * @param <T> the target type
+     * @return the value casted to the given type
      */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAsSafe(@Nullable Object key, Class<T> clazz) {
-        return getSafe(key).map((object) -> clazz.isInstance(object) ? (T) object : null);
+    public <T> Optional<T> getAsSafe(@NotNull String path, @NotNull Class<T> clazz) {
+        return getSafe(path).map((object) -> clazz.isInstance(object) ? (T) object : null);
     }
 
     /**
-     * Returns the value encapsulated in the result of {@link #getSafe(Path)}. If the returned optional is empty,
-     * returns default value as defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
+     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
+     * {@link Section} instance, in both cases casted to instance of the given class.
      * <p>
-     * According to {@link #getSafe(Object)} documentation, the returned object might also be an instance of
-     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
+     * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
+     * value or {@link Section} instance) is not castable to the given type, returns <code>null</code>.
+     * <p>
+     * More formally, returns the result of {@link #getAs(Path, Class, Object)} with <code>null</code> default.
      *
-     * @param path the path to get the value from
-     * @return the value at the given path, or default if not found
-     * @see #getSafe(Path)
+     * @param path the path to get the value at
+     * @param clazz class of the target type
+     * @param <T> the target type
+     * @return the value casted to the given type, or <code>null</code> according to the documentation above
      */
-    public Object get(Path path) {
-        return getSafe(path).orElse(root.getGeneralSettings().getDefaultObject());
-    }
-
-    /**
-     * Returns the value encapsulated in the result of {@link #getSafe(Object)}. If the returned optional is empty,
-     * returns default value as defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
-     * <p>
-     * According to {@link #getSafe(Object)} documentation, the returned object might also be an instance of
-     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
-     *
-     * @param key the key/string path to get the value from
-     * @return the value at the given key/string path, or default if not found
-     * @see #getSafe(Object)
-     */
-    public Object get(Object key) {
-        return getSafe(key).orElse(root.getGeneralSettings().getDefaultObject());
-    }
-
-    /**
-     * Returns the value encapsulated in the result of {@link #getAsSafe(Path, Class)} (indirectly). If the returned
-     * optional is empty, returns <code>null</code> (configurable global default value is not implemented as the only
-     * "instance" that is compatible with all the possible types in Java is <code>null</code>).
-     * <p>
-     * For custom defaults, please use {@link #getAs(Path, Class, Object)}.
-     *
-     * @param path  the path to get the value from
-     * @param clazz target class
-     * @return the value at the given path, or default if not found
-     * @see #getAsSafe(Path, Class)
-     * @see #getAs(Path, Class, Object)
-     */
-    public <T> T getAs(Path path, Class<T> clazz) {
+    public <T> T getAs(@NotNull Path path, @NotNull Class<T> clazz) {
         return getAs(path, clazz, null);
     }
 
     /**
-     * Returns the value encapsulated in the result of {@link #getAsSafe(Object, Class)} (indirectly). If the returned
-     * optional is empty, returns <code>null</code> (configurable default value is not implemented as the only
-     * "instance" that is compatible with all the possible types in Java is <code>null</code>).
+     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
+     * {@link Section} instance, in both cases casted to instance of the given class.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
+     * value or {@link Section} instance) is not castable to the given type, returns <code>null</code>.
      * <p>
-     * For custom defaults, please use {@link #getAs(Object, Class, Object)}.
+     * More formally, returns the result of {@link #getAs(String, Class, Object)} with <code>null</code> default.
      *
-     * @param key   the key/string path to get the value from
-     * @param clazz target class
-     * @return the value at the given key/string path, or default if not found
-     * @see #getAsSafe(Object, Class)
-     * @see #getAs(Object, Class, Object)
+     * @param path the path to get the value at
+     * @param clazz class of the target type
+     * @param <T> the target type
+     * @return the value casted to the given type, or <code>null</code> according to the documentation above
      */
-    public <T> T getAs(Object key, Class<T> clazz) {
-        return getAs(key, clazz, null);
+    public <T> T getAs(@NotNull String path, @NotNull Class<T> clazz) {
+        return getAs(path, clazz, null);
     }
 
     /**
-     * Returns the value encapsulated in the result of {@link #getSafe(Path)}. If the returned optional is empty,
-     * returns the provided default.
+     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
+     * {@link Section} instance, in both cases casted to instance of the given class.
      * <p>
-     * According to {@link #getSafe(Path)} documentation, the returned object might also be an instance of
-     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
-     *
-     * @param path the path to get the value from
-     * @param def  the default object to return if there is nothing at the given path
-     * @return the value at the given path, or default if not found
-     * @see #getSafe(Path)
-     */
-    public Object get(Path path, Object def) {
-        return getSafe(path).orElse(def);
-    }
-
-    /**
-     * Returns the value encapsulated in the result of {@link #getSafe(Object)}. If the returned optional is empty,
-     * returns the provided default.
+     * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
+     * value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
-     * According to {@link #getSafe(Object)} documentation, the returned object might also be an instance of
-     * {@link Section}, if a section is present at that path. If not, it is the actual value (list, integer...).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * More formally, returns the result of {@link #getAsSafe(Path, Class)} or the provided default if the returned
+     * optional is empty.
      *
-     * @param key the direct key/string path (determined by the root's path mode) to get the value from
-     * @param def the default object to return if there is nothing at the given path
-     * @return the value at the given direct key/string path, or default if not found
-     * @see #getSafe(Path)
+     * @param path the path to get the value at
+     * @param clazz class of the target type
+     * @param def the default value
+     * @param <T> the target type
+     * @return the value casted to the given type, or default according to the documentation above
      */
-    public Object get(Object key, Object def) {
-        return getSafe(key).orElse(def);
-    }
-
-    /**
-     * Returns the value encapsulated in the result of {@link #getAsSafe(Path, Class)}. If the returned optional is
-     * empty, returns the provided default.
-     *
-     * @param path  the path to get the value from
-     * @param clazz target class
-     * @param def   default value returned if no value is present, or is not an instance of the given class
-     * @return the value at the given path, or default if not found
-     * @see #getAsSafe(Path, Class)
-     */
-    public <T> T getAs(Path path, Class<T> clazz, T def) {
+    public <T> T getAs(@NotNull Path path, @NotNull Class<T> clazz, @Nullable T def) {
         return getAsSafe(path, clazz).orElse(def);
     }
 
     /**
-     * Returns the value encapsulated in the result of {@link #getAsSafe(Object, Class)}. If the returned optional is
-     * empty, returns the provided default.
+     * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
+     * {@link Section} instance, in both cases casted to instance of the given class.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
+     * value or {@link Section} instance) is not castable to the given type, returns the provided default.
+     * <p>
+     * More formally, returns the result of {@link #getAsSafe(String, Class)} or the provided default if the returned
+     * optional is empty.
      *
-     * @param key   the direct key/string path (determined by the root's path mode) to get the value from
-     * @param clazz target class
-     * @param def   default value returned if no value is present, or is not an instance of the given class
-     * @return the value at the given key/string path, or default if not found
-     * @see #getAsSafe(Object, Class)
+     * @param path the path to get the value at
+     * @param clazz class of the target type
+     * @param def the default value
+     * @param <T> the target type
+     * @return the value casted to the given type, or default according to the documentation above
      */
-    public <T> T getAs(Object key, Class<T> clazz, T def) {
-        return getAsSafe(key, clazz).orElse(def);
+    public <T> T getAs(@NotNull String path, @NotNull Class<T> clazz, @Nullable T def) {
+        return getAsSafe(path, clazz).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only value at the given path exists and it is an instance of the given class.
+     * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given path exists and it
+     * is an instance of the given class.
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Path, Class)}.
      *
-     * @param path  the path to check
-     * @param clazz target class
-     * @param <T>   the type of of the target class
-     * @return if a value exists at the path and it is an instance of the given class
+     * @param path  the path to check the value at
+     * @param clazz class of the target type
+     * @param <T>   the target type
+     * @return if a value exists at the given path and it is an instance of the given class
      */
-    public <T> boolean is(Path path, Class<T> clazz) {
+    public <T> boolean is(@NotNull Path path, @NotNull Class<T> clazz) {
         return getAsSafe(path, clazz).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only value at the given direct key/string path (determined by the root's path
-     * mode) exists and it is an instance
-     * of the given class.
+     * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given path exists and it
+     * is an instance of the given class.
      * <p>
-     * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Object, Class)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(String, Class)}.
      *
-     * @param key   the direct key/string path to check
-     * @param clazz target class
-     * @param <T>   the type of of the target class
-     * @return if a value exists at the path and it is an instance of the given class
+     * @param path  the path to check the value at
+     * @param clazz class of the target type
+     * @param <T>   the target type
+     * @return if a value exists at the given path and it is an instance of the given class
      */
-    public <T> boolean is(Object key, Class<T> clazz) {
-        return getAsSafe(key, clazz).isPresent();
+    public <T> boolean is(@NotNull String path, @NotNull Class<T> clazz) {
+        return getAsSafe(path, clazz).isPresent();
     }
 
+    // END OF BASE METHODS, DEPENDENT (DERIVED) METHODS FOLLOWING
     //
     //
     //      -----------------------
@@ -1123,113 +1428,96 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * path, or is not a section, returns an empty optional.
      *
-     * @param path the path to get the section from
+     * @param path the path to get the section at
      * @return the section at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Section> getSectionSafe(Path path) {
+    public Optional<Section> getSectionSafe(@NotNull Path path) {
         return getAsSafe(path, Section.class);
     }
 
     /**
-     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a section, returns an empty optional.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * path, or is not a section, returns an empty optional.
      *
-     * @param key the direct key/string path to get the section from
-     * @return the section at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the section at
+     * @return the section at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<Section> getSectionSafe(Object key) {
-        return getAsSafe(key, Section.class);
+    public Optional<Section> getSectionSafe(@NotNull String path) {
+        return getAsSafe(path, Section.class);
     }
 
     /**
-     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a section, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
+     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns default
+     * value defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
      *
-     * @param path the path to get the section from
-     * @return the section at the given path, or default if no supported type (specified above) was found
+     * @param path the path to get the section at
+     * @return the section at the given path, or default according to the documentation above
      * @see #getSection(Path, Section)
      */
-    public Section getSection(Path path) {
+    public Section getSection(@NotNull Path path) {
         return getSection(path, root.getGeneralSettings().getDefaultSection());
     }
 
     /**
-     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a section, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns default
+     * value defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
      *
-     * @param key the direct key/string path to get the section from
-     * @return the section at the given direct key/string path, or default if no supported type (specified above) was found
-     * @see #getSection(Object, Section)
+     * @param path the path to get the section at
+     * @return the section at the given path, or default according to the documentation above
+     * @see #getSection(String, Section)
      */
-    public Section getSection(Object key) {
-        return getSection(key, root.getGeneralSettings().getDefaultSection());
+    public Section getSection(@NotNull String path) {
+        return getSection(path, root.getGeneralSettings().getDefaultSection());
     }
 
     /**
-     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a section, returns the provided default.
+     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns the
+     * provided default.
      *
-     * @param path the path to get the section from
-     * @param def  default value returned if no value convertible to section is present (or no value at all)
-     * @return the section at the given path, or default if no supported type (specified above) was found
+     * @param path the path to get the section at
+     * @param def the default value
+     * @return the section at the given path, or default according to the documentation above
      * @see #getSectionSafe(Path)
      */
-    public Section getSection(Path path, Section def) {
+    public Section getSection(@NotNull Path path, @Nullable Section def) {
         return getSectionSafe(path).orElse(def);
     }
 
     /**
-     * Returns section at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a section, returns the provided default.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns the
+     * provided default.
      *
-     * @param key the direct key/string path to get the section from
-     * @param def default value returned if no value convertible to section is present (or no value at all)
-     * @return the section at the given direct key/string path, or default if no supported type (specified above) was found
-     * @see #getSectionSafe(Object)
+     * @param path the path to get the section at
+     * @param def the default value
+     * @return the section at the given path, or default according to the documentation above
+     * @see #getSectionSafe(String)
      */
-    public Section getSection(Object key, Section def) {
-        return getSectionSafe(key).orElse(def);
+    public Section getSection(@NotNull String path, @Nullable Section def) {
+        return getSectionSafe(path).orElse(def);
     }
 
     /**
      * Returns <code>true</code> if and only a value at the given path exists and it is a section.
      *
-     * @param path the path to get the section from
-     * @return the section at the given path
+     * @param path the path to get the section at
+     * @return if the value at the given path exists and is a section
      * @see #getSectionSafe(Path)
      */
-    public boolean isSection(Path path) {
+    public boolean isSection(@NotNull Path path) {
         return getSectionSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given direct key/string path (determined by the root's path
-     * mode) exists and it is a section.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a section.
      *
-     * @param key the direct key/string path to get the section from
-     * @return the section at the given direct key/string path
-     * @see #getSectionSafe(Object)
+     * @param path the path to get the section at
+     * @return if the value at the given path exists and is a section
+     * @see #getSectionSafe(String)
      */
-    public boolean isSection(Object key) {
-        return getSectionSafe(key).isPresent();
+    public boolean isSection(@NotNull String path) {
+        return getSectionSafe(path).isPresent();
     }
 
     //
@@ -1266,7 +1554,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
      * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1300,7 +1588,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
      * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1335,7 +1623,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
      * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1364,7 +1652,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a string, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1412,7 +1700,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1448,7 +1736,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1485,7 +1773,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1514,7 +1802,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a char, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getCharSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1558,7 +1846,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1590,7 +1878,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1623,7 +1911,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1652,7 +1940,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a integer, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1696,7 +1984,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1728,7 +2016,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1761,7 +2049,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1790,7 +2078,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a big integer, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1830,7 +2118,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a boolean, returns an empty optional.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1858,7 +2146,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a boolean, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1887,7 +2175,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a boolean, returns the provided default.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1916,7 +2204,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a boolean, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getBooleanSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1960,7 +2248,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -1992,7 +2280,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2025,7 +2313,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2054,7 +2342,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a double, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2098,7 +2386,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2130,7 +2418,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2163,7 +2451,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2192,7 +2480,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a float, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2236,7 +2524,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2268,7 +2556,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2301,7 +2589,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2330,7 +2618,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a byte, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2374,7 +2662,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2406,7 +2694,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2439,7 +2727,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2468,7 +2756,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a long, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2512,7 +2800,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2544,7 +2832,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2577,7 +2865,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2606,7 +2894,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns <code>true</code> if and only a value at the given path exists and it is a short, or any other compatible type.
      * Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2646,7 +2934,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a list, returns an empty optional.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2674,7 +2962,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a list, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2703,7 +2991,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a list, returns the provided default.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2730,7 +3018,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns <code>true</code> if and only a value at the given path exists and it is a list.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2777,7 +3065,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2814,7 +3102,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2851,7 +3139,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2899,7 +3187,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2936,7 +3224,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -2973,7 +3261,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3021,7 +3309,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3058,7 +3346,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3095,7 +3383,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3143,7 +3431,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3180,7 +3468,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3217,7 +3505,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3265,7 +3553,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3302,7 +3590,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3339,7 +3627,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3387,7 +3675,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3424,7 +3712,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3461,7 +3749,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3509,7 +3797,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3546,7 +3834,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3583,7 +3871,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3631,7 +3919,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3668,7 +3956,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3705,7 +3993,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3746,7 +4034,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a list of maps, returns an empty optional.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3775,7 +4063,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a list of maps, returns the provided default.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
@@ -3804,7 +4092,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
      * direct key/string path, or is not a list of maps, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getBlockSafe(Object)} and therefore, supports the same pathing
+     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
      * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *

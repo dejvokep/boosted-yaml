@@ -6,7 +6,6 @@ import com.davidcubesvk.yamlUpdater.core.block.Mapping;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.engine.LibConstructor;
 import com.davidcubesvk.yamlUpdater.core.engine.LibRepresenter;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.MergeRule;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
@@ -78,7 +77,7 @@ public class Merger {
             //Delete
             userKeys.remove(key);
             //Blocks
-            Block<?> userBlock = userSection.getBlockSafe(key).orElse(null), defBlock = entry.getValue();
+            Block<?> userBlock = userSection.getDirectBlockSafe(key).orElse(null), defBlock = entry.getValue();
             //If user block is present
             if (userBlock != null) {
                 //If are sections
@@ -106,7 +105,7 @@ public class Merger {
         //Loop through all default keys
         for (Object userKey : userKeys) {
             //If present
-            userSection.getBlockSafe(userKey).ifPresent(block -> {
+            userSection.getDirectBlockSafe(userKey).ifPresent(block -> {
                 //If force copy disabled
                 if (!block.isForceCopy())
                     //Remove

@@ -54,7 +54,7 @@ public class Path {
      * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
      * {@link Section} methods based on {@link Object} path, which also accept
      * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getBlockSafe(Object)}.</b>
+     * {@link Section#getDirectBlockSafe(Object)}.</b>
      *
      * @param path the string path to split (in format <code>a.b</code> for separator <code>.</code>)
      */
@@ -74,7 +74,7 @@ public class Path {
      * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
      * {@link Section} methods based on {@link Object} path, which also accept
      * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getBlockSafe(Object)}.</b>
+     * {@link Section#getDirectBlockSafe(Object)}.</b>
      *
      * @param path      the string path to split (in format <code>a.b</code> for separator <code>.</code>)
      * @param separator separator to split the path by
@@ -90,7 +90,7 @@ public class Path {
      * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
      * {@link Section} methods based on {@link Object} path, which also accept
      * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getBlockSafe(Object)}.</b>
+     * {@link Section#getDirectBlockSafe(Object)}.</b>
      *
      * @param path        the string path to split
      * @param pathFactory separator provider
@@ -142,7 +142,7 @@ public class Path {
      * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
      * {@link Section} methods based on {@link Object} path, which also accept
      * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getBlockSafe(Object)}.</b>
+     * {@link Section#getDirectBlockSafe(Object)}.</b>
      * <p>
      * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
      *
@@ -163,7 +163,7 @@ public class Path {
      * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
      * {@link Section} methods based on {@link Object} path, which also accept
      * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getBlockSafe(Object)}.</b>
+     * {@link Section#getDirectBlockSafe(Object)}.</b>
      * <p>
      * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
      *
@@ -181,7 +181,7 @@ public class Path {
      * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
      * {@link Section} methods based on {@link Object} path, which also accept
      * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getBlockSafe(Object)}.</b>
+     * {@link Section#getDirectBlockSafe(Object)}.</b>
      * <p>
      * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
      *

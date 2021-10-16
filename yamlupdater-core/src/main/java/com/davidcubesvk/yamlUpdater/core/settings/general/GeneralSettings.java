@@ -8,7 +8,6 @@ import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.SetSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.snakeyaml.engine.v2.api.DumpSettingsBuilder;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -22,7 +21,7 @@ public class GeneralSettings {
     /**
      * Path mode to use to query data from sections.
      * <p>
-     * Affects functionality of all object-key-based methods (please read more at {@link Section#getBlockSafe(Object)}
+     * Affects functionality of all object-key-based methods (please read more at {@link Section#getDirectBlockSafe(Object)}
      * method, upon which all others are built).
      */
     public enum PathMode {
@@ -142,7 +141,7 @@ public class GeneralSettings {
 
     /**
      * Returns the path mode to use; affects functionality of all object-key-based methods (please read more at
-     * {@link Section#getBlockSafe(Object)} method, upon which all others are built).
+     * {@link Section#getDirectBlockSafe(Object)} method, upon which all others are built).
      *
      * @return the path mode to use
      * @see #getSeparator()
@@ -349,7 +348,7 @@ public class GeneralSettings {
 
         /**
          * Sets the path mode used and affects functionality of all object-key-based methods (please read more at
-         * {@link Section#getBlockSafe(Object)} method, upon which all others are built).
+         * {@link Section#getDirectBlockSafe(Object)} method, upon which all others are built).
          * <p>
          * <b>Default: </b>{@link #DEFAULT_PATH_MODE}
          *
