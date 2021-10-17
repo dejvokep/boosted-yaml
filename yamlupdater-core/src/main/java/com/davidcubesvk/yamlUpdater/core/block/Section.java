@@ -1499,7 +1499,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a section.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Section}.
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a section
@@ -1510,7 +1510,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a section.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Section}.
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a section
@@ -1838,7 +1838,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below).
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
@@ -1853,7 +1854,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below).
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
@@ -1899,11 +1901,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Integer}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists and it is an {@link Integer}, or any other
      * compatible type. Please learn more at {@link #getIntSafe(Path)}.
      *
      * @param path the path to check the value at
-     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * @return if the value at the given path exists and is an integer, or any other compatible type according to the
      * documentation above
      * @see #getIntSafe(Path)
      */
@@ -1912,11 +1914,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Integer}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists and it is an {@link Integer}, or any other
      * compatible type. Please learn more at {@link #getIntSafe(String)}.
      *
      * @param path the path to check the value at
-     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * @return if the value at the given path exists and is an integer, or any other compatible type according to the
      * documentation above
      * @see #getIntSafe(String)
      */
@@ -1971,7 +1973,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
      * the compatible types (see below), returns default value defined by root's general settings
-     * {@link GeneralSettings#getDefaultNumber()} (converted to big integer as defined below).
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below).
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
@@ -1988,7 +1990,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
      * the compatible types (see below), returns default value defined by root's general settings
-     * {@link GeneralSettings#getDefaultNumber()} (converted to big integer as defined below).
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below).
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
@@ -2011,7 +2013,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * (which might involve rounding or truncating).
      *
      * @param path the path to get the big integer at
-     * @param def the default value
+     * @param def  the default value
      * @return the big integer at the given path
      * @see #getBigIntSafe(Path)
      */
@@ -2028,7 +2030,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * (which might involve rounding or truncating).
      *
      * @param path the path to get the big integer at
-     * @param def the default value
+     * @param def  the default value
      * @return the big integer at the given path
      * @see #getBigIntSafe(String)
      */
@@ -2041,7 +2043,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type. Please learn more at {@link #getBigIntSafe(Path)}.
      *
      * @param path the path to check the value at
-     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * @return if the value at the given path exists and is an integer, or any other compatible type according to the
      * documentation above
      * @see #getBigIntSafe(Path)
      */
@@ -2054,7 +2056,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type. Please learn more at {@link #getBigIntSafe(String)}.
      *
      * @param path the path to check the value at
-     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * @return if the value at the given path exists and is an integer, or any other compatible type according to the
      * documentation above
      * @see #getBigIntSafe(Path)
      */
@@ -2075,117 +2077,101 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a boolean, returns an empty optional.
+     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given path, or is not a {@link Boolean} (or the primitive variant), returns an empty optional.
      *
-     * @param path the path to get the boolean from
+     * @param path the path to get the boolean at
      * @return the boolean at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Boolean> getBooleanSafe(Path path) {
+    public Optional<Boolean> getBooleanSafe(@NotNull Path path) {
         return getAsSafe(path, Boolean.class);
     }
 
     /**
-     * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a boolean, returns an empty optional.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given path, or is not a {@link Boolean} (or the primitive variant), returns an empty optional.
      *
-     * @param key the direct key/string path to get the boolean from
-     * @return the boolean at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the boolean at
+     * @return the boolean at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<Boolean> getBooleanSafe(Object key) {
-        return getAsSafe(key, Boolean.class);
+    public Optional<Boolean> getBooleanSafe(@NotNull String path) {
+        return getAsSafe(path, Boolean.class);
     }
 
     /**
-     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a boolean, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
+     * Returns boolean at the given path. If nothing is present at the given path, or is not a {@link Boolean} (or the
+     * primitive variant), returns default value defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
      *
-     * @param path the path to get the boolean from
+     * @param path the path to get the boolean at
      * @return the boolean at the given path, or default according to the documentation above
      * @see #getBoolean(Path, Boolean)
      */
-    public Boolean getBoolean(Path path) {
+    public Boolean getBoolean(@NotNull Path path) {
         return getBoolean(path, root.getGeneralSettings().getDefaultBoolean());
     }
 
     /**
-     * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a boolean, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns boolean at the given path. If nothing is present at the given path, or is not a {@link Boolean} (or the
+     * primitive variant), returns default value defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
      *
-     * @param key the direct key/string path to get the boolean from
-     * @return the boolean at the given direct key/string path, or default according to the documentation above
-     * @see #getBoolean(Object, Boolean)
+     * @param path the path to get the boolean at
+     * @return the boolean at the given path, or default according to the documentation above
+     * @see #getBoolean(String, Boolean)
      */
-    public Boolean getBoolean(Object key) {
-        return getBoolean(key, root.getGeneralSettings().getDefaultBoolean());
+    public Boolean getBoolean(@NotNull String path) {
+        return getBoolean(path, root.getGeneralSettings().getDefaultBoolean());
     }
 
     /**
-     * Returns boolean at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a boolean, returns the provided default.
+     * Returns boolean at the given path. If nothing is present at the given path, or is not a {@link Boolean} (or the
+     * primitive variant), returns the provided default.
      *
-     * @param path the path to get the boolean from
-     * @param def  default value returned if no value convertible to boolean is present (or no value at all)
+     * @param path the path to get the boolean at
+     * @param def  the default value
      * @return the boolean at the given path, or default according to the documentation above
      * @see #getBooleanSafe(Path)
      */
-    public Boolean getBoolean(Path path, Boolean def) {
+    public Boolean getBoolean(@NotNull Path path, @Nullable Boolean def) {
         return getBooleanSafe(path).orElse(def);
     }
 
     /**
-     * Returns boolean at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a boolean, returns the provided default.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns boolean at the given path. If nothing is present at the given path, or is not a {@link Boolean} (or the
+     * primitive variant), returns the provided default.
      *
-     * @param key the direct key/string path to get the boolean from
-     * @param def default value returned if no value convertible to boolean is present (or no value at all)
-     * @return the boolean at the given direct key/string path, or default according to the documentation above
-     * @see #getBooleanSafe(Object)
+     * @param path the path to get the boolean at
+     * @param def  the default value
+     * @return the boolean at the given path, or default according to the documentation above
+     * @see #getBooleanSafe(String)
      */
-    public Boolean getBoolean(Object key, Boolean def) {
-        return getBooleanSafe(key).orElse(def);
+    public Boolean getBoolean(@NotNull String path, @Nullable Boolean def) {
+        return getBooleanSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a boolean, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getBooleanSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Boolean} (or the
+     * primitive variant).
      *
-     * @param path the path to get the boolean from
-     * @return the boolean at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a boolean
      * @see #getBooleanSafe(Path)
      */
-    public boolean isBoolean(Path path) {
+    public boolean isBoolean(@NotNull Path path) {
         return getBooleanSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a boolean, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getBooleanSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Boolean} (or the
+     * primitive variant).
      *
-     * @param key the direct key/string path to get the boolean from
-     * @return the boolean at the given direct key/string path
-     * @see #getBooleanSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a boolean
+     * @see #getBooleanSafe(String)
      */
-    public boolean isBoolean(Object key) {
-        return getBooleanSafe(key).isPresent();
+    public boolean isBoolean(@NotNull String path) {
+        return getBooleanSafe(path).isPresent();
     }
 
     //
@@ -2201,129 +2187,123 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a double, returns an empty optional.
+     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the double from
+     * @param path the path to get the double at
      * @return the double at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Double> getDoubleSafe(Path path) {
+    public Optional<Double> getDoubleSafe(@NotNull Path path) {
         return toDouble(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns double at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a double, returns an empty optional.
+     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the double from
-     * @return the double at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the double at
+     * @return the double at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<Double> getDoubleSafe(Object key) {
-        return toDouble(getAsSafe(key, Number.class));
+    public Optional<Double> getDoubleSafe(@NotNull String path) {
+        return toDouble(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a double, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double}).
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the double from
+     * @param path the path to get the double at
      * @return the double at the given path, or default according to the documentation above
      * @see #getDouble(Path, Double)
      */
-    public Double getDouble(Path path) {
+    public Double getDouble(@NotNull Path path) {
         return getDouble(path, root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     /**
-     * Returns double at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a double, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double}).
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the double from
-     * @return the double at the given direct key/string path, or default according to the documentation above
-     * @see #getDouble(Object, Double)
+     * @param path the path to get the double at
+     * @return the double at the given path, or default according to the documentation above
+     * @see #getDouble(String, Double)
      */
-    public Double getDouble(Object key) {
-        return getDouble(key, root.getGeneralSettings().getDefaultNumber().doubleValue());
+    public Double getDouble(@NotNull String path) {
+        return getDouble(path, root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     /**
-     * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a double, returns the provided default.
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
+     * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the double from
-     * @param def  default value returned if no value convertible to double is present (or no value at all)
+     * @param path the path to get the double at
+     * @param def  the default value
      * @return the double at the given path, or default according to the documentation above
      * @see #getDoubleSafe(Path)
      */
-    public Double getDouble(Path path, Double def) {
+    public Double getDouble(@NotNull Path path, @Nullable Double def) {
         return getDoubleSafe(path).orElse(def);
     }
 
     /**
-     * Returns double at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a double, returns the provided default.
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the double from
-     * @param def default value returned if no value convertible to double is present (or no value at all)
-     * @return the double at the given direct key/string path, or default according to the documentation above
-     * @see #getDoubleSafe(Object)
+     * @param path the path to get the double at
+     * @param def  the default value
+     * @return the double at the given path, or default according to the documentation above
+     * @see #getDoubleSafe(String)
      */
-    public Double getDouble(Object key, Double def) {
-        return getDoubleSafe(key).orElse(def);
+    public Double getDouble(@NotNull String path, @Nullable Double def) {
+        return getDoubleSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a double, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Double}, or any other
+     * compatible type. Please learn more at {@link #getDoubleSafe(Path)}.
      *
-     * @param path the path to get the double from
-     * @return the double at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a double, or any other compatible type according to the
+     * documentation above
      * @see #getDoubleSafe(Path)
      */
-    public boolean isDouble(Path path) {
+    public boolean isDouble(@NotNull Path path) {
         return getDoubleSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a double, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Double}, or any other
+     * compatible type. Please learn more at {@link #getDoubleSafe(String)}.
      *
-     * @param key the direct key/string path to get the double from
-     * @return the double at the given direct key/string path
-     * @see #getDoubleSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a double, or any other compatible type according to the
+     * documentation above
+     * @see #getDoubleSafe(String)
      */
-    public boolean isDouble(Object key) {
-        return getDoubleSafe(key).isPresent();
+    public boolean isDouble(@NotNull String path) {
+        return getDoubleSafe(path).isPresent();
     }
 
     //
