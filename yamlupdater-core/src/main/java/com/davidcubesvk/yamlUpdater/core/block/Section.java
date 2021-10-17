@@ -215,6 +215,61 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
+     * Returns the root file of this section.
+     *
+     * @return the root file
+     */
+    public YamlFile getRoot() {
+        return root;
+    }
+
+    /**
+     * Returns the parent section, or <code>null</code> if this section has no parent - represents the root file (check {@link #isRoot()}).
+     *
+     * @return the parent section, or <code>null</code> if unavailable
+     */
+    public Section getParent() {
+        return parent;
+    }
+
+    /**
+     * Returns the name of this section. A name is considered to be the direct key to this section in the parent section.
+     * If this section represents the root file (check {@link #isRoot()}), returns <code>null</code>.
+     * <p>
+     * This is incompatible with Spigot/BungeeCord APIs, where those, if this section represented the root file, would return an empty string.
+     *
+     * @return the name of this section
+     */
+    public Object getName() {
+        return name;
+    }
+
+    /**
+     * Returns the path to this section from the root file. If this section represents the root file (check {@link #isRoot()}), returns <code>null</code>.
+     * <p>
+     * This is incompatible with Spigot/BungeeCord APIs, where those, if this section represented the root file, would return an empty string.
+     *
+     * @return the name of this section
+     * @see #getRoot()
+     */
+    public Path getPath() {
+        return path;
+    }
+
+    /**
+     * Returns sub-path for this section; for this specified key. This section, therefore, patches nullable result of
+     * {@link #getPath()}.
+     * <p>
+     * More formally, returns the result of {@link Path#addTo(Path, Object)}.
+     *
+     * @return sub-path for path of this section
+     * @see Path#addTo(Path, Object)
+     */
+    public Path getSubPath(Object key) {
+        return Path.addTo(path, key);
+    }
+
+    /**
      * Adapts this section (including sub-sections) to the new relatives. This method should be called if and only this
      * section was relocated to a new parent section.
      *
@@ -2841,115 +2896,99 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list, returns an empty optional.
+     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not a {@link List}, returns an empty optional.
      *
-     * @param path the path to get the list from
+     * @param path the path to get the list at
      * @return the list at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<List<?>> getListSafe(Path path) {
+    public Optional<List<?>> getListSafe(@NotNull Path path) {
         return getAsSafe(path, List.class).map(list -> (List<?>) list);
     }
 
     /**
-     * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list, returns an empty optional.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not a {@link List}, returns an empty optional.
      *
-     * @param key the direct key/string path to get the list from
-     * @return the list at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the list at
+     * @return the list at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<List<?>> getListSafe(Object key) {
-        return getAsSafe(key, List.class).map(list -> (List<?>) list);
+    public Optional<List<?>> getListSafe(@NotNull String path) {
+        return getAsSafe(path, List.class).map(list -> (List<?>) list);
     }
 
     /**
-     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list at the given path. If nothing is present at the given path, or is not a {@link List}, returns
+     * default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      *
-     * @param path the path to get the list from
+     * @param path the path to get the list at
      * @return the list at the given path, or default according to the documentation above
      * @see #getList(Path, List)
      */
-    public List<?> getList(Path path) {
+    public List<?> getList(@NotNull Path path) {
         return getList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns list at the given path. If nothing is present at the given path, or is not a {@link List}, returns
+     * default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      *
-     * @param key the direct key/string path to get the list from
-     * @return the list at the given direct key/string path, or default according to the documentation above
-     * @see #getList(Object, List)
+     * @param path the path to get the list at
+     * @return the list at the given path, or default according to the documentation above
+     * @see #getList(String, List)
      */
-    public List<?> getList(Object key) {
-        return getList(key, root.getGeneralSettings().getDefaultList());
+    public List<?> getList(@NotNull String path) {
+        return getList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list, returns the provided default.
+     * Returns list at the given path. If nothing is present at the given path, or is not a {@link List}, returns the
+     * provided default.
      *
-     * @param path the path to get the list from
-     * @param def  default value returned if no value convertible to list is present (or no value at all)
+     * @param path the path to get the list at
+     * @param def  the default value
      * @return the list at the given path, or default according to the documentation above
      * @see #getListSafe(Path)
      */
-    public List<?> getList(Path path, List<?> def) {
+    public List<?> getList(@NotNull Path path, @Nullable List<?> def) {
         return getListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list, returns the provided default.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns list at the given path. If nothing is present at the given path, or is not a {@link List}, returns the
+     * provided default.
      *
-     * @param key the direct key/string path to get the list from
-     * @param def default value returned if no value convertible to list is present (or no value at all)
-     * @return the list at the given direct key/string path, or default according to the documentation above
-     * @see #getListSafe(Object)
+     * @param path the path to get the list at
+     * @param def  the default value
+     * @return the list at the given path, or default according to the documentation above
+     * @see #getListSafe(String)
      */
-    public List<?> getList(Object key, List<?> def) {
-        return getListSafe(key).orElse(def);
+    public List<?> getList(@NotNull String path, @Nullable List<?> def) {
+        return getListSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a list.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link List}.
      *
-     * @param path the path to get the list from
-     * @return the list at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a list
      * @see #getListSafe(Path)
      */
-    public boolean isList(Path path) {
+    public boolean isList(@NotNull Path path) {
         return getListSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a list.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link List}.
      *
-     * @param key the direct key/string path to get the list from
-     * @return the list at the given direct key/string path
-     * @see #getListSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a list
+     * @see #getListSafe(String)
      */
-    public boolean isList(Object key) {
-        return getListSafe(key).isPresent();
+    public boolean isList(@NotNull String path) {
+        return getListSafe(path).isPresent();
     }
 
     //
@@ -4024,61 +4063,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public List<Map<?, ?>> getMapList(Object key) {
         return getMapList(key, root.getGeneralSettings().getDefaultList());
-    }
-
-    /**
-     * Returns the root file of this section.
-     *
-     * @return the root file
-     */
-    public YamlFile getRoot() {
-        return root;
-    }
-
-    /**
-     * Returns the parent section, or <code>null</code> if this section has no parent - represents the root file (check {@link #isRoot()}).
-     *
-     * @return the parent section, or <code>null</code> if unavailable
-     */
-    public Section getParent() {
-        return parent;
-    }
-
-    /**
-     * Returns the name of this section. A name is considered to be the direct key to this section in the parent section.
-     * If this section represents the root file (check {@link #isRoot()}), returns <code>null</code>.
-     * <p>
-     * This is incompatible with Spigot/BungeeCord APIs, where those, if this section represented the root file, would return an empty string.
-     *
-     * @return the name of this section
-     */
-    public Object getName() {
-        return name;
-    }
-
-    /**
-     * Returns the path to this section from the root file. If this section represents the root file (check {@link #isRoot()}), returns <code>null</code>.
-     * <p>
-     * This is incompatible with Spigot/BungeeCord APIs, where those, if this section represented the root file, would return an empty string.
-     *
-     * @return the name of this section
-     * @see #getRoot()
-     */
-    public Path getPath() {
-        return path;
-    }
-
-    /**
-     * Returns sub-path for this section; for this specified key. This section, therefore, patches nullable result of
-     * {@link #getPath()}.
-     * <p>
-     * More formally, returns the result of {@link Path#addTo(Path, Object)}.
-     *
-     * @return sub-path for path of this section
-     * @see Path#addTo(Path, Object)
-     */
-    public Path getSubPath(Object key) {
-        return Path.addTo(path, key);
     }
 
 }
