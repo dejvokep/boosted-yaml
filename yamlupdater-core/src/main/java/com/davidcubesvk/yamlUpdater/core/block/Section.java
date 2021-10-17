@@ -1536,9 +1536,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
      * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
-     * returning them as one.
+     * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
+     * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
+     * converting them to one using {@link Object#toString()}.
      *
      * @param path the path to get the string at
      * @return the string at the given path
@@ -1552,9 +1552,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
      * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
-     * returning them as one.
+     * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
+     * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
+     * converting them to one using {@link Object#toString()}.
      *
      * @param path the path to get the string at
      * @return the string at the given path
@@ -1568,9 +1568,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
      * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
-     * returning them as one.
+     * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
+     * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
+     * converting them to one using {@link Object#toString()}.
      *
      * @param path the path to get the string at
      * @return the string at the given path, or default according to the documentation above
@@ -1584,9 +1584,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
      * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
-     * returning them as one.
+     * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
+     * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
+     * converting them to one using {@link Object#toString()}.
      *
      * @param path the path to get the string at
      * @return the string at the given path, or default according to the documentation above
@@ -1600,11 +1600,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
      * compatible types (see below), returns the provided default.
      * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
-     * returning them as one.
+     * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
+     * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
+     * converting them to one using {@link Object#toString()}.
      *
      * @param path the path to get the string at
+     * @param def  the default value
      * @return the string at the given path, or default according to the documentation above
      * @see #getStringSafe(Path)
      */
@@ -1616,11 +1617,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
      * compatible types (see below), returns the provided default.
      * <p>
-     * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
-     * returning them as one.
+     * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
+     * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
+     * converting them to one using {@link Object#toString()}.
      *
      * @param path the path to get the string at
+     * @param def  the default value
      * @return the string at the given path, or default according to the documentation above
      * @see #getStringSafe(String)
      */
@@ -1634,7 +1636,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a string, or any other compatible type according to the
-     *         documentation above
+     * documentation above
      * @see #getStringSafe(Path)
      */
     public boolean isString(@NotNull Path path) {
@@ -1642,12 +1644,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link String}, {@link Number}
-     * or {@link Boolean} (or their primitive variant).
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link String}, or any other
+     * compatible type. Please learn more at {@link #getStringSafe(Path)}.
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a string, or any other compatible type according to the
-     *         documentation above
+     * documentation above
      * @see #getStringSafe(String)
      */
     public boolean isString(@NotNull String path) {
@@ -1670,9 +1672,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
      * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
-     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
-     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
+     * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
+     * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
      * @param path the path to get the char at
      * @return the char at the given path
@@ -1686,9 +1688,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
      * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
-     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
-     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
+     * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
+     * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
      * @param path the path to get the char at
      * @return the char at the given path
@@ -1703,9 +1705,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible types (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultChar()}.
      * <p>
-     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
-     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
-     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
+     * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
+     * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
      * @param path the path to get the char at
      * @return the char at the given path, or default according to the documentation above
@@ -1720,9 +1722,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible types (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultChar()}.
      * <p>
-     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
-     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
-     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
+     * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
+     * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
      * @param path the path to get the char at
      * @return the char at the given path, or default according to the documentation above
@@ -1736,11 +1738,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
      * compatible types (see below), returns the provided default.
      * <p>
-     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
-     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
-     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
+     * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
+     * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
      * @param path the path to get the char at
+     * @param def  the default value
      * @return the char at the given path, or default according to the documentation above
      * @see #getCharSafe(Path)
      */
@@ -1752,11 +1755,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
      * compatible types (see below), returns the provided default.
      * <p>
-     * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
-     * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
-     * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
+     * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
+     * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
+     * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
      * @param path the path to get the char at
+     * @param def  the default value
      * @return the char at the given path, or default according to the documentation above
      * @see #getCharSafe(String)
      */
@@ -1770,7 +1774,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a character, or any other compatible type according to the
-     *         documentation above
+     * documentation above
      * @see #getCharSafe(Path)
      */
     public boolean isChar(@NotNull Path path) {
@@ -1783,7 +1787,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a character, or any other compatible type according to the
-     *         documentation above
+     * documentation above
      * @see #getCharSafe(String)
      */
     public boolean isChar(@NotNull String path) {
@@ -1803,129 +1807,121 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a number (see below), returns an empty optional.
+     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the integer from
+     * @param path the path to get the integer at
      * @return the integer at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Integer> getIntSafe(Path path) {
+    public Optional<Integer> getIntSafe(@NotNull Path path) {
         return toInt(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a number (see below), returns an empty optional.
+     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the integer from
-     * @return the integer at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the integer at
+     * @return the integer at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<Integer> getIntSafe(Object key) {
-        return toInt(getAsSafe(key, Number.class));
+    public Optional<Integer> getIntSafe(@NotNull String path) {
+        return toInt(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the integer from
+     * @param path the path to get the integer at
      * @return the integer at the given path, or default according to the documentation above
      * @see #getInt(Path, Integer)
      */
-    public Integer getInt(Path path) {
+    public Integer getInt(@NotNull Path path) {
         return getInt(path, root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     /**
-     * Returns integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer}).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the integer from
-     * @return the integer at the given direct key/string path, or default according to the documentation above
-     * @see #getInt(Object, Integer)
+     * @param path the path to get the integer at
+     * @return the integer at the given path, or default according to the documentation above
+     * @see #getInt(String, Integer)
      */
-    public Integer getInt(Object key) {
-        return getInt(key, root.getGeneralSettings().getDefaultNumber().intValue());
+    public Integer getInt(@NotNull String path) {
+        return getInt(path, root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     /**
-     * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a number (see below), returns the provided default.
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
+     * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the integer from
-     * @param def  default value returned if no value convertible to integer is present (or no value at all)
+     * @param path the path to get the integer at
+     * @param def  the default value
      * @return the integer at the given path, or default according to the documentation above
      * @see #getIntSafe(Path)
      */
-    public Integer getInt(Path path, Integer def) {
+    public Integer getInt(@NotNull Path path, @Nullable Integer def) {
         return getIntSafe(path).orElse(def);
     }
 
     /**
-     * Returns integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a number (see below), returns the provided default.
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the integer from
-     * @param def default value returned if no value convertible to integer is present (or no value at all)
-     * @return the integer at the given direct key/string path, or default according to the documentation above
-     * @see #getIntSafe(Object)
+     * @param path the path to get the integer at
+     * @param def  the default value
+     * @return the integer at the given path, or default according to the documentation above
+     * @see #getIntSafe(Path)
      */
-    public Integer getInt(Object key, Integer def) {
-        return getIntSafe(key).orElse(def);
+    public Integer getInt(@NotNull String path, @Nullable Integer def) {
+        return getIntSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a integer, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Integer}, or any other
+     * compatible type. Please learn more at {@link #getIntSafe(Path)}.
      *
-     * @param path the path to get the integer from
-     * @return the integer at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * documentation above
      * @see #getIntSafe(Path)
      */
-    public boolean isInt(Path path) {
+    public boolean isInt(@NotNull Path path) {
         return getIntSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a integer, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Integer}, or any other
+     * compatible type. Please learn more at {@link #getIntSafe(String)}.
      *
-     * @param key the direct key/string path to get the integer from
-     * @return the integer at the given direct key/string path
-     * @see #getIntSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * documentation above
+     * @see #getIntSafe(String)
      */
-    public boolean isInt(Object key) {
-        return getIntSafe(key).isPresent();
+    public boolean isInt(@NotNull String path) {
+        return getIntSafe(path).isPresent();
     }
 
     //
@@ -1941,129 +1937,129 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a big integer/number (see below), returns an empty optional.
+     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
+     * (which might involve rounding or truncating).
      *
-     * @param path the path to get the integer from
-     * @return the integer at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the big integer at
+     * @return the big integer at the given path
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<BigInteger> getBigIntSafe(Path path) {
+    public Optional<BigInteger> getBigIntSafe(@NotNull Path path) {
         return getAsSafe(path, Number.class).map(number -> number instanceof BigInteger ? (BigInteger) number : BigInteger.valueOf(number.longValue()));
     }
 
     /**
-     * Returns big integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a big integer/number (see below), returns an empty optional.
+     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
+     * (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the integer from
-     * @return the integer at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the big integer at
+     * @return the big integer at the given path
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<BigInteger> getBigIntSafe(Object key) {
-        return getAsSafe(key, Number.class).map(number -> number instanceof BigInteger ? (BigInteger) number : BigInteger.valueOf(number.longValue()));
+    public Optional<BigInteger> getBigIntSafe(@NotNull String path) {
+        return getAsSafe(path, Number.class).map(number -> number instanceof BigInteger ? (BigInteger) number : BigInteger.valueOf(number.longValue()));
     }
 
     /**
-     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a big integer/number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger}).
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
+     * the compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to big integer as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
+     * (which might involve rounding or truncating).
      *
-     * @param path the path to get the integer from
-     * @return the integer at the given path, or default according to the documentation above
-     * @see #getInt(Path, Integer)
+     * @param path the path to get the big integer at
+     * @return the big integer at the given path
+     * @see #getBigInt(Path, BigInteger)
      */
-    public BigInteger getBigInt(Path path) {
+    public BigInteger getBigInt(@NotNull Path path) {
         return getBigInt(path, BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
     }
 
     /**
-     * Returns big integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a big integer/number (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger}).
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
+     * the compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to big integer as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
+     * (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the integer from
-     * @return the integer at the given direct key/string path, or default according to the documentation above
-     * @see #getInt(Object, Integer)
+     * @param path the path to get the big integer at
+     * @return the big integer at the given path
+     * @see #getBigInt(Path, BigInteger)
      */
-    public BigInteger getBigInt(Object key) {
-        return getBigInt(key, BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
+    public BigInteger getBigInt(@NotNull String path) {
+        return getBigInt(path, BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
     }
 
     /**
-     * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a big integer/number (see below), returns the provided default.
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
+     * the compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
+     * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
+     * (which might involve rounding or truncating).
      *
-     * @param path the path to get the integer from
-     * @param def  default value returned if no value convertible to integer is present (or no value at all)
-     * @return the integer at the given path, or default according to the documentation above
-     * @see #getIntSafe(Path)
+     * @param path the path to get the big integer at
+     * @param def the default value
+     * @return the big integer at the given path
+     * @see #getBigIntSafe(Path)
      */
-    public BigInteger getBigInt(Path path, BigInteger def) {
+    public BigInteger getBigInt(@NotNull Path path, @Nullable BigInteger def) {
         return getBigIntSafe(path).orElse(def);
     }
 
     /**
-     * Returns big integer at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a big integer/number (see below), returns the provided default.
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
+     * the compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
+     * (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the integer from
-     * @param def default value returned if no value convertible to integer is present (or no value at all)
-     * @return the integer at the given direct key/string path, or default according to the documentation above
-     * @see #getIntSafe(Object)
+     * @param path the path to get the big integer at
+     * @param def the default value
+     * @return the big integer at the given path
+     * @see #getBigIntSafe(String)
      */
-    public BigInteger getBigInt(Object key, BigInteger def) {
-        return getBigIntSafe(key).orElse(def);
+    public BigInteger getBigInt(@NotNull String path, @Nullable BigInteger def) {
+        return getBigIntSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a big integer, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link BigInteger}, or any other
+     * compatible type. Please learn more at {@link #getBigIntSafe(Path)}.
      *
-     * @param path the path to get the big integer from
-     * @return the big integer at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * documentation above
      * @see #getBigIntSafe(Path)
      */
-    public boolean isBigInt(Path path) {
+    public boolean isBigInt(@NotNull Path path) {
         return getBigIntSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a big integer, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link BigInteger}, or any other
+     * compatible type. Please learn more at {@link #getBigIntSafe(String)}.
      *
-     * @param key the direct key/string path to get the big integer from
-     * @return the big integer at the given direct key/string path
-     * @see #getBigIntSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a integer, or any other compatible type according to the
+     * documentation above
+     * @see #getBigIntSafe(Path)
      */
-    public boolean isBigInt(Object key) {
-        return getBigIntSafe(key).isPresent();
+    public boolean isBigInt(@NotNull String path) {
+        return getBigIntSafe(path).isPresent();
     }
 
     //
