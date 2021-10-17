@@ -2581,129 +2581,121 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a long, returns an empty optional.
+     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the long from
+     * @param path the path to get the long at
      * @return the long at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
     public Optional<Long> getLongSafe(Path path) {
         return toLong(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns long at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a long, returns an empty optional.
+     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the long from
-     * @return the long at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the long at
+     * @return the long at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<Long> getLongSafe(Object key) {
-        return toLong(getAsSafe(key, Number.class));
+    public Optional<Long> getLongSafe(String path) {
+        return toLong(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a long, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long}).
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the long from
+     * @param path the path to get the long at
      * @return the long at the given path, or default according to the documentation above
      * @see #getLong(Path, Long)
      */
-    public Long getLong(Path path) {
+    public Long getLong(@NotNull Path path) {
         return getLong(path, root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     /**
-     * Returns long at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a long, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long}).
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the long from
-     * @return the long at the given direct key/string path, or default according to the documentation above
-     * @see #getLong(Object, Long)
+     * @param path the path to get the long at
+     * @return the long at the given path, or default according to the documentation above
+     * @see #getLong(Path, Long)
      */
-    public Long getLong(Object key) {
-        return getLong(key, root.getGeneralSettings().getDefaultNumber().longValue());
+    public Long getLong(@NotNull String path) {
+        return getLong(path, root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     /**
-     * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a long, returns the provided default.
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the long from
-     * @param def  default value returned if no value convertible to long is present (or no value at all)
+     * @param path the path to get the long at
      * @return the long at the given path, or default according to the documentation above
      * @see #getLongSafe(Path)
      */
-    public Long getLong(Path path, Long def) {
+    public Long getLong(@NotNull Path path, @Nullable Long def) {
         return getLongSafe(path).orElse(def);
     }
 
     /**
-     * Returns long at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a long, returns the provided default.
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the long from
-     * @param def default value returned if no value convertible to long is present (or no value at all)
-     * @return the long at the given direct key/string path, or default according to the documentation above
-     * @see #getLongSafe(Object)
+     * @param path the path to get the long at
+     * @return the long at the given path, or default according to the documentation above
+     * @see #getLongSafe(String)
      */
-    public Long getLong(Object key, Long def) {
-        return getLongSafe(key).orElse(def);
+    public Long getLong(@NotNull String path, @Nullable Long def) {
+        return getLongSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a long, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Long}, or any other
+     * compatible type. Please learn more at {@link #getLongSafe(Path)}.
      *
-     * @param path the path to get the long from
-     * @return the long at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a long, or any other compatible type according to the
+     * documentation above
      * @see #getLongSafe(Path)
      */
-    public boolean isLong(Path path) {
+    public boolean isLong(@NotNull Path path) {
         return getLongSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a long, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Long}, or any other
+     * compatible type. Please learn more at {@link #getLongSafe(String)}.
      *
-     * @param key the direct key/string path to get the long from
-     * @return the long at the given direct key/string path
-     * @see #getLongSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a long, or any other compatible type according to the
+     * documentation above
+     * @see #getLongSafe(String)
      */
-    public boolean isLong(Object key) {
-        return getLongSafe(key).isPresent();
+    public boolean isLong(@NotNull String path) {
+        return getLongSafe(path).isPresent();
     }
 
     //
@@ -2719,129 +2711,121 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a short, returns an empty optional.
+     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the short from
+     * @param path the path to get the short at
      * @return the short at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Short> getShortSafe(Path path) {
+    public Optional<Short> getShortSafe(@NotNull Path path) {
         return toShort(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns short at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a short, returns an empty optional.
+     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the short from
-     * @return the short at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the short at
+     * @return the short at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<Short> getShortSafe(Object key) {
-        return toShort(getAsSafe(key, Number.class));
+    public Optional<Short> getShortSafe(@NotNull String path) {
+        return toShort(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a short, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short}).
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the short from
+     * @param path the path to get the short at
      * @return the short at the given path, or default according to the documentation above
      * @see #getShort(Path, Short)
      */
-    public Short getShort(Path path) {
+    public Short getShort(@NotNull Path path) {
         return getShort(path, root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     /**
-     * Returns short at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a short, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short}).
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the short from
-     * @return the short at the given direct key/string path, or default according to the documentation above
-     * @see #getShort(Object, Short)
+     * @param path the path to get the short at
+     * @return the short at the given path, or default according to the documentation above
+     * @see #getShort(String, Short)
      */
-    public Short getShort(Object key) {
-        return getShort(key, root.getGeneralSettings().getDefaultNumber().shortValue());
+    public Short getShort(@NotNull String path) {
+        return getShort(path, root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     /**
-     * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a short, returns the provided default.
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
+     * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the short from
-     * @param def  default value returned if no value convertible to short is present (or no value at all)
+     * @param path the path to get the short at
      * @return the short at the given path, or default according to the documentation above
      * @see #getShortSafe(Path)
      */
-    public Short getShort(Path path, Short def) {
+    public Short getShort(@NotNull Path path, @Nullable Short def) {
         return getShortSafe(path).orElse(def);
     }
 
     /**
-     * Returns short at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a short, returns the provided default.
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the short from
-     * @param def default value returned if no value convertible to short is present (or no value at all)
-     * @return the short at the given direct key/string path, or default according to the documentation above
-     * @see #getShortSafe(Object)
+     * @param path the path to get the short at
+     * @return the short at the given path, or default according to the documentation above
+     * @see #getShortSafe(Path)
      */
-    public Short getShort(Object key, Short def) {
-        return getShortSafe(key).orElse(def);
+    public Short getShort(@NotNull String path, @Nullable Short def) {
+        return getShortSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a short, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Short}, or any other
+     * compatible type. Please learn more at {@link #getShortSafe(Path)}.
      *
-     * @param path the path to get the short from
-     * @return the short at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a short, or any other compatible type according to the
+     * documentation above
      * @see #getShortSafe(Path)
      */
-    public boolean isShort(Path path) {
+    public boolean isShort(@NotNull Path path) {
         return getShortSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a short, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Short}, or any other
+     * compatible type. Please learn more at {@link #getShortSafe(String)}.
      *
-     * @param key the direct key/string path to get the short from
-     * @return the short at the given direct key/string path
-     * @see #getShortSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a short, or any other compatible type according to the
+     * documentation above
+     * @see #getShortSafe(String)
      */
-    public boolean isShort(Object key) {
-        return getShortSafe(key).isPresent();
+    public boolean isShort(@NotNull String path) {
+        return getShortSafe(path).isPresent();
     }
 
     //
