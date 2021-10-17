@@ -2319,129 +2319,123 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a float, returns an empty optional.
+     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the float from
+     * @param path the path to get the float at
      * @return the float at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Float> getFloatSafe(Path path) {
+    public Optional<Float> getFloatSafe(@NotNull Path path) {
         return toFloat(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns float at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a float, returns an empty optional.
+     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the float from
-     * @return the float at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the float at
+     * @return the float at the given path
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Float> getFloatSafe(Object key) {
-        return toFloat(getAsSafe(key, Number.class));
+    public Optional<Float> getFloatSafe(@NotNull String path) {
+        return toFloat(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a float, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float}).
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the float from
+     * @param path the path to get the float at
      * @return the float at the given path, or default according to the documentation above
      * @see #getFloat(Path, Float)
      */
-    public Float getFloat(Path path) {
+    public Float getFloat(@NotNull Path path) {
         return getFloat(path, root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     /**
-     * Returns float at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a float, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float}).
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the float from
-     * @return the float at the given direct key/string path, or default according to the documentation above
-     * @see #getFloat(Object, Float)
+     * @param path the path to get the float at
+     * @return the float at the given path, or default according to the documentation above
+     * @see #getFloat(Path, Float)
      */
-    public Float getFloat(Object key) {
-        return getFloat(key, root.getGeneralSettings().getDefaultNumber().floatValue());
+    public Float getFloat(@NotNull String path) {
+        return getFloat(path, root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     /**
-     * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a float, returns the provided default.
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
+     * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the float from
-     * @param def  default value returned if no value convertible to float is present (or no value at all)
+     * @param path the path to get the float at
+     * @param def  the default value
      * @return the float at the given path, or default according to the documentation above
      * @see #getFloatSafe(Path)
      */
-    public Float getFloat(Path path, Float def) {
+    public Float getFloat(@NotNull Path path, @Nullable Float def) {
         return getFloatSafe(path).orElse(def);
     }
 
     /**
-     * Returns float at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a float, returns the provided default.
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the float from
-     * @param def default value returned if no value convertible to float is present (or no value at all)
-     * @return the float at the given direct key/string path, or default according to the documentation above
-     * @see #getFloatSafe(Object)
+     * @param path the path to get the float at
+     * @param def  the default value
+     * @return the float at the given path, or default according to the documentation above
+     * @see #getFloatSafe(String)
      */
-    public Float getFloat(Object key, Float def) {
-        return getFloatSafe(key).orElse(def);
+    public Float getFloat(@NotNull String path, @Nullable Float def) {
+        return getFloatSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a float, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Float}, or any other
+     * compatible type. Please learn more at {@link #getFloatSafe(Path)}.
      *
-     * @param path the path to get the float from
-     * @return the float at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a float, or any other compatible type according to the
+     * documentation above
      * @see #getFloatSafe(Path)
      */
-    public boolean isFloat(Path path) {
+    public boolean isFloat(@NotNull Path path) {
         return getFloatSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a float, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Float}, or any other
+     * compatible type. Please learn more at {@link #getFloatSafe(String)}.
      *
-     * @param key the direct key/string path to get the float from
-     * @return the float at the given direct key/string path
-     * @see #getFloatSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a float, or any other compatible type according to the
+     * documentation above
+     * @see #getFloatSafe(String)
      */
-    public boolean isFloat(Object key) {
-        return getFloatSafe(key).isPresent();
+    public boolean isFloat(@NotNull String path) {
+        return getFloatSafe(path).isPresent();
     }
 
     //
@@ -2457,129 +2451,121 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a byte, returns an empty optional.
+     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the byte from
+     * @param path the path to get the byte at
      * @return the byte at the given path
-     * @see #getSafe(Path)
+     * @see #getAsSafe(Path, Class)
      */
-    public Optional<Byte> getByteSafe(Path path) {
+    public Optional<Byte> getByteSafe(@NotNull Path path) {
         return toByte(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns byte at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a byte, returns an empty optional.
+     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the byte from
-     * @return the byte at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the byte at
+     * @return the byte at the given path
+     * @see #getAsSafe(String, Class)
      */
-    public Optional<Byte> getByteSafe(Object key) {
-        return toByte(getAsSafe(key, Number.class));
+    public Optional<Byte> getByteSafe(@NotNull String path) {
+        return toByte(getAsSafe(path, Number.class));
     }
 
     /**
-     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a byte, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte}).
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the byte from
+     * @param path the path to get the byte at
      * @return the byte at the given path, or default according to the documentation above
      * @see #getByte(Path, Byte)
      */
-    public Byte getByte(Path path) {
+    public Byte getByte(@NotNull Path path) {
         return getByte(path, root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     /**
-     * Returns byte at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a byte, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte}).
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below).
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the byte from
-     * @return the byte at the given direct key/string path, or default according to the documentation above
-     * @see #getByte(Object, Byte)
+     * @param path the path to get the byte at
+     * @return the byte at the given path, or default according to the documentation above
+     * @see #getByte(String, Byte)
      */
-    public Byte getByte(Object key) {
-        return getByte(key, root.getGeneralSettings().getDefaultNumber().byteValue());
+    public Byte getByte(@NotNull String path) {
+        return getByte(path, root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     /**
-     * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a byte, returns the provided default.
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
+     * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
      *
-     * @param path the path to get the byte from
-     * @param def  default value returned if no value convertible to byte is present (or no value at all)
+     * @param path the path to get the byte at
      * @return the byte at the given path, or default according to the documentation above
      * @see #getByteSafe(Path)
      */
-    public Byte getByte(Path path, Byte def) {
+    public Byte getByte(@NotNull Path path, @Nullable Byte def) {
         return getByteSafe(path).orElse(def);
     }
 
     /**
-     * Returns byte at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a byte, returns the provided default.
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
-     * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
+     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
      *
-     * @param key the direct key/string path to get the byte from
-     * @param def default value returned if no value convertible to byte is present (or no value at all)
-     * @return the byte at the given direct key/string path, or default according to the documentation above
-     * @see #getByteSafe(Object)
+     * @param path the path to get the byte at
+     * @return the byte at the given path, or default according to the documentation above
+     * @see #getByteSafe(String)
      */
-    public Byte getByte(Object key, Byte def) {
-        return getByteSafe(key).orElse(def);
+    public Byte getByte(@NotNull String path, @Nullable Byte def) {
+        return getByteSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a byte, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Byte}, or any other
+     * compatible type. Please learn more at {@link #getByteSafe(Path)}.
      *
-     * @param path the path to get the byte from
-     * @return the byte at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a byte, or any other compatible type according to the
+     * documentation above
      * @see #getByteSafe(Path)
      */
-    public boolean isByte(Path path) {
+    public boolean isByte(@NotNull Path path) {
         return getByteSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a byte, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Byte}, or any other
+     * compatible type. Please learn more at {@link #getByteSafe(String)}.
      *
-     * @param key the direct key/string path to get the byte from
-     * @return the byte at the given direct key/string path
-     * @see #getByteSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a byte, or any other compatible type according to the
+     * documentation above
+     * @see #getByteSafe(String)
      */
-    public boolean isByte(Object key) {
-        return getByteSafe(key).isPresent();
+    public boolean isByte(@NotNull String path) {
+        return getByteSafe(path).isPresent();
     }
 
     //
