@@ -1273,9 +1273,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getSafe(Path)} casted to the given class if not empty (or an empty
      * optional if the returned is empty, or types are incompatible).
      *
-     * @param path the path to get the value at
+     * @param path  the path to get the value at
      * @param clazz class of the target type
-     * @param <T> the target type
+     * @param <T>   the target type
      * @return the value casted to the given type
      */
     @SuppressWarnings("unchecked")
@@ -1295,9 +1295,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getSafe(String)} casted to the given class if not empty (or an empty
      * optional if the returned is empty, or types are incompatible).
      *
-     * @param path the path to get the value at
+     * @param path  the path to get the value at
      * @param clazz class of the target type
-     * @param <T> the target type
+     * @param <T>   the target type
      * @return the value casted to the given type
      */
     @SuppressWarnings("unchecked")
@@ -1314,9 +1314,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, returns the result of {@link #getAs(Path, Class, Object)} with <code>null</code> default.
      *
-     * @param path the path to get the value at
+     * @param path  the path to get the value at
      * @param clazz class of the target type
-     * @param <T> the target type
+     * @param <T>   the target type
      * @return the value casted to the given type, or <code>null</code> according to the documentation above
      */
     public <T> T getAs(@NotNull Path path, @NotNull Class<T> clazz) {
@@ -1332,9 +1332,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, returns the result of {@link #getAs(String, Class, Object)} with <code>null</code> default.
      *
-     * @param path the path to get the value at
+     * @param path  the path to get the value at
      * @param clazz class of the target type
-     * @param <T> the target type
+     * @param <T>   the target type
      * @return the value casted to the given type, or <code>null</code> according to the documentation above
      */
     public <T> T getAs(@NotNull String path, @NotNull Class<T> clazz) {
@@ -1351,10 +1351,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getAsSafe(Path, Class)} or the provided default if the returned
      * optional is empty.
      *
-     * @param path the path to get the value at
+     * @param path  the path to get the value at
      * @param clazz class of the target type
-     * @param def the default value
-     * @param <T> the target type
+     * @param def   the default value
+     * @param <T>   the target type
      * @return the value casted to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull Path path, @NotNull Class<T> clazz, @Nullable T def) {
@@ -1371,10 +1371,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getAsSafe(String, Class)} or the provided default if the returned
      * optional is empty.
      *
-     * @param path the path to get the value at
+     * @param path  the path to get the value at
      * @param clazz class of the target type
-     * @param def the default value
-     * @param <T> the target type
+     * @param def   the default value
+     * @param <T>   the target type
      * @return the value casted to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull String path, @NotNull Class<T> clazz, @Nullable T def) {
@@ -1477,7 +1477,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * provided default.
      *
      * @param path the path to get the section at
-     * @param def the default value
+     * @param def  the default value
      * @return the section at the given path, or default according to the documentation above
      * @see #getSectionSafe(Path)
      */
@@ -1490,7 +1490,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * provided default.
      *
      * @param path the path to get the section at
-     * @param def the default value
+     * @param def  the default value
      * @return the section at the given path, or default according to the documentation above
      * @see #getSectionSafe(String)
      */
@@ -1501,7 +1501,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns <code>true</code> if and only a value at the given path exists and it is a section.
      *
-     * @param path the path to get the section at
+     * @param path the path to check the value at
      * @return if the value at the given path exists and is a section
      * @see #getSectionSafe(Path)
      */
@@ -1512,7 +1512,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns <code>true</code> if and only a value at the given path exists and it is a section.
      *
-     * @param path the path to get the section at
+     * @param path the path to check the value at
      * @return if the value at the given path exists and is a section
      * @see #getSectionSafe(String)
      */
@@ -1533,135 +1533,125 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
+     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
      * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
+     * returning them as one.
      *
-     * @param path the path to get the string from
+     * @param path the path to get the string at
      * @return the string at the given path
      * @see #getSafe(Path)
      */
-    public Optional<String> getStringSafe(Path path) {
+    public Optional<String> getStringSafe(@NotNull Path path) {
         return getSafe(path).map((object) -> object instanceof String || object instanceof Number || object instanceof Boolean ? object.toString() : null);
     }
 
     /**
-     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
+     * returning them as one.
      *
-     * @param key the direct key/string path to get the string from
-     * @return the string at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the string at
+     * @return the string at the given path
+     * @see #getSafe(String)
      */
-    public Optional<String> getStringSafe(Object key) {
-        return getSafe(key).map((object) -> object instanceof String || object instanceof Number || object instanceof Boolean ? object.toString() : null);
+    public Optional<String> getStringSafe(@NotNull String path) {
+        return getSafe(path).map((object) -> object instanceof String || object instanceof Number || object instanceof Boolean ? object.toString() : null);
     }
 
     /**
-     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not an instance of any of the compatible types (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultString()}.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
+     * returning them as one.
      *
-     * @param path the path to get the string from
-     * @return the string at the given path, or default if no supported type (specified above) was found
+     * @param path the path to get the string at
+     * @return the string at the given path, or default according to the documentation above
      * @see #getString(Path, String)
      */
-    public String getString(Path path) {
+    public String getString(@NotNull Path path) {
         return getString(path, root.getGeneralSettings().getDefaultString());
     }
 
     /**
-     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not an instance of any of the compatible types (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultString()}.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
+     * returning them as one.
      *
-     * @param key the direct key/string path to get the string from
-     * @return the string at the given direct key/string path, or default if no supported type (specified above) was found
-     * @see #getString(Object, String)
+     * @param path the path to get the string at
+     * @return the string at the given path, or default according to the documentation above
+     * @see #getString(String, String)
      */
-    public String getString(Object key) {
-        return getString(key, root.getGeneralSettings().getDefaultString());
+    public String getString(@NotNull String path) {
+        return getString(path, root.getGeneralSettings().getDefaultString());
     }
 
     /**
-     * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not an instance of any of the compatible types (see below), returns the provided default.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
+     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
+     * returning them as one.
      *
-     * @param path the path to get the string from
-     * @param def  default value returned if no value convertible to string is present (or no value at all)
-     * @return the string at the given path, or default if no supported type (specified above) was found
+     * @param path the path to get the string at
+     * @return the string at the given path, or default according to the documentation above
      * @see #getStringSafe(Path)
      */
-    public String getString(Path path, String def) {
+    public String getString(@NotNull Path path, @Nullable String def) {
         return getStringSafe(path).orElse(def);
     }
 
     /**
-     * Returns string at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not an instance of any of the compatible types (see below), returns the provided default.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
      * If there is an instance of {@link Number} or {@link Boolean} (or their primitive variant) present instead of a
-     * {@link String}, they are treated like if they were strings, by converting {@link Object#toString()} and returning them as one.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * {@link String}, they are treated like if they were strings, by converting using {@link Object#toString()} and
+     * returning them as one.
      *
-     * @param key the direct key/string path to get the string from
-     * @param def default value returned if no value convertible to string is present (or no value at all)
-     * @return the string at the given direct key/string path, or default if no supported type (specified above) was found
-     * @see #getStringSafe(Object)
+     * @param path the path to get the string at
+     * @return the string at the given path, or default according to the documentation above
+     * @see #getStringSafe(String)
      */
-    public String getString(Object key, String def) {
-        return getStringSafe(key).orElse(def);
+    public String getString(@NotNull String path, @Nullable String def) {
+        return getStringSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a string, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link String}, or any other
+     * compatible type. Please learn more at {@link #getStringSafe(Path)}.
      *
-     * @param path the path to get the string from
-     * @return the string at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a string, or any other compatible type according to the
+     *         documentation above
      * @see #getStringSafe(Path)
      */
-    public boolean isString(Path path) {
+    public boolean isString(@NotNull Path path) {
         return getStringSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a string, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link String}, {@link Number}
+     * or {@link Boolean} (or their primitive variant).
      *
-     * @param key the direct key/string path to get the string from
-     * @return the string at the given direct key/string path
-     * @see #getStringSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a string, or any other compatible type according to the
+     *         documentation above
+     * @see #getStringSafe(String)
      */
-    public boolean isString(Object key) {
-        return getStringSafe(key).isPresent();
+    public boolean isString(@NotNull String path) {
+        return getStringSafe(path).isPresent();
     }
 
     //
@@ -1677,141 +1667,127 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a char, string or integer (see below), returns an empty optional.
+     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
      * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
-     * @param path the path to get the char from
+     * @param path the path to get the char at
      * @return the char at the given path
      * @see #getSafe(Path)
      */
-    public Optional<Character> getCharSafe(Path path) {
+    public Optional<Character> getCharSafe(@NotNull Path path) {
         return getSafe(path).map((object) -> object instanceof String ? object.toString().length() != 1 ? null : object.toString().charAt(0) : object instanceof Integer ? (char) ((int) object) : null);
     }
 
     /**
-     * Returns char at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a char, string or integer (see below), returns an empty optional.
+     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
+     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
      * <p>
      * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
      *
-     * @param key the direct key/string path to get the char from
-     * @return the char at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the char at
+     * @return the char at the given path
+     * @see #getSafe(String)
      */
-    public Optional<Character> getCharSafe(Object key) {
-        return getSafe(key).map((object) -> object instanceof String ? object.toString().length() != 1 ? null : object.toString().charAt(0) : object instanceof Integer ? (char) ((int) object) : null);
+    public Optional<Character> getCharSafe(@NotNull String path) {
+        return getSafe(path).map((object) -> object instanceof String ? object.toString().length() != 1 ? null : object.toString().charAt(0) : object instanceof Integer ? (char) ((int) object) : null);
     }
 
     /**
-     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a char, string or integer (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultChar()}.
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultChar()}.
      * <p>
      * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
-     * @param path the path to get the char from
-     * @return the char at the given path, or default if no supported type (specified above) was found
+     * @param path the path to get the char at
+     * @return the char at the given path, or default according to the documentation above
      * @see #getChar(Path, Character)
      */
-    public Character getChar(Path path) {
+    public Character getChar(@NotNull Path path) {
         return getChar(path, root.getGeneralSettings().getDefaultChar());
     }
 
     /**
-     * Returns char at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a char, string or integer (see below), returns default value as defined by root's general settings {@link GeneralSettings#getDefaultChar()}.
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns default value defined by root's general settings
+     * {@link GeneralSettings#getDefaultChar()}.
      * <p>
      * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
      *
-     * @param key the direct key/string path to get the char from
-     * @return the char at the given direct key/string path, or default if no supported type (specified above) was found
-     * @see #getChar(Object, Character)
+     * @param path the path to get the char at
+     * @return the char at the given path, or default according to the documentation above
+     * @see #getChar(String, Character)
      */
-    public Character getChar(Object key) {
-        return getChar(key, root.getGeneralSettings().getDefaultChar());
+    public Character getChar(@NotNull String path) {
+        return getChar(path, root.getGeneralSettings().getDefaultChar());
     }
 
     /**
-     * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a char, string or integer (see below), returns the provided default.
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
      * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
      *
-     * @param path the path to get the char from
-     * @param def  default value returned if no value convertible to char is present (or no value at all)
-     * @return the char at the given path, or default if no supported type (specified above) was found
+     * @param path the path to get the char at
+     * @return the char at the given path, or default according to the documentation above
      * @see #getCharSafe(Path)
      */
-    public Character getChar(Path path, Character def) {
+    public Character getChar(@NotNull Path path, @Nullable Character def) {
         return getCharSafe(path).orElse(def);
     }
 
     /**
-     * Returns char at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a char, string or integer (see below), returns the provided default.
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
+     * compatible types (see below), returns the provided default.
      * <p>
      * If there is an instance of {@link String} and it is exactly 1 character in length, returns that character. If it
      * is an {@link Integer} (or primitive variant), it is converted to a character (by casting, see the
      * <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
      *
-     * @param key the direct key/string path to get the char from
-     * @param def default value returned if no value convertible to char is present (or no value at all)
-     * @return the char at the given direct key/string path, or default if no supported type (specified above) was found
-     * @see #getCharSafe(Object)
+     * @param path the path to get the char at
+     * @return the char at the given path, or default according to the documentation above
+     * @see #getCharSafe(String)
      */
-    public Character getChar(Object key, Character def) {
-        return getCharSafe(key).orElse(def);
+    public Character getChar(@NotNull String path, @Nullable Character def) {
+        return getCharSafe(path).orElse(def);
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a char, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getCharSafe(Path)}.
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Character}, or any other
+     * compatible type. Please learn more at {@link #getCharSafe(Path)}.
      *
-     * @param path the path to get the char from
-     * @return the char at the given path
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a character, or any other compatible type according to the
+     *         documentation above
      * @see #getCharSafe(Path)
      */
-    public boolean isChar(Path path) {
+    public boolean isChar(@NotNull Path path) {
         return getCharSafe(path).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a char, or any other compatible type.
-     * Please learn more about compatible types at the main content method {@link #getCharSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Character}, or any other
+     * compatible type. Please learn more at {@link #getCharSafe(String)}.
      *
-     * @param key the direct key/string path to get the char from
-     * @return the char at the given direct key/string path
-     * @see #getCharSafe(Object)
+     * @param path the path to check the value at
+     * @return if the value at the given path exists and is a character, or any other compatible type according to the
+     *         documentation above
+     * @see #getCharSafe(String)
      */
-    public boolean isChar(Object key) {
-        return getCharSafe(key).isPresent();
+    public boolean isChar(@NotNull String path) {
+        return getCharSafe(path).isPresent();
     }
 
     //
@@ -1865,7 +1841,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#intValue()}.
      *
      * @param path the path to get the integer from
-     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @return the integer at the given path, or default according to the documentation above
      * @see #getInt(Path, Integer)
      */
     public Integer getInt(Path path) {
@@ -1883,7 +1859,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the integer from
-     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the integer at the given direct key/string path, or default according to the documentation above
      * @see #getInt(Object, Integer)
      */
     public Integer getInt(Object key) {
@@ -1898,7 +1874,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the integer from
      * @param def  default value returned if no value convertible to integer is present (or no value at all)
-     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @return the integer at the given path, or default according to the documentation above
      * @see #getIntSafe(Path)
      */
     public Integer getInt(Path path, Integer def) {
@@ -1917,7 +1893,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the integer from
      * @param def default value returned if no value convertible to integer is present (or no value at all)
-     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the integer at the given direct key/string path, or default according to the documentation above
      * @see #getIntSafe(Object)
      */
     public Integer getInt(Object key, Integer def) {
@@ -2003,7 +1979,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is <b>any</b> instance of {@link Number}, the returned value is big integer created from {@link Number#longValue()}.
      *
      * @param path the path to get the integer from
-     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @return the integer at the given path, or default according to the documentation above
      * @see #getInt(Path, Integer)
      */
     public BigInteger getBigInt(Path path) {
@@ -2021,7 +1997,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the integer from
-     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the integer at the given direct key/string path, or default according to the documentation above
      * @see #getInt(Object, Integer)
      */
     public BigInteger getBigInt(Object key) {
@@ -2036,7 +2012,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the integer from
      * @param def  default value returned if no value convertible to integer is present (or no value at all)
-     * @return the integer at the given path, or default if no supported type (specified above) was found
+     * @return the integer at the given path, or default according to the documentation above
      * @see #getIntSafe(Path)
      */
     public BigInteger getBigInt(Path path, BigInteger def) {
@@ -2055,7 +2031,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the integer from
      * @param def default value returned if no value convertible to integer is present (or no value at all)
-     * @return the integer at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the integer at the given direct key/string path, or default according to the documentation above
      * @see #getIntSafe(Object)
      */
     public BigInteger getBigInt(Object key, BigInteger def) {
@@ -2135,7 +2111,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * path, or is not a boolean, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultBoolean()}.
      *
      * @param path the path to get the boolean from
-     * @return the boolean at the given path, or default if no supported type (specified above) was found
+     * @return the boolean at the given path, or default according to the documentation above
      * @see #getBoolean(Path, Boolean)
      */
     public Boolean getBoolean(Path path) {
@@ -2151,7 +2127,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the boolean from
-     * @return the boolean at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the boolean at the given direct key/string path, or default according to the documentation above
      * @see #getBoolean(Object, Boolean)
      */
     public Boolean getBoolean(Object key) {
@@ -2164,7 +2140,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the boolean from
      * @param def  default value returned if no value convertible to boolean is present (or no value at all)
-     * @return the boolean at the given path, or default if no supported type (specified above) was found
+     * @return the boolean at the given path, or default according to the documentation above
      * @see #getBooleanSafe(Path)
      */
     public Boolean getBoolean(Path path, Boolean def) {
@@ -2181,7 +2157,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the boolean from
      * @param def default value returned if no value convertible to boolean is present (or no value at all)
-     * @return the boolean at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the boolean at the given direct key/string path, or default according to the documentation above
      * @see #getBooleanSafe(Object)
      */
     public Boolean getBoolean(Object key, Boolean def) {
@@ -2267,7 +2243,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#doubleValue()}.
      *
      * @param path the path to get the double from
-     * @return the double at the given path, or default if no supported type (specified above) was found
+     * @return the double at the given path, or default according to the documentation above
      * @see #getDouble(Path, Double)
      */
     public Double getDouble(Path path) {
@@ -2285,7 +2261,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the double from
-     * @return the double at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the double at the given direct key/string path, or default according to the documentation above
      * @see #getDouble(Object, Double)
      */
     public Double getDouble(Object key) {
@@ -2300,7 +2276,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the double from
      * @param def  default value returned if no value convertible to double is present (or no value at all)
-     * @return the double at the given path, or default if no supported type (specified above) was found
+     * @return the double at the given path, or default according to the documentation above
      * @see #getDoubleSafe(Path)
      */
     public Double getDouble(Path path, Double def) {
@@ -2319,7 +2295,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the double from
      * @param def default value returned if no value convertible to double is present (or no value at all)
-     * @return the double at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the double at the given direct key/string path, or default according to the documentation above
      * @see #getDoubleSafe(Object)
      */
     public Double getDouble(Object key, Double def) {
@@ -2405,7 +2381,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#floatValue()}.
      *
      * @param path the path to get the float from
-     * @return the float at the given path, or default if no supported type (specified above) was found
+     * @return the float at the given path, or default according to the documentation above
      * @see #getFloat(Path, Float)
      */
     public Float getFloat(Path path) {
@@ -2423,7 +2399,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the float from
-     * @return the float at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the float at the given direct key/string path, or default according to the documentation above
      * @see #getFloat(Object, Float)
      */
     public Float getFloat(Object key) {
@@ -2438,7 +2414,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the float from
      * @param def  default value returned if no value convertible to float is present (or no value at all)
-     * @return the float at the given path, or default if no supported type (specified above) was found
+     * @return the float at the given path, or default according to the documentation above
      * @see #getFloatSafe(Path)
      */
     public Float getFloat(Path path, Float def) {
@@ -2457,7 +2433,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the float from
      * @param def default value returned if no value convertible to float is present (or no value at all)
-     * @return the float at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the float at the given direct key/string path, or default according to the documentation above
      * @see #getFloatSafe(Object)
      */
     public Float getFloat(Object key, Float def) {
@@ -2543,7 +2519,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#byteValue()}.
      *
      * @param path the path to get the byte from
-     * @return the byte at the given path, or default if no supported type (specified above) was found
+     * @return the byte at the given path, or default according to the documentation above
      * @see #getByte(Path, Byte)
      */
     public Byte getByte(Path path) {
@@ -2561,7 +2537,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the byte from
-     * @return the byte at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the byte at the given direct key/string path, or default according to the documentation above
      * @see #getByte(Object, Byte)
      */
     public Byte getByte(Object key) {
@@ -2576,7 +2552,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the byte from
      * @param def  default value returned if no value convertible to byte is present (or no value at all)
-     * @return the byte at the given path, or default if no supported type (specified above) was found
+     * @return the byte at the given path, or default according to the documentation above
      * @see #getByteSafe(Path)
      */
     public Byte getByte(Path path, Byte def) {
@@ -2595,7 +2571,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the byte from
      * @param def default value returned if no value convertible to byte is present (or no value at all)
-     * @return the byte at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the byte at the given direct key/string path, or default according to the documentation above
      * @see #getByteSafe(Object)
      */
     public Byte getByte(Object key, Byte def) {
@@ -2681,7 +2657,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      *
      * @param path the path to get the long from
-     * @return the long at the given path, or default if no supported type (specified above) was found
+     * @return the long at the given path, or default according to the documentation above
      * @see #getLong(Path, Long)
      */
     public Long getLong(Path path) {
@@ -2699,7 +2675,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the long from
-     * @return the long at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the long at the given direct key/string path, or default according to the documentation above
      * @see #getLong(Object, Long)
      */
     public Long getLong(Object key) {
@@ -2714,7 +2690,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the long from
      * @param def  default value returned if no value convertible to long is present (or no value at all)
-     * @return the long at the given path, or default if no supported type (specified above) was found
+     * @return the long at the given path, or default according to the documentation above
      * @see #getLongSafe(Path)
      */
     public Long getLong(Path path, Long def) {
@@ -2733,7 +2709,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the long from
      * @param def default value returned if no value convertible to long is present (or no value at all)
-     * @return the long at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the long at the given direct key/string path, or default according to the documentation above
      * @see #getLongSafe(Object)
      */
     public Long getLong(Object key, Long def) {
@@ -2819,7 +2795,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is <b>any</b> instance of {@link Number}, the value returned is the result of {@link Number#longValue()}.
      *
      * @param path the path to get the short from
-     * @return the short at the given path, or default if no supported type (specified above) was found
+     * @return the short at the given path, or default according to the documentation above
      * @see #getShort(Path, Short)
      */
     public Short getShort(Path path) {
@@ -2837,7 +2813,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the short from
-     * @return the short at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the short at the given direct key/string path, or default according to the documentation above
      * @see #getShort(Object, Short)
      */
     public Short getShort(Object key) {
@@ -2852,7 +2828,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the short from
      * @param def  default value returned if no value convertible to short is present (or no value at all)
-     * @return the short at the given path, or default if no supported type (specified above) was found
+     * @return the short at the given path, or default according to the documentation above
      * @see #getShortSafe(Path)
      */
     public Short getShort(Path path, Short def) {
@@ -2871,7 +2847,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the short from
      * @param def default value returned if no value convertible to short is present (or no value at all)
-     * @return the short at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the short at the given direct key/string path, or default according to the documentation above
      * @see #getShortSafe(Object)
      */
     public Short getShort(Object key, Short def) {
@@ -2951,7 +2927,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * path, or is not a list, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      *
      * @param path the path to get the list from
-     * @return the list at the given path, or default if no supported type (specified above) was found
+     * @return the list at the given path, or default according to the documentation above
      * @see #getList(Path, List)
      */
     public List<?> getList(Path path) {
@@ -2967,7 +2943,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list from
-     * @return the list at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list at the given direct key/string path, or default according to the documentation above
      * @see #getList(Object, List)
      */
     public List<?> getList(Object key) {
@@ -2980,7 +2956,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list from
      * @param def  default value returned if no value convertible to list is present (or no value at all)
-     * @return the list at the given path, or default if no supported type (specified above) was found
+     * @return the list at the given path, or default according to the documentation above
      * @see #getListSafe(Path)
      */
     public List<?> getList(Path path, List<?> def) {
@@ -2997,7 +2973,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list from
      * @param def default value returned if no value convertible to list is present (or no value at all)
-     * @return the list at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list at the given direct key/string path, or default according to the documentation above
      * @see #getListSafe(Object)
      */
     public List<?> getList(Object key, List<?> def) {
@@ -3087,7 +3063,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of strings from
      * @param def  default value returned if no value convertible to list of strings is present (or no value at all)
-     * @return the list of strings at the given path, or default if no supported type (specified above) was found
+     * @return the list of strings at the given path, or default according to the documentation above
      * @see #getStringListSafe(Path)
      * @see #getStringSafe(Path)
      */
@@ -3108,7 +3084,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of strings from
      * @param def default value returned if no value convertible to list of strings is present (or no value at all)
-     * @return the list of strings at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of strings at the given direct key/string path, or default according to the documentation above
      * @see #getStringListSafe(Object)
      * @see #getStringSafe(Path)
      */
@@ -3124,7 +3100,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
      *
      * @param path the path to get the list of strings from
-     * @return the list of strings at the given path, or default if no supported type (specified above) was found
+     * @return the list of strings at the given path, or default according to the documentation above
      * @see #getStringList(Path, List)
      * @see #getStringSafe(Path)
      */
@@ -3144,7 +3120,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of strings from
-     * @return the list of strings at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of strings at the given direct key/string path, or default according to the documentation above
      * @see #getStringList(Object, List)
      * @see #getStringSafe(Path)
      */
@@ -3209,7 +3185,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of integers from
      * @param def  default value returned if no value convertible to list of integers is present (or no value at all)
-     * @return the list of integers at the given path, or default if no supported type (specified above) was found
+     * @return the list of integers at the given path, or default according to the documentation above
      * @see #getIntListSafe(Path)
      * @see #getIntSafe(Path)
      */
@@ -3230,7 +3206,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of integers from
      * @param def default value returned if no value convertible to list of integers is present (or no value at all)
-     * @return the list of integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of integers at the given direct key/string path, or default according to the documentation above
      * @see #getIntListSafe(Object)
      * @see #getIntSafe(Path)
      */
@@ -3246,7 +3222,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
      *
      * @param path the path to get the list of integers from
-     * @return the list of integers at the given path, or default if no supported type (specified above) was found
+     * @return the list of integers at the given path, or default according to the documentation above
      * @see #getIntList(Path, List)
      * @see #getIntSafe(Path)
      */
@@ -3266,7 +3242,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of integers from
-     * @return the list of integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of integers at the given direct key/string path, or default according to the documentation above
      * @see #getIntList(Object, List)
      * @see #getIntSafe(Path)
      */
@@ -3331,7 +3307,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of big integers from
      * @param def  default value returned if no value convertible to list of big integers is present (or no value at all)
-     * @return the list of big integers at the given path, or default if no supported type (specified above) was found
+     * @return the list of big integers at the given path, or default according to the documentation above
      * @see #getBigIntListSafe(Path)
      * @see #getBigIntSafe(Path)
      */
@@ -3352,7 +3328,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of big integers from
      * @param def default value returned if no value convertible to list of big integers is present (or no value at all)
-     * @return the list of big integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of big integers at the given direct key/string path, or default according to the documentation above
      * @see #getBigIntListSafe(Object)
      * @see #getBigIntSafe(Path)
      */
@@ -3368,7 +3344,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
      *
      * @param path the path to get the list of big integers from
-     * @return the list of big integers at the given path, or default if no supported type (specified above) was found
+     * @return the list of big integers at the given path, or default according to the documentation above
      * @see #getBigIntList(Path, List)
      * @see #getBigIntSafe(Path)
      */
@@ -3388,7 +3364,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of big integers from
-     * @return the list of big integers at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of big integers at the given direct key/string path, or default according to the documentation above
      * @see #getBigIntList(Object, List)
      * @see #getBigIntSafe(Path)
      */
@@ -3453,7 +3429,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of bytes from
      * @param def  default value returned if no value convertible to list of bytes is present (or no value at all)
-     * @return the list of bytes at the given path, or default if no supported type (specified above) was found
+     * @return the list of bytes at the given path, or default according to the documentation above
      * @see #getByteListSafe(Path)
      * @see #getByteSafe(Path)
      */
@@ -3474,7 +3450,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of bytes from
      * @param def default value returned if no value convertible to list of bytes is present (or no value at all)
-     * @return the list of bytes at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of bytes at the given direct key/string path, or default according to the documentation above
      * @see #getByteListSafe(Object)
      * @see #getByteSafe(Path)
      */
@@ -3490,7 +3466,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
      *
      * @param path the path to get the list of bytes from
-     * @return the list of bytes at the given path, or default if no supported type (specified above) was found
+     * @return the list of bytes at the given path, or default according to the documentation above
      * @see #getByteList(Path, List)
      * @see #getByteSafe(Path)
      */
@@ -3510,7 +3486,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of bytes from
-     * @return the list of bytes at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of bytes at the given direct key/string path, or default according to the documentation above
      * @see #getByteList(Object, List)
      * @see #getByteSafe(Path)
      */
@@ -3575,7 +3551,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of longs from
      * @param def  default value returned if no value convertible to list of longs is present (or no value at all)
-     * @return the list of longs at the given path, or default if no supported type (specified above) was found
+     * @return the list of longs at the given path, or default according to the documentation above
      * @see #getLongListSafe(Path)
      * @see #getLongSafe(Path)
      */
@@ -3596,7 +3572,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of longs from
      * @param def default value returned if no value convertible to list of longs is present (or no value at all)
-     * @return the list of longs at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of longs at the given direct key/string path, or default according to the documentation above
      * @see #getLongListSafe(Object)
      * @see #getLongSafe(Path)
      */
@@ -3612,7 +3588,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
      *
      * @param path the path to get the list of longs from
-     * @return the list of longs at the given path, or default if no supported type (specified above) was found
+     * @return the list of longs at the given path, or default according to the documentation above
      * @see #getLongList(Path, List)
      * @see #getLongSafe(Path)
      */
@@ -3632,7 +3608,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of longs from
-     * @return the list of longs at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of longs at the given direct key/string path, or default according to the documentation above
      * @see #getLongList(Object, List)
      * @see #getLongSafe(Path)
      */
@@ -3697,7 +3673,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of doubles from
      * @param def  default value returned if no value convertible to list of doubles is present (or no value at all)
-     * @return the list of doubles at the given path, or default if no supported type (specified above) was found
+     * @return the list of doubles at the given path, or default according to the documentation above
      * @see #getDoubleListSafe(Path)
      * @see #getDoubleSafe(Path)
      */
@@ -3718,7 +3694,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of doubles from
      * @param def default value returned if no value convertible to list of doubles is present (or no value at all)
-     * @return the list of doubles at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of doubles at the given direct key/string path, or default according to the documentation above
      * @see #getDoubleListSafe(Object)
      * @see #getDoubleSafe(Path)
      */
@@ -3734,7 +3710,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
      *
      * @param path the path to get the list of doubles from
-     * @return the list of doubles at the given path, or default if no supported type (specified above) was found
+     * @return the list of doubles at the given path, or default according to the documentation above
      * @see #getDoubleList(Path, List)
      * @see #getDoubleSafe(Path)
      */
@@ -3754,7 +3730,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of doubles from
-     * @return the list of doubles at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of doubles at the given direct key/string path, or default according to the documentation above
      * @see #getDoubleList(Object, List)
      * @see #getDoubleSafe(Path)
      */
@@ -3819,7 +3795,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of floats from
      * @param def  default value returned if no value convertible to list of floats is present (or no value at all)
-     * @return the list of floats at the given path, or default if no supported type (specified above) was found
+     * @return the list of floats at the given path, or default according to the documentation above
      * @see #getFloatListSafe(Path)
      * @see #getFloatSafe(Path)
      */
@@ -3840,7 +3816,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of floats from
      * @param def default value returned if no value convertible to list of floats is present (or no value at all)
-     * @return the list of floats at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of floats at the given direct key/string path, or default according to the documentation above
      * @see #getFloatListSafe(Object)
      * @see #getFloatSafe(Path)
      */
@@ -3856,7 +3832,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
      *
      * @param path the path to get the list of floats from
-     * @return the list of floats at the given path, or default if no supported type (specified above) was found
+     * @return the list of floats at the given path, or default according to the documentation above
      * @see #getFloatList(Path, List)
      * @see #getFloatSafe(Path)
      */
@@ -3876,7 +3852,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of floats from
-     * @return the list of floats at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of floats at the given direct key/string path, or default according to the documentation above
      * @see #getFloatList(Object, List)
      * @see #getFloatSafe(Path)
      */
@@ -3941,7 +3917,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of shorts from
      * @param def  default value returned if no value convertible to list of shorts is present (or no value at all)
-     * @return the list of shorts at the given path, or default if no supported type (specified above) was found
+     * @return the list of shorts at the given path, or default according to the documentation above
      * @see #getShortListSafe(Path)
      * @see #getShortSafe(Path)
      */
@@ -3962,7 +3938,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of shorts from
      * @param def default value returned if no value convertible to list of shorts is present (or no value at all)
-     * @return the list of shorts at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of shorts at the given direct key/string path, or default according to the documentation above
      * @see #getShortListSafe(Object)
      * @see #getShortSafe(Path)
      */
@@ -3978,7 +3954,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
      *
      * @param path the path to get the list of shorts from
-     * @return the list of shorts at the given path, or default if no supported type (specified above) was found
+     * @return the list of shorts at the given path, or default according to the documentation above
      * @see #getShortList(Path, List)
      * @see #getShortSafe(Path)
      */
@@ -3998,7 +3974,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of shorts from
-     * @return the list of shorts at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of shorts at the given direct key/string path, or default according to the documentation above
      * @see #getShortList(Object, List)
      * @see #getShortSafe(Path)
      */
@@ -4052,7 +4028,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param path the path to get the list of maps from
      * @param def  default value returned if no value convertible to list of maps is present (or no value at all)
-     * @return the list of maps at the given path, or default if no supported type (specified above) was found
+     * @return the list of maps at the given path, or default according to the documentation above
      * @see #getMapListSafe(Path)
      */
     public List<Map<?, ?>> getMapList(Path path, List<Map<?, ?>> def) {
@@ -4069,7 +4045,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @param key the direct key/string path to get the list of maps from
      * @param def default value returned if no value convertible to list of maps is present (or no value at all)
-     * @return the list of maps at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of maps at the given direct key/string path, or default according to the documentation above
      * @see #getMapListSafe(Object)
      */
     public List<Map<?, ?>> getMapList(Object key, List<Map<?, ?>> def) {
@@ -4081,7 +4057,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * path, or is not a list of maps, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      *
      * @param path the path to get the list of maps from
-     * @return the list of maps at the given path, or default if no supported type (specified above) was found
+     * @return the list of maps at the given path, or default according to the documentation above
      * @see #getMapList(Path, List)
      */
     public List<Map<?, ?>> getMapList(Path path) {
@@ -4097,7 +4073,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of maps from
-     * @return the list of maps at the given direct key/string path, or default if no supported type (specified above) was found
+     * @return the list of maps at the given direct key/string path, or default according to the documentation above
      * @see #getMapList(Object, List)
      */
     public List<Map<?, ?>> getMapList(Object key) {
