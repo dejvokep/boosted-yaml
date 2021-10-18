@@ -8,6 +8,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+/**
+ * Path objects are used as URIs to represent and properly locate values in sections (see {@link Section}) by using
+ * an object array to store the individual keys, allowing for better accessibility and possibilities.
+ * <p>
+ * Path objects are immutable, but handful of methods are provided to create derived paths.
+ */
 public class Path {
 
     /**
@@ -19,8 +25,8 @@ public class Path {
     private final Object[] path;
 
     /**
-     * Constructs path from the given non-empty array/arguments. <b>It is in the caller's best interest to never modify the
-     * objects given (and their contents), as it might cause several issues (inequalities between objects...).
+     * Constructs path from the given non-empty array/arguments. <b>It is in the caller's best interest to never modify
+     * the objects given (and their contents), as it might cause several issues (inequalities between paths...).</b>
      * <p>
      * If the given array/arguments is (one) <code>null</code>, initializes the backing array with that of {@link #NULL_KEY}.
      * <p>
@@ -48,15 +54,14 @@ public class Path {
     /**
      * Constructs the path array from the given string path, by splitting it by {@link GeneralSettings#DEFAULT_SEPARATOR}.
      * <p>
-     * To split using custom separator, please use {@link #Path(String, char)}.
+     * To split using a custom separator, please use {@link #Path(String, char)}.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, to maintain sustainability with
-     * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
-     * {@link Section} methods based on {@link Object} path, which also accept
-     * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getDirectBlockSafe(Object)}.</b>
+     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
+     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
      *
-     * @param path the string path to split (in format <code>a.b</code> for separator <code>.</code>)
+     * @param path the string path to split (in format <code>a.b</code> for separator <code>.</code> for example ->
+     *             <code>[a, b]</code>)
      */
     private Path(@NotNull String path) {
         this.path = path.split(GeneralSettings.DEFAULT_ESCAPED_SEPARATOR);
@@ -66,17 +71,16 @@ public class Path {
      * Constructs the path array from the given string path, by splitting it by the given separator.
      * <p>
      * As path objects should be created only once and then reused (thanks for immutability and to save resources) - e.g.
-     * should be stored in <code>static final</code> fields - it might be fairly disturbing and violating DRY principle
+     * should be stored in <code>static final</code> fields - it might be fairly disturbing and violating the DRY principle
      * to write the same separator everywhere. For that, constructor {@link Path#Path(String, PathFactory)}, or
      * <b>preferably</b>, method {@link PathFactory#create(String)} should be used.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, to maintain sustainability with
-     * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
-     * {@link Section} methods based on {@link Object} path, which also accept
-     * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getDirectBlockSafe(Object)}.</b>
+     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
+     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
      *
-     * @param path      the string path to split (in format <code>a.b</code> for separator <code>.</code>)
+     * @param path      the string path to split (in format <code>a.b</code> for separator <code>.</code> for example ->
+     *                  <code>[a, b]</code>)
      * @param separator separator to split the path by
      */
     private Path(@NotNull String path, char separator) {
@@ -84,13 +88,11 @@ public class Path {
     }
 
     /**
-     * Constructs the path array from the given string path, by splitting it by separator provided by the given factory.
+     * Constructs the path array from the given string path, by splitting it by the separator provided by the factory.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, to maintain sustainability with
-     * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
-     * {@link Section} methods based on {@link Object} path, which also accept
-     * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getDirectBlockSafe(Object)}.</b>
+     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
+     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
      *
      * @param path        the string path to split
      * @param pathFactory separator provider
@@ -101,18 +103,25 @@ public class Path {
     }
 
     /**
-     * Constructs path from the given array/arguments. Empty array/no arguments is considered illegal (might cause
-     * serious issues as well) and will throw {@link IllegalArgumentException}. <b>It is in the caller's best interest
-     * to never modify the objects given (and their contents), as it might cause several issues (inequalities between objects...).</b>
+     * Constructs path from the given array/arguments, enabling usage of wide-range data types as keys.
      * <p>
-     * If the given array/arguments is (one) <code>null</code>, returns {@link #NULL_KEY}.
+     * Empty array/no argument is considered illegal (might cause serious issues as well) and will throw an
+     * {@link IllegalArgumentException}. <b>It is in the caller's best interest to never modify the objects given (and
+     * their contents), as it might cause several issues (inequalities between paths...).</b>
      * <p>
-     * <b>If it is known only one argument is supplied and it is <code>null</code>, use {@link #fromSingleKey(Object)} to
-     * avoid possible compiler warnings.</b>
+     * The given array represents individuals keys to traverse sequentially when looking for value at the path. For
+     * example, for array <code>["x", 1]</code>, processor attempts to get section at key <code>"x"</code> in the
+     * section from which we are looking for the value (where we called get/set/remove method) and then value at key
+     * <code>1</code> in <b>that</b> section. Just like string paths.
      * <p>
-     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
+     * If the given array/arguments is (one) <code>null</code>, initializes the backing array with that of {@link #NULL_KEY}.
+     * To avoid compiler warnings in such cases, it is recommended to use {@link #fromSingleKey(Object)}.
+     * <p>
+     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and
+     * then reuse it.</i>
      *
      * @param path the path array
+     * @return the immutable path
      */
     public static Path from(@Nullable Object... path) {
         return path == null ? NULL_KEY : new Path(path);
@@ -120,14 +129,17 @@ public class Path {
 
     /**
      * Constructs path from the given single argument. The returned path will, therefore, contain only one key (that one
-     * provided). <b>It is in the caller's best interest to never modify the object given (and it's contents), as it might
-     * cause several issues (inequalities between objects...).</b>
+     * provided). <b>It is in the caller's best interest to never modify the objects given (and their contents), as it
+     * might cause several issues (inequalities between paths...).</b>
      * <p>
      * If the given argument is <code>null</code>, returns {@link #NULL_KEY}.
      * <p>
-     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
+     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and
+     * then reuse it.</i>
      *
      * @param key the only key in the path
+     * @return the immutable path
+     * @see #from(Object...)
      */
     public static Path fromSingleKey(@Nullable Object key) {
         return key == null ? NULL_KEY : new Path(key);
@@ -138,15 +150,16 @@ public class Path {
      * <p>
      * To split using custom separator, please use {@link #Path(String, char)}.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, to maintain sustainability with
-     * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
-     * {@link Section} methods based on {@link Object} path, which also accept
-     * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getDirectBlockSafe(Object)}.</b>
+     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
+     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
      * <p>
-     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
+     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and
+     * then reuse it.</i>
      *
-     * @param path the string path to split (in format <code>a.b</code> for separator <code>.</code>)
+     * @param path the string path to split (in format <code>a.b</code> for separator <code>.</code> for example ->
+     *             <code>[a, b]</code>)
+     * @return the immutable path
      */
     public static Path fromString(@NotNull String path) {
         return new Path(path);
@@ -155,71 +168,79 @@ public class Path {
     /**
      * Constructs the path array from the given string path, by splitting it by the given separator.
      * <p>
-     * As path objects should be created only once and then reused, it might be fairly disturbing and violating DRY principle
+     * As path objects should be created only once and then reused (thanks for immutability and to save resources) - e.g.
+     * should be stored in <code>static final</code> fields - it might be fairly disturbing and violating the DRY principle
      * to write the same separator everywhere. For that, constructor {@link Path#Path(String, PathFactory)}, or
      * <b>preferably</b>, method {@link PathFactory#create(String)} should be used.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, to maintain sustainability with
-     * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
-     * {@link Section} methods based on {@link Object} path, which also accept
-     * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getDirectBlockSafe(Object)}.</b>
+     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
+     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
      * <p>
-     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
+     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and
+     * then reuse it.</i>
      *
-     * @param path      the string path to split (in format <code>a.b</code> for separator <code>.</code>)
+     * @param path      the string path to split (in format <code>a.b</code> for separator <code>.</code> for example ->
+     *                  <code>[a, b]</code>)
      * @param separator separator to split the path by
+     * @return the immutable path
      */
     public static Path fromString(@NotNull String path, char separator) {
         return new Path(path, separator);
     }
 
     /**
-     * Constructs the path array from the given string path, by splitting it by separator provided by the given factory.
+     * Constructs the path array from the given string path, by splitting it by the separator supplied by the factory.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, to maintain sustainability with
-     * Spigot/BungeeCord API. However, if you don't wanna use array-based paths at all, just use any of the
-     * {@link Section} methods based on {@link Object} path, which also accept
-     * full string paths under some circumstances. Learn more about this behaviour at
-     * {@link Section#getDirectBlockSafe(Object)}.</b>
+     * As path objects should be created only once and then reused (thanks for immutability and to save resources) - e.g.
+     * should be stored in <code>static final</code> fields - it might be fairly disturbing and violating the DRY principle
+     * to write the same factory everywhere. For that <b>preferably</b>, method {@link PathFactory#create(String)} should
+     * be used.
      * <p>
-     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and then reuse it.</i>
+     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
+     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
+     * <p>
+     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and
+     * then reuse it.</i>
      *
-     * @param path        the string path to split
-     * @param pathFactory separator provider
-     * @see PathFactory#create(String)
+     * @param path        the string path to split (in format <code>a.b</code> for separator <code>.</code> for example ->
+     *                    <code>[a, b]</code>)
+     * @param pathFactory factory used to supply the separator by which to split the given string path
+     * @return the immutable path
      */
-    public static Path fromString(@NotNull String path, @NotNull PathFactory pathFactory) {
+    static Path fromString(@NotNull String path, @NotNull PathFactory pathFactory) {
         return new Path(path, pathFactory);
     }
 
     /**
-     * Performs the same operation on the given path as {@link Path#add(Object)} (and returns the result); if the
-     * given path is <code>null</code>, creates and returns a single-key path created via {@link Path#fromSingleKey(Object)}
+     * Performs the same operation on the given path as {@link Path#add(Object)} (and returns the result); if the given
+     * path is <code>null</code>, creates and returns a single-key path created via {@link Path#fromSingleKey(Object)}
      * from the given key.
      * <p>
-     * <b>It is in the caller's best interest to never modify the object given (and their contents), as it might cause
-     * several issues (inequalities between objects...).</b>
+     * <b>It is in the caller's best interest to never modify the objects given (and their contents), as it might cause
+     * several issues (inequalities between paths...).</b>
      *
-     * @param path the path to add to, or <code>null</code> to create new
-     * @param key  the key to add
-     * @return the new path based on the given one (if not <code>null</code>), with added key at the end
+     * @param path the path to add another key (element) to, or <code>null</code> to create new one
+     * @param key  the key to add, or create a single key path from
+     * @return the new path based on the given one with the given key added at the end, or a single key path according
+     * to the documentation above
      */
     public static Path addTo(@Nullable Path path, @Nullable Object key) {
         return path == null ? Path.from(key) : path.add(key);
     }
 
     /**
-     * Returns the length of the backing array - amount of keys forming this path.
+     * Returns the length of the path (backing array) - amount of keys forming this path.
      *
      * @return the length
      */
-    public int getLength() {
+    public int length() {
         return path.length;
     }
 
     /**
-     * Returns key in this path, at the given position (from the backing array).
+     * Returns key in this path (from the backing array), at the given position.
      *
      * @param i the index
      * @return the key at the given index
@@ -229,13 +250,14 @@ public class Path {
     }
 
     /**
-     * Creates a new path, copies this path's backing array, adds the given key at the end and returns the new path itself.
+     * Creates a new path, copies this path's backing array, adds the given key at the end and returns the new path
+     * created from the new array.
      * <p>
-     * <b>It is in the caller's best interest to never modify the object given (and their contents), as it might cause
-     * several issues (inequalities between objects...).</b>
+     * <b>It is in the caller's best interest to never modify the objects given (and their contents), as it might cause
+     * several issues (inequalities between paths...).</b>
      *
      * @param key the key to add
-     * @return the new path with same elements of this one, except with the given key added at the end
+     * @return the new path with same keys as this one, except with the given key added at the end
      */
     public Path add(@Nullable Object key) {
         //New path
@@ -249,9 +271,10 @@ public class Path {
     /**
      * Returns the parent path of this one.
      * <p>
-     * More formally, creates a new path and copies this path's backing array, except the last element.
+     * More formally, creates a new path and copies this path's backing array without the last element.
      * <p>
-     * Please note that if this path's length is <code>1</code>, invoking this method will create an {@link IllegalArgumentException}, as it is illegal to have empty paths and might cause serious issues as well.
+     * Please note that if this path's length is <code>1</code>, invoking this method will create an
+     * {@link IllegalArgumentException}, as it is illegal to have empty paths. See more at {@link Path#from(Object...)}.
      *
      * @return the parent path of this one
      */

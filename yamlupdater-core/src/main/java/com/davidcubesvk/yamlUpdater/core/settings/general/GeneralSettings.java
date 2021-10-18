@@ -59,10 +59,6 @@ public class GeneralSettings {
      */
     public static final Object DEFAULT_OBJECT = null;
     /**
-     * Default section.
-     */
-    public static final Section DEFAULT_SECTION = null;
-    /**
      * Default number.
      */
     public static final Number DEFAULT_NUMBER = 0;
@@ -101,8 +97,6 @@ public class GeneralSettings {
     private final YamlSerializer serializer;
     //Default object
     private final Object defaultObject;
-    //Default section
-    private final Section defaultSection;
     //Default number
     private final Number defaultNumber;
     //Default string
@@ -129,7 +123,6 @@ public class GeneralSettings {
         this.escapedSeparator = Pattern.quote(String.valueOf(separator));
         this.serializer = builder.serializer;
         this.defaultObject = builder.defaultObject;
-        this.defaultSection = builder.defaultSection;
         this.defaultNumber = builder.defaultNumber;
         this.defaultString = builder.defaultString;
         this.defaultChar = builder.defaultChar;
@@ -314,8 +307,6 @@ public class GeneralSettings {
         private YamlSerializer serializer = DEFAULT_SERIALIZER;
         //Default object
         private Object defaultObject = DEFAULT_OBJECT;
-        //Default section
-        private Section defaultSection = DEFAULT_SECTION;
         //Default number
         private Number defaultNumber = DEFAULT_NUMBER;
         //Default string
@@ -394,19 +385,6 @@ public class GeneralSettings {
          */
         public Builder setDefaultObject(@Nullable Object defaultObject) {
             this.defaultObject = defaultObject;
-            return this;
-        }
-
-        /**
-         * Sets default section used by section getters if the return type is section.
-         * <p>
-         * <b>Default: </b>{@link #DEFAULT_SECTION}
-         *
-         * @param defaultSection default section
-         * @return the builder
-         */
-        public Builder setDefaultSection(@Nullable Section defaultSection) {
-            this.defaultSection = defaultSection;
             return this;
         }
 

@@ -686,7 +686,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Current section
         Section current = this;
         //All keys
-        for (int i = 0; i < path.getLength(); i++)
+        for (int i = 0; i < path.length(); i++)
             //Create
             current = current.createSectionInternal(path.get(i), null);
         //Return
@@ -793,9 +793,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
         Section section = this;
 
         //While not out of bounds
-        while (++i < path.getLength()) {
+        while (++i < path.length()) {
             //If at the last index
-            if (i + 1 >= path.getLength()) {
+            if (i + 1 >= path.length()) {
                 //Call the direct method
                 section.setInternal(adaptKey(path.get(i)), value);
                 return;
@@ -940,7 +940,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return if any value was removed
      */
     public boolean remove(@NotNull Path path) {
-        return removeInternal(getParent(path).orElse(null), adaptKey(path.get(path.getLength() - 1)));
+        return removeInternal(getParent(path).orElse(null), adaptKey(path.get(path.length() - 1)));
     }
 
     /**
@@ -1146,7 +1146,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         Section section = this;
 
         //While not at the parent section
-        while (++i < path.getLength() - 1) {
+        while (++i < path.length() - 1) {
             //The block at the key
             Block<?> block = section.getValue().getOrDefault(adaptKey(path.get(i)), null);
             //If not a section

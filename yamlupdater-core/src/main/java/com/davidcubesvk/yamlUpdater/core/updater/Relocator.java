@@ -87,7 +87,7 @@ public class Relocator {
         if (!parent.isPresent())
             return;
         //The block
-        Optional<Block<?>> block = parent.get().getDirectBlockSafe(to.get(to.getLength() - 1));
+        Optional<Block<?>> block = parent.get().getDirectBlockSafe(to.get(to.length() - 1));
         //If absent
         if (!block.isPresent())
             return;

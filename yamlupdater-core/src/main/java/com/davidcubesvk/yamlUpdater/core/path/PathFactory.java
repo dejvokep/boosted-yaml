@@ -1,9 +1,13 @@
 package com.davidcubesvk.yamlUpdater.core.path;
 
+import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 
 import java.util.regex.Pattern;
 
+/**
+ * Factory used to build paths from string paths in bulk.
+ */
 public class PathFactory {
 
     //The separator
@@ -12,7 +16,7 @@ public class PathFactory {
     private final String escapedSeparator;
 
     /**
-     * Creates this factory with the separator specified by the given settings.
+     * Creates a factory with the separator specified by the given settings.
      */
     public PathFactory(GeneralSettings generalSettings) {
         this.separator = generalSettings.getSeparator();
@@ -20,7 +24,7 @@ public class PathFactory {
     }
 
     /**
-     * Creates this factory with the given separator.
+     * Creates a factory with the given separator.
      */
     public PathFactory(char separator) {
         this.separator = separator;
@@ -29,7 +33,7 @@ public class PathFactory {
 
 
     /**
-     * Creates this factory with the defaults specified by {@link GeneralSettings#DEFAULT_SEPARATOR} and
+     * Creates a factory with the defaults specified by {@link GeneralSettings#DEFAULT_SEPARATOR} and
      * {@link GeneralSettings#DEFAULT_ESCAPED_SEPARATOR}.
      */
     public PathFactory() {
@@ -38,18 +42,21 @@ public class PathFactory {
     }
 
     /**
-     * Creates and returns a path from the given string path containing individual keys
-     * (e.g. <code>a.b</code> for separator <code>.</code>) split using this factory's separator.
+     * Constructs the path array from the given string path, by splitting it by this factory's separator.
+     * <p>
+     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
+     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
+     * <p>
+     * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and
+     * then reuse it.</i>
      *
-     * @param path the string path to create the path from
-     * @return the path object
+     * @param path the string path to split (in format <code>a.b</code> for separator <code>.</code> for example ->
+     *             <code>[a, b]</code>)
+     * @return the immutable path
      */
     public Path create(String path) {
         return Path.fromString(path, this);
-    }
-
-    public Path create(Object... path) {
-        return Path.from(path);
     }
 
     /**
