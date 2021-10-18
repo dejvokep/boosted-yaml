@@ -4028,40 +4028,61 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of maps, returns an empty optional.
+     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
+     * <p>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * <p>
+     * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
+     * the section. It is, however, if needed, still recommended to call {@link #set(Path, Object)} afterwards.
      *
-     * @param path the path to get the list of maps from
-     * @return the list of maps at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the map list at
+     * @return the map list at the given path
+     * @see #getListSafe(Path)
      */
     public Optional<List<Map<?, ?>>> getMapListSafe(@NotNull Path path) {
         return toMapList(getListSafe(path));
     }
 
     /**
-     * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of maps, returns an empty optional.
+     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (pathing) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * <p>
+     * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
+     * the section. It is, however, if needed, still recommended to call {@link #set(String, Object)} afterwards.
      *
-     * @param key the direct key/string path to get the list of maps from
-     * @return the list of maps at the given direct key/string path
-     * @see #getSafe(Object)
+     * @param path the path to get the map list at
+     * @return the map list at the given path
+     * @see #getListSafe(String)
      */
     public Optional<List<Map<?, ?>>> getMapListSafe(@NotNull String path) {
         return toMapList(getListSafe(path));
     }
 
     /**
-     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of maps, returns the provided default.
+     * Returns list of maps at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
+     * <p>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * <p>
+     * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(Path, Object)} afterwards.
      *
-     * @param path the path to get the list of maps from
-     * @param def  default value returned if no value convertible to list of maps is present (or no value at all)
-     * @return the list of maps at the given path, or default according to the documentation above
+     * @param path the path to get the map list at
+     * @param def  the default value
+     * @return the map list at the given path, or default according to the documentation above
      * @see #getMapListSafe(Path)
      */
     public List<Map<?, ?>> getMapList(@NotNull Path path, @Nullable List<Map<?, ?>> def) {
@@ -4069,28 +4090,42 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of maps, returns the provided default.
+     * Returns list of maps at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * <p>
+     * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(String, Object)} afterwards.
      *
-     * @param key the direct key/string path to get the list of maps from
-     * @param def default value returned if no value convertible to list of maps is present (or no value at all)
-     * @return the list of maps at the given direct key/string path, or default according to the documentation above
-     * @see #getMapListSafe(Object)
+     * @param path the path to get the map list at
+     * @param def  the default value
+     * @return the map list at the given path, or default according to the documentation above
+     * @see #getMapListSafe(String)
      */
     public List<Map<?, ?>> getMapList(@NotNull String path, @Nullable List<Map<?, ?>> def) {
         return getMapListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of maps at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of maps, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of maps at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * <p>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * <p>
+     * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(Path, Object)} afterwards.
      *
-     * @param path the path to get the list of maps from
-     * @return the list of maps at the given path, or default according to the documentation above
+     * @param path the path to get the map list at
+     * @return the map list at the given path, or default according to the documentation above
      * @see #getMapList(Path, List)
      */
     public List<Map<?, ?>> getMapList(@NotNull Path path) {
@@ -4098,16 +4133,21 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns list of maps at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of maps, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of maps at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * <p>
+     * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(String, Object)} afterwards.
      *
-     * @param key the direct key/string path to get the list of maps from
-     * @return the list of maps at the given direct key/string path, or default according to the documentation above
-     * @see #getMapList(Object, List)
+     * @param path the path to get the map list at
+     * @return the map list at the given path, or default according to the documentation above
+     * @see #getMapList(String, List)
      */
     public List<Map<?, ?>> getMapList(@NotNull String path) {
         return getMapList(path, root.getGeneralSettings().getDefaultList());
