@@ -22,10 +22,10 @@ import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions
  * Functionality of this class is heavily dependent on the root file (instance of root {@link YamlFile}), to be more
  * specific, on it's settings.
  * <p>
- * The public methods of this class are divided into 2 groups, by what they require as the path and therefore, what should be used for certain path mode:
+ * The public methods of this class are divided into 2 groups, by what they require as the path and therefore, what should be used for certain key mode:
  * <ul>
- *     <li>{@link Path} - works <b>independently</b> of the root's path mode, please see {@link #getBlockSafe(Path)}</li>
- *     <li>{@link Object} - works (functions) <b>dependently</b> of the root's path mode, please see {@link #getDirectBlockSafe(Object)}</li>
+ *     <li>{@link Path} - works <b>independently</b> of the root's key mode, please see {@link #getBlockSafe(Path)}</li>
+ *     <li>{@link Object} - works (functions) <b>dependently</b> of the root's key mode, please see {@link #getDirectBlockSafe(Object)}</li>
  * </ul>
  * <p>
  * Also, it is important to note that mappings stored in sections are key=value pairs, where the value is the actual
@@ -307,10 +307,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Adapts the given key, so it fits the path mode configured via the root's general settings
-     * ({@link GeneralSettings#getPathMode()}).
+     * Adapts the given key, so it fits the key mode configured via the root's general settings
+     * ({@link GeneralSettings#getKeyMode()}).
      * <p>
-     * More formally, if path mode is {@link GeneralSettings.PathMode#STRING_BASED STRING_BASED}, returns the result of
+     * More formally, if key mode is {@link GeneralSettings.KeyMode#STRING_BASED STRING_BASED}, returns the result of
      * {@link Object#toString()} on the given key object, the key object given otherwise.
      * <p>
      * If the given key is <code>null</code>, returns <code>null</code>.
@@ -319,7 +319,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the adapted key
      */
     public Object adaptKey(@Nullable Object key) {
-        return key == null ? null : root.getGeneralSettings().getPathMode() == GeneralSettings.PathMode.OBJECT_BASED ? key : key.toString();
+        return key == null ? null : root.getGeneralSettings().getKeyMode() == GeneralSettings.KeyMode.OBJECT_BASED ? key : key.toString();
     }
 
     //
@@ -371,7 +371,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * It is guaranteed that call to {@link #contains(String)} with any path from the returned set will always return
      * <code>true</code> (unless modified in between).
      * <p>
-     * This is, however, not guaranteed if the root's path mode is set to {@link GeneralSettings.PathMode#OBJECT_BASED OBJECT_BASED},
+     * This is, however, not guaranteed if the root's key mode is set to {@link GeneralSettings.KeyMode#OBJECT_BASED OBJECT_BASED},
      * therefore, in this case, <b>an {@link UnsupportedOperationException} will be thrown.</b>
      *
      * @param deep if to get paths deeply
@@ -379,8 +379,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public Set<String> getStrPaths(boolean deep) {
         //If not string mode
-        if (root.getGeneralSettings().getPathMode() != GeneralSettings.PathMode.STRING_BASED)
-            throw new UnsupportedOperationException("Cannot build string paths if the path mode is not set to STRING_BASED!");
+        if (root.getGeneralSettings().getKeyMode() != GeneralSettings.KeyMode.STRING_BASED)
+            throw new UnsupportedOperationException("Cannot build string paths if the key mode is not set to STRING_BASED!");
 
         //Create a set
         Set<String> keys = root.getGeneralSettings().getDefaultSet();
@@ -467,7 +467,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * It is guaranteed that call to {@link #get(String)} with any path from the returned map's key set will always
      * return the value assigned to that path in the returned map. (unless modified in between).
      * <p>
-     * This is, however, not guaranteed if the root's path mode is set to {@link GeneralSettings.PathMode#OBJECT_BASED OBJECT_BASED},
+     * This is, however, not guaranteed if the root's key mode is set to {@link GeneralSettings.KeyMode#OBJECT_BASED OBJECT_BASED},
      * therefore, in this case, <b>an {@link UnsupportedOperationException} will be thrown.</b>
      *
      * @param deep if to get values from sub-sections too
@@ -475,8 +475,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public Map<String, Object> getStrPathValues(boolean deep) {
         //If not string mode
-        if (root.getGeneralSettings().getPathMode() != GeneralSettings.PathMode.STRING_BASED)
-            throw new UnsupportedOperationException("Cannot build string paths if the path mode is not set to STRING_BASED!");
+        if (root.getGeneralSettings().getKeyMode() != GeneralSettings.KeyMode.STRING_BASED)
+            throw new UnsupportedOperationException("Cannot build string paths if the key mode is not set to STRING_BASED!");
 
         //Create a map
         Map<String, Object> values = root.getGeneralSettings().getDefaultMap();
@@ -547,7 +547,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * It is guaranteed that call to {@link #getBlock(String)} with any path from the returned map's key set will always
      * return the value assigned to that path in the returned map. (unless modified in between).
      * <p>
-     * This is, however, not guaranteed if the root's path mode is set to {@link GeneralSettings.PathMode#OBJECT_BASED OBJECT_BASED},
+     * This is, however, not guaranteed if the root's key mode is set to {@link GeneralSettings.KeyMode#OBJECT_BASED OBJECT_BASED},
      * therefore, in this case, <b>an {@link UnsupportedOperationException} will be thrown.</b>
      *
      * @param deep if to get values from sub-sections too
@@ -999,7 +999,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * to the declaration of this class.
      * <p>
      * <b>Functionality notes:</b> When individual elements (keys) of the given path are traversed, they are (without
-     * modifying the path object given - it is immutable) adapted to the current path mode setting (see
+     * modifying the path object given - it is immutable) adapted to the current key mode setting (see
      * {@link #adaptKey(Object)}).
      * <p>
      * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
@@ -1060,8 +1060,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * {@link Path#fromString(String, char)} (which effectively splits the given string path into separate string keys
      * according to the separator).
      * <p>
-     * This method works independently of the root's {@link GeneralSettings#getPathMode()}. However, as the given path
-     * contains individual <b>string</b> keys, if set to {@link GeneralSettings.PathMode#OBJECT_BASED}, you will
+     * This method works independently of the root's {@link GeneralSettings#getKeyMode()}. However, as the given path
+     * contains individual <b>string</b> keys, if set to {@link GeneralSettings.KeyMode#OBJECT_BASED}, you will
      * only be able to get (traversing included) keys which were parsed as strings (no integer, boolean... or
      * <code>null</code> keys) by SnakeYAML Engine (please see <a href="https://yaml.org/spec/1.2.2/">YAML 1.2 spec</a>).
      * If such functionality is needed, use {@link #getBlockSafe(Path)} instead, please.

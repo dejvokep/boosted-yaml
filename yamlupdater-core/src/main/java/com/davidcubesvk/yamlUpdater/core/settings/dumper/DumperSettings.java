@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * Loader settings; wrapper for SnakeYAML Engine's {@link DumpSettings} class which is more
  * detailed, provides more options and possibilities, hides options which should not be configured.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class DumperSettings {
 
     /**

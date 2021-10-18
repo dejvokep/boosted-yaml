@@ -87,9 +87,9 @@ public class Relocator {
         if (!parent.isPresent())
             return;
         //The block
-        Optional<Block<?>> block = parent.get().getDirectBlockSafe(to.get(to.length() - 1));
+        Block<?> block = parent.get().getValue().get(to.get(to.length() - 1));
         //If absent
-        if (!block.isPresent())
+        if (block == null)
             return;
 
         //Remove
@@ -100,7 +100,7 @@ public class Relocator {
         apply(relocations, keyIterator, to);
 
         //Relocate
-        file.set(to, block.get());
+        file.set(to, block);
     }
 
     /**
@@ -113,7 +113,7 @@ public class Relocator {
         //If empty
         if (section.isEmpty(false) && !section.isRoot()) {
             //Remove
-            section.getParent().remove(section.getName());
+            section.getParent().getValue().remove(section.getName());
             //Parents
             removeParents(section.getParent());
         }

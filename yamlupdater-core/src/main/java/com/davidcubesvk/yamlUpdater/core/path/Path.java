@@ -56,6 +56,10 @@ public class Path {
      * <p>
      * To split using a custom separator, please use {@link #Path(String, char)}.
      * <p>
+     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
+     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
+     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
      * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
@@ -75,7 +79,11 @@ public class Path {
      * to write the same separator everywhere. For that, constructor {@link Path#Path(String, PathFactory)}, or
      * <b>preferably</b>, method {@link PathFactory#create(String)} should be used.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
+     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
+     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
+     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * <p>
+     * <b>This method connects object array oriented-paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
      * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
      *
@@ -89,6 +97,10 @@ public class Path {
 
     /**
      * Constructs the path array from the given string path, by splitting it by the separator provided by the factory.
+     * <p>
+     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
+     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
+     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
@@ -150,6 +162,10 @@ public class Path {
      * <p>
      * To split using custom separator, please use {@link #Path(String, char)}.
      * <p>
+     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
+     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
+     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
      * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
@@ -172,6 +188,10 @@ public class Path {
      * should be stored in <code>static final</code> fields - it might be fairly disturbing and violating the DRY principle
      * to write the same separator everywhere. For that, constructor {@link Path#Path(String, PathFactory)}, or
      * <b>preferably</b>, method {@link PathFactory#create(String)} should be used.
+     * <p>
+     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
+     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
+     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
@@ -196,6 +216,10 @@ public class Path {
      * should be stored in <code>static final</code> fields - it might be fairly disturbing and violating the DRY principle
      * to write the same factory everywhere. For that <b>preferably</b>, method {@link PathFactory#create(String)} should
      * be used.
+     * <p>
+     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
+     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
+     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for

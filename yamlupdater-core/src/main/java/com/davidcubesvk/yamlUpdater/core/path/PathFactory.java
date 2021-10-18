@@ -44,6 +44,10 @@ public class PathFactory {
     /**
      * Constructs the path array from the given string path, by splitting it by this factory's separator.
      * <p>
+     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
+     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
+     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
      * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>

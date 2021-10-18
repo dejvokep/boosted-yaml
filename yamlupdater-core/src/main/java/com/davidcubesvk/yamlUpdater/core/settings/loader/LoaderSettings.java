@@ -19,7 +19,7 @@ import java.util.Optional;
  * Loader settings; wrapper for SnakeYAML Engine's {@link LoadSettings} class which is more
  * detailed, provides more options and possibilities, hides options which should not be configured.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class LoaderSettings {
 
     /**
