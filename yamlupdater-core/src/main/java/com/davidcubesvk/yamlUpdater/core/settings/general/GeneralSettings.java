@@ -194,15 +194,6 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default section to use by section getters if the return type is section.
-     *
-     * @return the default section
-     */
-    public Section getDefaultSection() {
-        return defaultSection;
-    }
-
-    /**
      * Returns default string to use by section getters if the return type is string.
      *
      * @return the default string

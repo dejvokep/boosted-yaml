@@ -265,7 +265,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return sub-path for path of this section
      * @see Path#addTo(Path, Object)
      */
-    public Path getSubPath(Object key) {
+    public Path getSubPath(@Nullable Object key) {
         return Path.addTo(path, key);
     }
 
@@ -1480,8 +1480,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a section, returns an empty optional.
+     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given path, or is not a {@link Section}, returns an empty optional.
      *
      * @param path the path to get the section at
      * @return the section at the given path
@@ -1492,8 +1492,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a section, returns an empty optional.
+     * Returns section at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given path, or is not a {@link Section}, returns an empty optional.
      *
      * @param path the path to get the section at
      * @return the section at the given path
@@ -1504,32 +1504,32 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns default
-     * value defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
+     * Returns section at the given path. If nothing is present given path, or is not a {@link Section}, returns
+     * <code>null</code>.
      *
      * @param path the path to get the section at
      * @return the section at the given path, or default according to the documentation above
      * @see #getSection(Path, Section)
      */
     public Section getSection(@NotNull Path path) {
-        return getSection(path, root.getGeneralSettings().getDefaultSection());
+        return getSection(path, null);
     }
 
     /**
-     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns default
-     * value defined by root's general settings {@link GeneralSettings#getDefaultSection()}.
+     * Returns section at the given path. If nothing is present at the given path, or is not a {@link Section}, returns
+     * <code>null</code>.
      *
      * @param path the path to get the section at
      * @return the section at the given path, or default according to the documentation above
      * @see #getSection(String, Section)
      */
     public Section getSection(@NotNull String path) {
-        return getSection(path, root.getGeneralSettings().getDefaultSection());
+        return getSection(path, null);
     }
 
     /**
-     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns the
-     * provided default.
+     * Returns section at the given path. If nothing is present at the given path, or is not a {@link Section}, returns
+     * the provided default.
      *
      * @param path the path to get the section at
      * @param def  the default value
@@ -1541,8 +1541,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns section at the given path. If nothing exists at the given path, or is not a section, returns the
-     * provided default.
+     * Returns section at the given path. If nothing is present at the given path, or is not a {@link Section}, returns
+     * the provided default.
      *
      * @param path the path to get the section at
      * @param def  the default value
@@ -2646,7 +2646,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the long at the given path
      * @see #getAsSafe(Path, Class)
      */
-    public Optional<Long> getLongSafe(Path path) {
+    public Optional<Long> getLongSafe(@NotNull Path path) {
         return toLong(getAsSafe(path, Number.class));
     }
 
@@ -3004,113 +3004,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of strings, returns an empty optional.
+     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getStringSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of strings from
-     * @return the list of strings at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the string list at
+     * @return the string list at the given path
+     * @see #getListSafe(Path)
      * @see #getStringSafe(Path)
      */
-    public Optional<List<String>> getStringListSafe(Path path) {
+    public Optional<List<String>> getStringListSafe(@NotNull Path path) {
         return toStringList(getListSafe(path));
     }
 
     /**
-     * Returns list of strings at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of strings, returns an empty optional.
+     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getStringSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of strings from
-     * @return the list of strings at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getStringSafe(Path)
+     * @param path the path to get the string list at
+     * @return the string list at the given path
+     * @see #getListSafe(String)
+     * @see #getStringSafe(String)
      */
-    public Optional<List<String>> getStringListSafe(Object key) {
-        return toStringList(getListSafe(key));
+    public Optional<List<String>> getStringListSafe(@NotNull String path) {
+        return toStringList(getListSafe(path));
     }
 
     /**
-     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of strings, returns the provided default.
+     * Returns list of strings at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getStringSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of strings from
-     * @param def  default value returned if no value convertible to list of strings is present (or no value at all)
-     * @return the list of strings at the given path, or default according to the documentation above
+     * @param path the path to get the string list at
+     * @param def  the default value
+     * @return the string list at the given path, or default according to the documentation above
      * @see #getStringListSafe(Path)
      * @see #getStringSafe(Path)
      */
-    public List<String> getStringList(Path path, List<String> def) {
+    public List<String> getStringList(@NotNull Path path, @Nullable List<String> def) {
         return getStringListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of strings at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of strings, returns the provided default.
+     * Returns list of strings at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getStringSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of strings from
-     * @param def default value returned if no value convertible to list of strings is present (or no value at all)
-     * @return the list of strings at the given direct key/string path, or default according to the documentation above
-     * @see #getStringListSafe(Object)
-     * @see #getStringSafe(Path)
+     * @param path the path to get the string list at
+     * @param def  the default value
+     * @return the string list at the given path, or default according to the documentation above
+     * @see #getStringListSafe(String)
+     * @see #getStringSafe(String)
      */
-    public List<String> getStringList(Object key, List<String> def) {
-        return getStringListSafe(key).orElse(def);
+    public List<String> getStringList(@NotNull String path, @Nullable List<String> def) {
+        return getStringListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of strings at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of strings, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of strings at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getStringSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of strings from
-     * @return the list of strings at the given path, or default according to the documentation above
+     * @param path the path to get the string list at
+     * @return the string list at the given path, or default according to the documentation above
      * @see #getStringList(Path, List)
      * @see #getStringSafe(Path)
      */
-    public List<String> getStringList(Path path) {
+    public List<String> getStringList(@NotNull Path path) {
         return getStringList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of strings at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of strings, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of strings at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getStringSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getStringSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of strings from
-     * @return the list of strings at the given direct key/string path, or default according to the documentation above
-     * @see #getStringList(Object, List)
-     * @see #getStringSafe(Path)
+     * @param path the path to get the string list at
+     * @return the string list at the given path, or default according to the documentation above
+     * @see #getStringList(String, List)
+     * @see #getStringSafe(String)
      */
-    public List<String> getStringList(Object key) {
-        return getStringList(key, root.getGeneralSettings().getDefaultList());
+    public List<String> getStringList(@NotNull String path) {
+        return getStringList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3126,113 +3132,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of integers, returns an empty optional.
+     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getIntSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of integers from
-     * @return the list of integers at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the integer list at
+     * @return the integer list at the given path
+     * @see #getListSafe(Path)
      * @see #getIntSafe(Path)
      */
-    public Optional<List<Integer>> getIntListSafe(Path path) {
+    public Optional<List<Integer>> getIntListSafe(@NotNull Path path) {
         return toIntList(getListSafe(path));
     }
 
     /**
-     * Returns list of integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of integers, returns an empty optional.
+     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getIntSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of integers from
-     * @return the list of integers at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getIntSafe(Path)
+     * @param path the path to get the integer list at
+     * @return the integer list at the given path
+     * @see #getListSafe(String)
+     * @see #getIntSafe(String)
      */
-    public Optional<List<Integer>> getIntListSafe(Object key) {
-        return toIntList(getListSafe(key));
+    public Optional<List<Integer>> getIntListSafe(@NotNull String path) {
+        return toIntList(getListSafe(path));
     }
 
     /**
-     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of integers, returns the provided default.
+     * Returns list of integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getIntSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of integers from
-     * @param def  default value returned if no value convertible to list of integers is present (or no value at all)
-     * @return the list of integers at the given path, or default according to the documentation above
+     * @param path the path to get the integer list at
+     * @param def  the default value
+     * @return the integer list at the given path, or default according to the documentation above
      * @see #getIntListSafe(Path)
      * @see #getIntSafe(Path)
      */
-    public List<Integer> getIntList(Path path, List<Integer> def) {
+    public List<Integer> getIntList(@NotNull Path path, @Nullable List<Integer> def) {
         return getIntListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of integers, returns the provided default.
+     * Returns list of integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getIntSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of integers from
-     * @param def default value returned if no value convertible to list of integers is present (or no value at all)
-     * @return the list of integers at the given direct key/string path, or default according to the documentation above
-     * @see #getIntListSafe(Object)
-     * @see #getIntSafe(Path)
+     * @param path the path to get the integer list at
+     * @param def  the default value
+     * @return the integer list at the given path, or default according to the documentation above
+     * @see #getIntListSafe(String)
+     * @see #getIntSafe(String)
      */
-    public List<Integer> getIntList(Object key, List<Integer> def) {
-        return getIntListSafe(key).orElse(def);
+    public List<Integer> getIntList(@NotNull String path, @Nullable List<Integer> def) {
+        return getIntListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getIntSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of integers from
-     * @return the list of integers at the given path, or default according to the documentation above
+     * @param path the path to get the integer list at
+     * @return the integer list at the given path, or default according to the documentation above
      * @see #getIntList(Path, List)
      * @see #getIntSafe(Path)
      */
-    public List<Integer> getIntList(Path path) {
+    public List<Integer> getIntList(@NotNull Path path) {
         return getIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getIntSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of integers from
-     * @return the list of integers at the given direct key/string path, or default according to the documentation above
-     * @see #getIntList(Object, List)
-     * @see #getIntSafe(Path)
+     * @param path the path to get the integer list at
+     * @return the integer list at the given path, or default according to the documentation above
+     * @see #getIntList(String, List)
+     * @see #getIntSafe(String)
      */
-    public List<Integer> getIntList(Object key) {
-        return getIntList(key, root.getGeneralSettings().getDefaultList());
+    public List<Integer> getIntList(@NotNull String path) {
+        return getIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3248,113 +3260,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of big integers, returns an empty optional.
+     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getBigIntSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of big integers from
-     * @return the list of big integers at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the big integer list at
+     * @return the big integer list at the given path
+     * @see #getListSafe(Path)
      * @see #getBigIntSafe(Path)
      */
-    public Optional<List<BigInteger>> getBigIntListSafe(Path path) {
+    public Optional<List<BigInteger>> getBigIntListSafe(@NotNull Path path) {
         return toBigIntList(getListSafe(path));
     }
 
     /**
-     * Returns list of big integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of big integers, returns an empty optional.
+     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getBigIntSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of big integers from
-     * @return the list of big integers at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getBigIntSafe(Path)
+     * @param path the path to get the big integer list at
+     * @return the big integer list at the given path
+     * @see #getListSafe(String)
+     * @see #getBigIntSafe(String)
      */
-    public Optional<List<BigInteger>> getBigIntListSafe(Object key) {
-        return toBigIntList(getListSafe(key));
+    public Optional<List<BigInteger>> getBigIntListSafe(@NotNull String path) {
+        return toBigIntList(getListSafe(path));
     }
 
     /**
-     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of big integers, returns the provided default.
+     * Returns list of big integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getBigIntSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of big integers from
-     * @param def  default value returned if no value convertible to list of big integers is present (or no value at all)
-     * @return the list of big integers at the given path, or default according to the documentation above
+     * @param path the path to get the big integer list at
+     * @param def  the default value
+     * @return the big integer list at the given path, or default according to the documentation above
      * @see #getBigIntListSafe(Path)
      * @see #getBigIntSafe(Path)
      */
-    public List<BigInteger> getBigIntList(Path path, List<BigInteger> def) {
+    public List<BigInteger> getBigIntList(@NotNull Path path, @Nullable List<BigInteger> def) {
         return getBigIntListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of big integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of big integers, returns the provided default.
+     * Returns list of big integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getBigIntSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of big integers from
-     * @param def default value returned if no value convertible to list of big integers is present (or no value at all)
-     * @return the list of big integers at the given direct key/string path, or default according to the documentation above
-     * @see #getBigIntListSafe(Object)
-     * @see #getBigIntSafe(Path)
+     * @param path the path to get the big integer list at
+     * @param def  the default value
+     * @return the big integer list at the given path, or default according to the documentation above
+     * @see #getBigIntListSafe(String)
+     * @see #getBigIntSafe(String)
      */
-    public List<BigInteger> getBigIntList(Object key, List<BigInteger> def) {
-        return getBigIntListSafe(key).orElse(def);
+    public List<BigInteger> getBigIntList(@NotNull String path, @Nullable List<BigInteger> def) {
+        return getBigIntListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of big integers at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of big integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of big integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getBigIntSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of big integers from
-     * @return the list of big integers at the given path, or default according to the documentation above
+     * @param path the path to get the big integer list at
+     * @return the big integer list at the given path, or default according to the documentation above
      * @see #getBigIntList(Path, List)
      * @see #getBigIntSafe(Path)
      */
-    public List<BigInteger> getBigIntList(Path path) {
+    public List<BigInteger> getBigIntList(@NotNull Path path) {
         return getBigIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of big integers at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of big integers, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of big integers at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getBigIntSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getBigIntSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of big integers from
-     * @return the list of big integers at the given direct key/string path, or default according to the documentation above
-     * @see #getBigIntList(Object, List)
-     * @see #getBigIntSafe(Path)
+     * @param path the path to get the big integer list at
+     * @return the big integer list at the given path, or default according to the documentation above
+     * @see #getBigIntList(String, List)
+     * @see #getBigIntSafe(String)
      */
-    public List<BigInteger> getBigIntList(Object key) {
-        return getBigIntList(key, root.getGeneralSettings().getDefaultList());
+    public List<BigInteger> getBigIntList(@NotNull String path) {
+        return getBigIntList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3370,113 +3388,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of bytes, returns an empty optional.
+     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getByteSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of bytes from
-     * @return the list of bytes at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the byte list at
+     * @return the byte list at the given path
+     * @see #getListSafe(Path)
      * @see #getByteSafe(Path)
      */
-    public Optional<List<Byte>> getByteListSafe(Path path) {
+    public Optional<List<Byte>> getByteListSafe(@NotNull Path path) {
         return toByteList(getListSafe(path));
     }
 
     /**
-     * Returns list of bytes at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of bytes, returns an empty optional.
+     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getByteSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of bytes from
-     * @return the list of bytes at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getByteSafe(Path)
+     * @param path the path to get the byte list at
+     * @return the byte list at the given path
+     * @see #getListSafe(String)
+     * @see #getByteSafe(String)
      */
-    public Optional<List<Byte>> getByteListSafe(Object key) {
-        return toByteList(getListSafe(key));
+    public Optional<List<Byte>> getByteListSafe(@NotNull String path) {
+        return toByteList(getListSafe(path));
     }
 
     /**
-     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of bytes, returns the provided default.
+     * Returns list of bytes at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getByteSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of bytes from
-     * @param def  default value returned if no value convertible to list of bytes is present (or no value at all)
-     * @return the list of bytes at the given path, or default according to the documentation above
+     * @param path the path to get the byte list at
+     * @param def  the default value
+     * @return the byte list at the given path, or default according to the documentation above
      * @see #getByteListSafe(Path)
      * @see #getByteSafe(Path)
      */
-    public List<Byte> getByteList(Path path, List<Byte> def) {
+    public List<Byte> getByteList(@NotNull Path path, @Nullable List<Byte> def) {
         return getByteListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of bytes at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of bytes, returns the provided default.
+     * Returns list of bytes at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getByteSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of bytes from
-     * @param def default value returned if no value convertible to list of bytes is present (or no value at all)
-     * @return the list of bytes at the given direct key/string path, or default according to the documentation above
-     * @see #getByteListSafe(Object)
-     * @see #getByteSafe(Path)
+     * @param path the path to get the byte list at
+     * @param def  the default value
+     * @return the byte list at the given path, or default according to the documentation above
+     * @see #getByteListSafe(String)
+     * @see #getByteSafe(String)
      */
-    public List<Byte> getByteList(Object key, List<Byte> def) {
-        return getByteListSafe(key).orElse(def);
+    public List<Byte> getByteList(@NotNull String path, @Nullable List<Byte> def) {
+        return getByteListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of bytes at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of bytes, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of bytes at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getByteSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of bytes from
-     * @return the list of bytes at the given path, or default according to the documentation above
+     * @param path the path to get the byte list at
+     * @return the byte list at the given path, or default according to the documentation above
      * @see #getByteList(Path, List)
      * @see #getByteSafe(Path)
      */
-    public List<Byte> getByteList(Path path) {
+    public List<Byte> getByteList(@NotNull Path path) {
         return getByteList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of bytes at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of bytes, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of bytes at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getByteSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getByteSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of bytes from
-     * @return the list of bytes at the given direct key/string path, or default according to the documentation above
-     * @see #getByteList(Object, List)
-     * @see #getByteSafe(Path)
+     * @param path the path to get the byte list at
+     * @return the byte list at the given path, or default according to the documentation above
+     * @see #getByteList(String, List)
+     * @see #getByteSafe(String)
      */
-    public List<Byte> getByteList(Object key) {
-        return getByteList(key, root.getGeneralSettings().getDefaultList());
+    public List<Byte> getByteList(@NotNull String path) {
+        return getByteList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3492,113 +3516,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of longs, returns an empty optional.
+     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getLongSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of longs from
-     * @return the list of longs at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the long list at
+     * @return the long list at the given path
+     * @see #getListSafe(Path)
      * @see #getLongSafe(Path)
      */
-    public Optional<List<Long>> getLongListSafe(Path path) {
+    public Optional<List<Long>> getLongListSafe(@NotNull Path path) {
         return toLongList(getListSafe(path));
     }
 
     /**
-     * Returns list of longs at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of longs, returns an empty optional.
+     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getLongSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of longs from
-     * @return the list of longs at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getLongSafe(Path)
+     * @param path the path to get the long list at
+     * @return the long list at the given path
+     * @see #getListSafe(String)
+     * @see #getLongSafe(String)
      */
-    public Optional<List<Long>> getLongListSafe(Object key) {
-        return toLongList(getListSafe(key));
+    public Optional<List<Long>> getLongListSafe(@NotNull String path) {
+        return toLongList(getListSafe(path));
     }
 
     /**
-     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of longs, returns the provided default.
+     * Returns list of longs at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getLongSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of longs from
-     * @param def  default value returned if no value convertible to list of longs is present (or no value at all)
-     * @return the list of longs at the given path, or default according to the documentation above
+     * @param path the path to get the long list at
+     * @param def  the default value
+     * @return the long list at the given path, or default according to the documentation above
      * @see #getLongListSafe(Path)
      * @see #getLongSafe(Path)
      */
-    public List<Long> getLongList(Path path, List<Long> def) {
+    public List<Long> getLongList(@NotNull Path path, @Nullable List<Long> def) {
         return getLongListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of longs at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of longs, returns the provided default.
+     * Returns list of longs at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getLongSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of longs from
-     * @param def default value returned if no value convertible to list of longs is present (or no value at all)
-     * @return the list of longs at the given direct key/string path, or default according to the documentation above
-     * @see #getLongListSafe(Object)
-     * @see #getLongSafe(Path)
+     * @param path the path to get the long list at
+     * @param def  the default value
+     * @return the long list at the given path, or default according to the documentation above
+     * @see #getLongListSafe(String)
+     * @see #getLongSafe(String)
      */
-    public List<Long> getLongList(Object key, List<Long> def) {
-        return getLongListSafe(key).orElse(def);
+    public List<Long> getLongList(@NotNull String path, @Nullable List<Long> def) {
+        return getLongListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of longs at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of longs, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of longs at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getLongSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of longs from
-     * @return the list of longs at the given path, or default according to the documentation above
+     * @param path the path to get the long list at
+     * @return the long list at the given path, or default according to the documentation above
      * @see #getLongList(Path, List)
      * @see #getLongSafe(Path)
      */
-    public List<Long> getLongList(Path path) {
+    public List<Long> getLongList(@NotNull Path path) {
         return getLongList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of longs at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of longs, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of longs at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getLongSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getLongSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of longs from
-     * @return the list of longs at the given direct key/string path, or default according to the documentation above
-     * @see #getLongList(Object, List)
-     * @see #getLongSafe(Path)
+     * @param path the path to get the long list at
+     * @return the long list at the given path, or default according to the documentation above
+     * @see #getLongList(String, List)
+     * @see #getLongSafe(String)
      */
-    public List<Long> getLongList(Object key) {
-        return getLongList(key, root.getGeneralSettings().getDefaultList());
+    public List<Long> getLongList(@NotNull String path) {
+        return getLongList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3614,113 +3644,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of doubles, returns an empty optional.
+     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getDoubleSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of doubles from
-     * @return the list of doubles at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the double list at
+     * @return the double list at the given path
+     * @see #getListSafe(Path)
      * @see #getDoubleSafe(Path)
      */
-    public Optional<List<Double>> getDoubleListSafe(Path path) {
+    public Optional<List<Double>> getDoubleListSafe(@NotNull Path path) {
         return toDoubleList(getListSafe(path));
     }
 
     /**
-     * Returns list of doubles at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of doubles, returns an empty optional.
+     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getDoubleSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of doubles from
-     * @return the list of doubles at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getDoubleSafe(Path)
+     * @param path the path to get the double list at
+     * @return the double list at the given path
+     * @see #getListSafe(String)
+     * @see #getDoubleSafe(String)
      */
-    public Optional<List<Double>> getDoubleListSafe(Object key) {
-        return toDoubleList(getListSafe(key));
+    public Optional<List<Double>> getDoubleListSafe(@NotNull String path) {
+        return toDoubleList(getListSafe(path));
     }
 
     /**
-     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of doubles, returns the provided default.
+     * Returns list of doubles at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getDoubleSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of doubles from
-     * @param def  default value returned if no value convertible to list of doubles is present (or no value at all)
-     * @return the list of doubles at the given path, or default according to the documentation above
+     * @param path the path to get the double list at
+     * @param def  the default value
+     * @return the double list at the given path, or default according to the documentation above
      * @see #getDoubleListSafe(Path)
      * @see #getDoubleSafe(Path)
      */
-    public List<Double> getDoubleList(Path path, List<Double> def) {
+    public List<Double> getDoubleList(@NotNull Path path, @Nullable List<Double> def) {
         return getDoubleListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of doubles at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of doubles, returns the provided default.
+     * Returns list of doubles at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getDoubleSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of doubles from
-     * @param def default value returned if no value convertible to list of doubles is present (or no value at all)
-     * @return the list of doubles at the given direct key/string path, or default according to the documentation above
-     * @see #getDoubleListSafe(Object)
-     * @see #getDoubleSafe(Path)
+     * @param path the path to get the double list at
+     * @param def  the default value
+     * @return the double list at the given path, or default according to the documentation above
+     * @see #getDoubleListSafe(String)
+     * @see #getDoubleSafe(String)
      */
-    public List<Double> getDoubleList(Object key, List<Double> def) {
-        return getDoubleListSafe(key).orElse(def);
+    public List<Double> getDoubleList(@NotNull String path, @Nullable List<Double> def) {
+        return getDoubleListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of doubles at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of doubles, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of doubles at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getDoubleSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of doubles from
-     * @return the list of doubles at the given path, or default according to the documentation above
+     * @param path the path to get the double list at
+     * @return the double list at the given path, or default according to the documentation above
      * @see #getDoubleList(Path, List)
      * @see #getDoubleSafe(Path)
      */
-    public List<Double> getDoubleList(Path path) {
+    public List<Double> getDoubleList(@NotNull Path path) {
         return getDoubleList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of doubles at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of doubles, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of doubles at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getDoubleSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getDoubleSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of doubles from
-     * @return the list of doubles at the given direct key/string path, or default according to the documentation above
-     * @see #getDoubleList(Object, List)
-     * @see #getDoubleSafe(Path)
+     * @param path the path to get the double list at
+     * @return the double list at the given path, or default according to the documentation above
+     * @see #getDoubleList(String, List)
+     * @see #getDoubleSafe(String)
      */
-    public List<Double> getDoubleList(Object key) {
-        return getDoubleList(key, root.getGeneralSettings().getDefaultList());
+    public List<Double> getDoubleList(@NotNull String path) {
+        return getDoubleList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3736,113 +3772,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of floats, returns an empty optional.
+     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getFloatSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of floats from
-     * @return the list of floats at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the float list at
+     * @return the float list at the given path
+     * @see #getListSafe(Path)
      * @see #getFloatSafe(Path)
      */
-    public Optional<List<Float>> getFloatListSafe(Path path) {
+    public Optional<List<Float>> getFloatListSafe(@NotNull Path path) {
         return toFloatList(getListSafe(path));
     }
 
     /**
-     * Returns list of floats at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of floats, returns an empty optional.
+     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getFloatSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of floats from
-     * @return the list of floats at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getFloatSafe(Path)
+     * @param path the path to get the float list at
+     * @return the float list at the given path
+     * @see #getListSafe(String)
+     * @see #getFloatSafe(String)
      */
-    public Optional<List<Float>> getFloatListSafe(Object key) {
-        return toFloatList(getListSafe(key));
+    public Optional<List<Float>> getFloatListSafe(@NotNull String path) {
+        return toFloatList(getListSafe(path));
     }
 
     /**
-     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of floats, returns the provided default.
+     * Returns list of floats at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getFloatSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of floats from
-     * @param def  default value returned if no value convertible to list of floats is present (or no value at all)
-     * @return the list of floats at the given path, or default according to the documentation above
+     * @param path the path to get the float list at
+     * @param def  the default value
+     * @return the float list at the given path, or default according to the documentation above
      * @see #getFloatListSafe(Path)
      * @see #getFloatSafe(Path)
      */
-    public List<Float> getFloatList(Path path, List<Float> def) {
+    public List<Float> getFloatList(@NotNull Path path, @Nullable List<Float> def) {
         return getFloatListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of floats at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of floats, returns the provided default.
+     * Returns list of floats at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getFloatSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of floats from
-     * @param def default value returned if no value convertible to list of floats is present (or no value at all)
-     * @return the list of floats at the given direct key/string path, or default according to the documentation above
-     * @see #getFloatListSafe(Object)
-     * @see #getFloatSafe(Path)
+     * @param path the path to get the float list at
+     * @param def  the default value
+     * @return the float list at the given path, or default according to the documentation above
+     * @see #getFloatListSafe(String)
+     * @see #getFloatSafe(String)
      */
-    public List<Float> getFloatList(Object key, List<Float> def) {
-        return getFloatListSafe(key).orElse(def);
+    public List<Float> getFloatList(@NotNull String path, @Nullable List<Float> def) {
+        return getFloatListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of floats at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of floats, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of floats at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getFloatSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of floats from
-     * @return the list of floats at the given path, or default according to the documentation above
+     * @param path the path to get the float list at
+     * @return the float list at the given path, or default according to the documentation above
      * @see #getFloatList(Path, List)
      * @see #getFloatSafe(Path)
      */
-    public List<Float> getFloatList(Path path) {
+    public List<Float> getFloatList(@NotNull Path path) {
         return getFloatList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of floats at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of floats, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of floats at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getFloatSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getFloatSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of floats from
-     * @return the list of floats at the given direct key/string path, or default according to the documentation above
-     * @see #getFloatList(Object, List)
-     * @see #getFloatSafe(Path)
+     * @param path the path to get the float list at
+     * @return the float list at the given path, or default according to the documentation above
+     * @see #getFloatList(String, List)
+     * @see #getFloatSafe(String)
      */
-    public List<Float> getFloatList(Object key) {
-        return getFloatList(key, root.getGeneralSettings().getDefaultList());
+    public List<Float> getFloatList(@NotNull String path) {
+        return getFloatList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3858,113 +3900,119 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of shorts, returns an empty optional.
+     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getShortSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of shorts from
-     * @return the list of shorts at the given path
-     * @see #getSafe(Path)
+     * @param path the path to get the short list at
+     * @return the short list at the given path
+     * @see #getListSafe(Path)
      * @see #getShortSafe(Path)
      */
-    public Optional<List<Short>> getShortListSafe(Path path) {
+    public Optional<List<Short>> getShortListSafe(@NotNull Path path) {
         return toShortList(getListSafe(path));
     }
 
     /**
-     * Returns list of shorts at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of shorts, returns an empty optional.
+     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
+     * the given path, or is not a {@link List}, returns an empty optional.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getShortSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of shorts from
-     * @return the list of shorts at the given direct key/string path
-     * @see #getSafe(Object)
-     * @see #getShortSafe(Path)
+     * @param path the path to get the short list at
+     * @return the short list at the given path
+     * @see #getListSafe(String)
+     * @see #getShortSafe(String)
      */
-    public Optional<List<Short>> getShortListSafe(Object key) {
-        return toShortList(getListSafe(key));
+    public Optional<List<Short>> getShortListSafe(@NotNull String path) {
+        return toShortList(getListSafe(path));
     }
 
     /**
-     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of shorts, returns the provided default.
+     * Returns list of shorts at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getShortSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of shorts from
-     * @param def  default value returned if no value convertible to list of shorts is present (or no value at all)
-     * @return the list of shorts at the given path, or default according to the documentation above
+     * @param path the path to get the short list at
+     * @param def  the default value
+     * @return the short list at the given path, or default according to the documentation above
      * @see #getShortListSafe(Path)
      * @see #getShortSafe(Path)
      */
-    public List<Short> getShortList(Path path, List<Short> def) {
+    public List<Short> getShortList(@NotNull Path path, @Nullable List<Short> def) {
         return getShortListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of shorts at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of shorts, returns the provided default.
+     * Returns list of shorts at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns the provided default.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getShortSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of shorts from
-     * @param def default value returned if no value convertible to list of shorts is present (or no value at all)
-     * @return the list of shorts at the given direct key/string path, or default according to the documentation above
-     * @see #getShortListSafe(Object)
-     * @see #getShortSafe(Path)
+     * @param path the path to get the short list at
+     * @param def  the default value
+     * @return the short list at the given path, or default according to the documentation above
+     * @see #getShortListSafe(String)
+     * @see #getShortSafe(String)
      */
-    public List<Short> getShortList(Object key, List<Short> def) {
-        return getShortListSafe(key).orElse(def);
+    public List<Short> getShortList(@NotNull String path, @Nullable List<Short> def) {
+        return getShortListSafe(path).orElse(def);
     }
 
     /**
-     * Returns list of shorts at the given path encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * path, or is not a list of shorts, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of shorts at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getShortSafe(Path)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param path the path to get the list of shorts from
-     * @return the list of shorts at the given path, or default according to the documentation above
+     * @param path the path to get the short list at
+     * @return the short list at the given path, or default according to the documentation above
      * @see #getShortList(Path, List)
      * @see #getShortSafe(Path)
      */
-    public List<Short> getShortList(Path path) {
+    public List<Short> getShortList(@NotNull Path path) {
         return getShortList(path, root.getGeneralSettings().getDefaultList());
     }
 
     /**
-     * Returns list of shorts at the given direct key/string path (determined by the root's path mode) encapsulated in an instance of {@link Optional}. If nothing exists at the given
-     * direct key/string path, or is not a list of shorts, returns default value as defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * Returns list of shorts at the given path. If nothing is present at the given path, or is not a {@link List},
+     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
      * <p>
-     * The individual elements of the list are processed each one by one. If there is an element incompatible, it is skipped and will not
-     * appear in the returned list. Please learn more about compatible types at the main content method {@link #getShortSafe(Path)}.
-     * <p>
-     * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
-     * usage.</b>
+     * This method creates and returns newly created list of instance defined by root's general settings
+     * {@link GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the
+     * (source) list at the given path one by one, in order determined by the list iterator. If any of the elements of
+     * the source list is not compatible as documented at {@link #getShortSafe(String)}, it is skipped and will not
+     * appear in the returned list.
      *
-     * @param key the direct key/string path to get the list of shorts from
-     * @return the list of shorts at the given direct key/string path, or default according to the documentation above
-     * @see #getShortList(Object, List)
-     * @see #getShortSafe(Path)
+     * @param path the path to get the short list at
+     * @return the short list at the given path, or default according to the documentation above
+     * @see #getShortList(String, List)
+     * @see #getShortSafe(String)
      */
-    public List<Short> getShortList(Object key) {
-        return getShortList(key, root.getGeneralSettings().getDefaultList());
+    public List<Short> getShortList(@NotNull String path) {
+        return getShortList(path, root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3987,7 +4035,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the list of maps at the given path
      * @see #getSafe(Path)
      */
-    public Optional<List<Map<?, ?>>> getMapListSafe(Path path) {
+    public Optional<List<Map<?, ?>>> getMapListSafe(@NotNull Path path) {
         return toMapList(getListSafe(path));
     }
 
@@ -3996,15 +4044,15 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * direct key/string path, or is not a list of maps, returns an empty optional.
      * <p>
      * <b>This method is chained and/or based on {@link #getDirectBlockSafe(Object)} and therefore, supports the same pathing
-     * (keying) mechanics. Please look at the description of that method for more detailed information regarding the
+     * (pathing) mechanics. Please look at the description of that method for more detailed information regarding the
      * usage.</b>
      *
      * @param key the direct key/string path to get the list of maps from
      * @return the list of maps at the given direct key/string path
      * @see #getSafe(Object)
      */
-    public Optional<List<Map<?, ?>>> getMapListSafe(Object key) {
-        return toMapList(getListSafe(key));
+    public Optional<List<Map<?, ?>>> getMapListSafe(@NotNull String path) {
+        return toMapList(getListSafe(path));
     }
 
     /**
@@ -4016,7 +4064,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the list of maps at the given path, or default according to the documentation above
      * @see #getMapListSafe(Path)
      */
-    public List<Map<?, ?>> getMapList(Path path, List<Map<?, ?>> def) {
+    public List<Map<?, ?>> getMapList(@NotNull Path path, @Nullable List<Map<?, ?>> def) {
         return getMapListSafe(path).orElse(def);
     }
 
@@ -4033,8 +4081,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the list of maps at the given direct key/string path, or default according to the documentation above
      * @see #getMapListSafe(Object)
      */
-    public List<Map<?, ?>> getMapList(Object key, List<Map<?, ?>> def) {
-        return getMapListSafe(key).orElse(def);
+    public List<Map<?, ?>> getMapList(@NotNull String path, @Nullable List<Map<?, ?>> def) {
+        return getMapListSafe(path).orElse(def);
     }
 
     /**
@@ -4045,7 +4093,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the list of maps at the given path, or default according to the documentation above
      * @see #getMapList(Path, List)
      */
-    public List<Map<?, ?>> getMapList(Path path) {
+    public List<Map<?, ?>> getMapList(@NotNull Path path) {
         return getMapList(path, root.getGeneralSettings().getDefaultList());
     }
 
@@ -4061,8 +4109,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the list of maps at the given direct key/string path, or default according to the documentation above
      * @see #getMapList(Object, List)
      */
-    public List<Map<?, ?>> getMapList(Object key) {
-        return getMapList(key, root.getGeneralSettings().getDefaultList());
+    public List<Map<?, ?>> getMapList(@NotNull String path) {
+        return getMapList(path, root.getGeneralSettings().getDefaultList());
     }
 
 }
