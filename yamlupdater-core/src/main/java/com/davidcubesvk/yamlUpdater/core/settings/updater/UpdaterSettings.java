@@ -3,6 +3,7 @@ package com.davidcubesvk.yamlUpdater.core.settings.updater;
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.path.PathFactory;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.AutomaticVersioning;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.ManualVersioning;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,8 +63,10 @@ public class UpdaterSettings {
     private final Map<MergeRule, Boolean> mergeRules;
     //Paths to force copy
     private final Map<String, Set<Path>> forceCopy;
+    private final Map<String, Set<String>> stringForceCopy;
     //Relocations
     private final Map<String, Map<Path, Path>> relocations;
+    private final Map<String, Map<String, String>> stringRelocations;
     //Versioning
     private final Versioning versioning;
 
@@ -77,7 +81,9 @@ public class UpdaterSettings {
         this.forceCopyAll = builder.forceCopyAll;
         this.mergeRules = builder.mergeRules;
         this.forceCopy = builder.forceCopy;
+        this.stringForceCopy = builder.stringForceCopy;
         this.relocations = builder.relocations;
+        this.stringRelocations = builder.stringRelocations;
         this.versioning = builder.versioning;
     }
 
@@ -95,24 +101,59 @@ public class UpdaterSettings {
 
     /**
      * Returns which blocks (represented by their paths) to force copy to the updated file (regardless if contained
-     * in the default file), if updating from that certain version ID (if the user's file has that version ID).
+     * in the default file), if updating from that certain version ID (if the user's file has that version ID). Merges
+     * the string-based force copy paths.
      * <p>
      * The given map contains version ID (in string format) as the key, with corresponding set of paths to copy
      * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
      * of the user and default file, must have their force copy paths specified.
      *
+     * @param separator separator to split string based relocation paths by
      * @return force copy paths, per version ID
      */
-    public Map<String, Set<Path>> getForceCopy() {
+    public Map<String, Set<Path>> getForceCopy(char separator) {
+        //If string relocations are defined
+        if (stringForceCopy.size() > 0) {
+            //Create factory
+            PathFactory factory = new PathFactory(separator);
+
+            //All entries
+            for (Map.Entry<String, Set<String>> entry : stringForceCopy.entrySet()) {
+                //The set
+                Set<Path> paths = forceCopy.computeIfAbsent(entry.getKey(), (key) -> new HashSet<>());
+                //Add all
+                for (String path : entry.getValue())
+                    paths.add(factory.create(path));
+            }
+        }
+
+        //Return
         return forceCopy;
     }
 
     /**
-     * Returns relocations (in <code>from path = to path</code> format) per version ID string.
+     * Returns relocations (in <code>from path = to path</code> format) per version ID string. Merges the string-based
+     * relocations.
      *
+     * @param separator separator to split string based force copy paths by
      * @return the relocations
      */
-    public Map<String, Map<Path, Path>> getRelocations() {
+    public Map<String, Map<Path, Path>> getRelocations(char separator) {
+        //If string relocations are defined
+        if (stringRelocations.size() > 0) {
+            //Create factory
+            PathFactory factory = new PathFactory(separator);
+
+            //All entries
+            for (Map.Entry<String, Map<String, String>> entry : stringRelocations.entrySet()) {
+                //The map
+                Map<Path, Path> relocations = this.relocations.computeIfAbsent(entry.getKey(), (key) -> new HashMap<>());
+                //Add all
+                for (Map.Entry<String, String> relocation : entry.getValue().entrySet())
+                    relocations.put(factory.create(relocation.getKey()), factory.create(relocation.getValue()));
+            }
+        }
+
         return relocations;
     }
 
@@ -182,8 +223,10 @@ public class UpdaterSettings {
         private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
         //Paths to force copy
         private final Map<String, Set<Path>> forceCopy = new HashMap<>();
+        private final Map<String, Set<String>> stringForceCopy = new HashMap<>();
         //Relocations
         private final Map<String, Map<Path, Path>> relocations = new HashMap<>();
+        private final Map<String, Map<String, String>> stringRelocations = new HashMap<>();
         //Versioning
         private Versioning versioning = DEFAULT_VERSIONING;
 
@@ -288,7 +331,7 @@ public class UpdaterSettings {
          *
          * @param forceCopy force copy paths to set, per version ID
          * @return the builder
-         * @see #setForceCopy(String, Set)
+         * @see #setStrForceCopy(String, Set)
          */
         public Builder setForceCopy(Map<String, Set<Path>> forceCopy) {
             this.forceCopy.putAll(forceCopy);
@@ -306,7 +349,7 @@ public class UpdaterSettings {
          * <p>
          * At the start of each updating process, set of paths representing blocks which to copy is obtained using the
          * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the force copy map
-         * {@link #getForceCopy()}. Then, each block in the user file, whose path is contained in the set, is marked
+         * {@link #getForceCopy(char)}. Then, each block in the user file, whose path is contained in the set, is marked
          * to be copied (via {@link Block#setForceCopy(boolean)}).
          * <p>
          * At the end, during merging, all blocks which have this option enabled and do not exist in the default file
@@ -328,13 +371,79 @@ public class UpdaterSettings {
         }
 
         /**
+         * Sets which blocks (represented by their string paths) to force copy to the updated file (regardless if contained
+         * in the default file), if updating from that certain version ID (if the user's file has that version ID). You
+         * can learn more at {@link #setStrForceCopy(String, Set)} or {wiki}. If there already are string-based paths
+         * defined for version ID which is also present in the given map, they are overwritten.
+         * <p>
+         * The given map should contain version ID (in string format) as the key, with corresponding set of paths to copy
+         * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
+         * of the user and default file, must have their force copy paths specified.
+         * <p>
+         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
+         * {@link #setStrForceCopy(String, Set)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setForceCopy(Map)}) and will not overwrite each other.
+         * String path-based force copy paths are stored till the updating process, where they are converted to
+         * {@link Path}-based ones and merged with the ones given via other methods.
+         * <p>
+         * <b>Default: </b><i>none</i>
+         *
+         * @param forceCopy map of sets of <i>string</i> paths representing blocks to force copy, per version ID
+         * @return the builder
+         * @see #setStrForceCopy(String, Set)
+         */
+        public Builder setStrForceCopy(Map<String, Set<String>> forceCopy) {
+            this.stringForceCopy.putAll(forceCopy);
+            return this;
+        }
+
+        /**
+         * Sets which blocks (represented by their string paths) to force copy to the updated file (regardless if contained
+         * in the default file), if updating from that certain version ID (if the user's file has that version ID). If
+         * there already are string-based paths defined for version ID which is also present in the given map, they are
+         * overwritten.
+         * <p>
+         * A block can either represent a section, or a mapping (section entry); while storing corresponding comments,
+         * as written in the file. Blocks are copied, that means their contents including comments are also copied.
+         * Please learn more about blocks at {@link Block} (and respective sub-interfaces) and {wiki}.
+         * <p>
+         * At the start of each updating process, set of paths representing blocks which to copy is obtained using the
+         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the force copy map
+         * {@link #getForceCopy(char)}. Then, each block in the user file, whose <i>string</i> path (only if the path
+         * contains string keys only) is contained in the set, is marked to be copied (via {@link Block#setForceCopy(boolean)}).
+         * <p>
+         * At the end, during merging, all blocks which have this option enabled and do not exist in the default file
+         * (those would have already been merged), will be copied and included in the updated file.
+         * <p>
+         * For examples and in-depth explanation, please visit {wiki}. It is not required and does not need to be
+         * guaranteed, that all version IDs between version ID of the user and default file, must have their force copy
+         * paths specified.
+         * <p>
+         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
+         * {@link #setStrForceCopy(Map)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setForceCopy(Map)}) and will not overwrite each other.
+         * String path-based force copy paths are stored till the updating process, where they are converted to
+         * {@link Path}-based ones and merged with the ones given via other methods.
+         * <p>
+         * <b>Default: </b><i>none</i>
+         *
+         * @param versionId the version ID string to set paths for
+         * @param paths     the set of <i>string</i> paths representing blocks to force copy
+         * @return the builder
+         */
+        public Builder setStrForceCopy(String versionId, Set<String> paths) {
+            this.stringForceCopy.put(versionId, paths);
+            return this;
+        }
+
+        /**
          * Sets relocations (in <code>from path = to path</code> format) per version ID string. You can learn more at
          * {@link #setRelocations(String, Map)} or {wiki}. If there already are relocations defined for version ID which
          * is also present in the given map, they are overwritten.
          *
          * @param relocations the relocations to add
          * @return the builder
-         * @see #setRelocations(String, Map)
+         * @see #setStrRelocations(String, Map)
          */
         public Builder setRelocations(Map<String, Map<Path, Path>> relocations) {
             this.relocations.putAll(relocations);
@@ -356,6 +465,50 @@ public class UpdaterSettings {
          */
         public Builder setRelocations(String versionId, Map<Path, Path> relocations) {
             this.relocations.put(versionId, relocations);
+            return this;
+        }
+
+        /**
+         * Sets relocations (in <code>from path = to path</code> format) per version ID. You can learn more at
+         * {@link #setStrRelocations(String, Map)} or {wiki}. If there already are string-based relocations defined for
+         * version ID which is also present in the given map, they are overwritten.
+         * <p>
+         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
+         * {@link #setStrRelocations(String, Map)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
+         * String path-based relocations are stored till the updating process, where they are converted to
+         * {@link Path}-based ones and merged with the ones given via other methods.
+         *
+         * @param relocations the relocations to add
+         * @return the builder
+         * @see #setStrRelocations(String, Map)
+         */
+        public Builder setStrRelocations(Map<String, Map<String, String>> relocations) {
+            this.stringRelocations.putAll(relocations);
+            return this;
+        }
+
+        /**
+         * Sets relocations (in <code>from path = to path</code> format) per version ID. If there already are
+         * string-based relocations defined for version ID which is also present in the given map, they are overwritten.
+         * <p>
+         * The given version ID represents version, at which the relocations were made - at which they took effect. That
+         * means, if certain setting was at path <code>a</code> in config with version ID <code>2</code>, but you
+         * decided you want to move that setting to path <code>b</code> (and then released with version <code>3</code>
+         * or whatever), the relocation is considered to be made at version ID <code>2</code>.
+         * <p>
+         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
+         * {@link #setStrRelocations(Map)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
+         * String path-based relocations are stored till the updating process, where they are converted to
+         * {@link Path}-based ones and merged with the ones given via other methods.
+         *
+         * @param versionId   the version ID to set relocations for
+         * @param relocations relocations to set
+         * @return the builder
+         */
+        public Builder setStrRelocations(String versionId, Map<String, String> relocations) {
+            this.stringRelocations.put(versionId, relocations);
             return this;
         }
 

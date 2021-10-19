@@ -59,7 +59,7 @@ public class YamlFile extends Section {
         load(new BufferedInputStream(userFile));
         //Update if enabled
         if (defaultFile != null && loaderSettings.isAutoUpdate())
-            Updater.update(this, defaultFile, updaterSettings);
+            Updater.update(this, defaultFile, updaterSettings, generalSettings);
     }
 
     /**
@@ -94,7 +94,7 @@ public class YamlFile extends Section {
             load();
             //Update if enabled
             if (defaults != null && loaderSettings.isAutoUpdate())
-                Updater.update(this, defaults, updaterSettings);
+                Updater.update(this, defaults, updaterSettings, generalSettings);
             return;
         }
 

@@ -2,6 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.updater;
 
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
@@ -37,17 +38,18 @@ public class Updater {
      *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
      * </ol>
      *
-     * @param userSection the user section to update
-     * @param defSection  section equivalent in the default file (to update against)
-     * @param settings    the settings
+     * @param userSection     the user section to update
+     * @param defSection      section equivalent in the default file (to update against)
+     * @param updaterSettings the updater settings
+     * @param generalSettings the general settings used to obtain the path separator, to split string-based relocations and force copy paths
      */
-    public static void update(Section userSection, Section defSection, UpdaterSettings settings) {
+    public static void update(Section userSection, Section defSection, UpdaterSettings updaterSettings, GeneralSettings generalSettings) {
         //Apply versioning stuff
-        UPDATER.runVersionDependent(userSection, defSection, settings);
+        UPDATER.runVersionDependent(userSection, defSection, updaterSettings, generalSettings.getSeparator());
         //Merge
-        Merger.merge(userSection, defSection, settings);
+        Merger.merge(userSection, defSection, updaterSettings);
         //If auto save is enabled
-        if (settings.isAutoSave())
+        if (updaterSettings.isAutoSave())
             userSection.getRoot().save();
     }
 
@@ -58,7 +60,7 @@ public class Updater {
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
      *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
      *     (see {@link Versioning#getOldest()}). If provided, marks all blocks which have force copy option enabled
-     *     (determined by the set of paths, see {@link UpdaterSettings#getForceCopy()}).</li>
+     *     (determined by the set of paths, see {@link UpdaterSettings#getForceCopy(char)}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
      *     <li>If version IDs equal, does not proceed as well.</li>
@@ -68,8 +70,9 @@ public class Updater {
      * @param userSection    the user section
      * @param defaultSection the default section equivalent
      * @param settings       updater settings to use
+     * @param separator      the path separator, used to split string-based relocations and force copy paths
      */
-    private void runVersionDependent(Section userSection, Section defaultSection, UpdaterSettings settings) {
+    private void runVersionDependent(Section userSection, Section defaultSection, UpdaterSettings settings, char separator) {
         //Versioning
         Versioning versioning = settings.getVersioning();
         //If the versioning is not set
@@ -83,7 +86,7 @@ public class Updater {
         //If user ID is not null
         if (user != null) {
             //Go through all force copy paths
-            for (Path path : settings.getForceCopy().get(user.asID()))
+            for (Path path : settings.getForceCopy(separator).get(user.asID()))
                 //Set
                 userSection.getBlockSafe(path).ifPresent(block -> block.setForceCopy(true));
         } else {
@@ -110,7 +113,7 @@ public class Updater {
         //Initialize relocator
         Relocator relocator = new Relocator(userSection, user, def);
         //Apply all
-        relocator.apply(settings.getRelocations());
+        relocator.apply(settings.getRelocations(separator));
     }
 
 }
