@@ -4,6 +4,7 @@ import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents automatically supplied versioning information.
@@ -14,6 +15,7 @@ public class AutomaticVersioning implements Versioning {
     private final Pattern pattern;
     //Path
     private final Path path;
+    private final String strPath;
 
     /**
      * Creates automatically-supplied versioning information, which supplies versions (to the implementing methods)
@@ -22,24 +24,48 @@ public class AutomaticVersioning implements Versioning {
      * @param pattern the pattern used to parse the IDs found in the sections dynamically
      * @param path    the path to find the IDs at in the sections
      */
-    public AutomaticVersioning(Pattern pattern, Path path) {
+    public AutomaticVersioning(@NotNull Pattern pattern, @NotNull Path path) {
         this.pattern = pattern;
         this.path = path;
+        this.strPath = null;
+    }
+
+    /**
+     * Creates automatically-supplied versioning information, which supplies versions (to the implementing methods)
+     * automatically (dynamically) from the given sections using the given path and pattern.
+     *
+     * @param pattern the pattern used to parse the IDs found in the sections dynamically
+     * @param path    the path to find the IDs at in the sections
+     */
+    public AutomaticVersioning(@NotNull Pattern pattern, @NotNull String path) {
+        this.pattern = pattern;
+        this.path = null;
+        this.strPath = path;
     }
 
     @Override
-    public Version getDefSectionVersion(Section section) {
+    public Version getDefSectionVersion(@NotNull Section section) {
         return getId(section);
     }
 
     @Override
-    public Version getUserSectionVersion(Section section) {
+    public Version getUserSectionVersion(@NotNull Section section) {
         return getId(section);
     }
 
     @Override
     public Version getOldest() {
         return pattern.getOldestVersion();
+    }
+
+    @Override
+    @SuppressWarnings("ConstantConditions")
+    public void updateVersionID(@NotNull Section updated, @NotNull Section def) {
+        //If paths are used
+        if (path != null)
+            updated.set(path, def.getString(path));
+        else
+            updated.set(strPath, def.getString(strPath));
     }
 
     /**
@@ -52,8 +78,16 @@ public class AutomaticVersioning implements Versioning {
      * @return the version, or <code>null</code> if not found
      * @throws IllegalArgumentException if failed to parse the ID
      */
+    @SuppressWarnings("ConstantConditions")
     private Version getId(Section section) throws IllegalArgumentException {
-        return section.getStringSafe(path).map(pattern::getVersion).orElse(null);
+        return (path != null ? section.getStringSafe(path) : section.getStringSafe(strPath)).map(pattern::getVersion).orElse(null);
     }
 
+    /**
+     * Returns the path to the version ID.
+     * @return the path to the version ID
+     */
+    public Path getPath() {
+        return path;
+    }
 }

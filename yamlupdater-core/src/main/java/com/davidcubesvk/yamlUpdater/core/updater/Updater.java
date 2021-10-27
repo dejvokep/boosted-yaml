@@ -48,6 +48,11 @@ public class Updater {
         UPDATER.runVersionDependent(userSection, defSection, updaterSettings, generalSettings.getSeparator());
         //Merge
         Merger.merge(userSection, defSection, updaterSettings);
+        //If present
+        if (updaterSettings.getVersioning() != null)
+            //Set the new ID
+            updaterSettings.getVersioning().updateVersionID(userSection, defSection);
+
         //If auto save is enabled
         if (updaterSettings.isAutoSave())
             userSection.getRoot().save();
@@ -60,7 +65,7 @@ public class Updater {
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
      *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
      *     (see {@link Versioning#getOldest()}). If provided, marks all blocks which have force copy option enabled
-     *     (determined by the set of paths, see {@link UpdaterSettings#getForceCopy(char)}).</li>
+     *     (determined by the set of paths, see {@link UpdaterSettings#getCopy(char)}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
      *     <li>If version IDs equal, does not proceed as well.</li>
@@ -86,9 +91,9 @@ public class Updater {
         //If user ID is not null
         if (user != null) {
             //Go through all force copy paths
-            for (Path path : settings.getForceCopy(separator).get(user.asID()))
+            for (Path path : settings.getCopy(separator).get(user.asID()))
                 //Set
-                userSection.getBlockSafe(path).ifPresent(block -> block.setForceCopy(true));
+                userSection.getBlockSafe(path).ifPresent(block -> block.setCopy(true));
         } else {
             //Set to oldest (to go through all relocations supplied)
             user = versioning.getOldest();

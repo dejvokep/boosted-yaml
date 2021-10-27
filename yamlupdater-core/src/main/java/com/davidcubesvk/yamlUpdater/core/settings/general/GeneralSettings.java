@@ -33,13 +33,13 @@ public class GeneralSettings {
          * <p>
          * <b>This key mode ensures compatibility with Spigot/BungeeCord APIs.</b>
          */
-        STRING_BASED,
+        STRING,
 
         /**
          * Does not convert any keys - leaves them as loaded/supplied using methods. If string paths are used, they will
          * only be able to refer to values whose path is constructed only from {@link String} keys.
          */
-        OBJECT_BASED
+        OBJECT
     }
 
     /**
@@ -53,7 +53,7 @@ public class GeneralSettings {
     /**
      * Default key mode.
      */
-    public static final KeyMode DEFAULT_KEY_MODE = KeyMode.STRING_BASED;
+    public static final KeyMode DEFAULT_KEY_MODE = KeyMode.STRING;
     /**
      * Default serializer.
      */
@@ -148,14 +148,14 @@ public class GeneralSettings {
 
     /**
      * Returns path separator to use to separate individual keys inside a string path. Functionality compatible with
-     * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING_BASED}.
+     * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
      * <p>
      * Assuming separator <code>'.'</code>, path <code>a.b</code> represents object at key <code>b</code> in section
      * at key <code>a</code> in the root file (section).
      *
      * @return the separator to use
      * @see #getKeyMode()
-     * @see KeyMode#STRING_BASED
+     * @see KeyMode#STRING
      */
     public char getSeparator() {
         return separator;
@@ -340,14 +340,14 @@ public class GeneralSettings {
          * @return the builder
          * @see #setSeparator(char)
          */
-        public Builder setPathMode(@NotNull GeneralSettings.KeyMode keyMode) {
+        public Builder setKeyMode(@NotNull GeneralSettings.KeyMode keyMode) {
             this.keyMode = keyMode;
             return this;
         }
 
         /**
          * Sets path separator used to separate individual keys inside a string path. Functionality compatible with
-         * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING_BASED}.
+         * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
          * <p>
          * Assuming separator <code>'.'</code>, path <code>a.b</code> represents object at key <code>b</code> in section
          * at key <code>a</code> in the root file (section).
@@ -356,8 +356,8 @@ public class GeneralSettings {
          *
          * @param separator the separator to use
          * @return the builder
-         * @see #setPathMode(KeyMode)
-         * @see KeyMode#STRING_BASED
+         * @see #setKeyMode(KeyMode)
+         * @see KeyMode#STRING
          */
         public Builder setSeparator(char separator) {
             this.separator = separator;

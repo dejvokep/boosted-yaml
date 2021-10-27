@@ -37,13 +37,6 @@ public class YamlFile extends Section {
     private UpdaterSettings updaterSettings;
     private final YamlFile defaults;
 
-    /**
-     * Initializes the file from the given header, mappings and key separator.
-     *
-     * @param header          the header of the file, or <code>null</code> if not any
-     * @param mappings        mappings inside the file
-     * @param generalSettings settings this file will be loaded with, used to get the key separators
-     */
     public YamlFile(InputStream userFile, YamlFile defaultFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {
         //Call superclass
         super(generalSettings.getDefaultMap());
@@ -62,13 +55,6 @@ public class YamlFile extends Section {
             Updater.update(this, defaultFile, updaterSettings, generalSettings);
     }
 
-    /**
-     * Initializes the file from the given header, mappings and key separator.
-     *
-     * @param header          the header of the file, or <code>null</code> if not any
-     * @param mappings        mappings inside the file
-     * @param generalSettings settings this file will be loaded with, used to get the key separators
-     */
     public YamlFile(InputStream userFile, InputStream defaultFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {
         this(userFile, new YamlFile(new BufferedInputStream(defaultFile), generalSettings, loaderSettings), generalSettings, loaderSettings, dumperSettings, updaterSettings);
     }
@@ -174,7 +160,7 @@ public class YamlFile extends Section {
             return false;
 
         //Update
-        Updater.update(this, defaults, updaterSettings);
+        Updater.update(this, defaults, updaterSettings, generalSettings);
         return true;
     }
 

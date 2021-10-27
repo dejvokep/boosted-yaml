@@ -30,12 +30,12 @@ public class ManualVersioning implements Versioning {
     }
 
     @Override
-    public Version getDefSectionVersion(Section section) {
+    public Version getDefSectionVersion(@NotNull Section section) {
         return defSectionVersion;
     }
 
     @Override
-    public Version getUserSectionVersion(Section section) {
+    public Version getUserSectionVersion(@NotNull Section section) {
         return userSectionVersion;
     }
 

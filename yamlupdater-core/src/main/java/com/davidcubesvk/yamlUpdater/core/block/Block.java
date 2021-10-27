@@ -19,7 +19,7 @@ public class Block<T> {
     //Value
     private final T value;
     //Force copy (updater)
-    private boolean forceCopy = false;
+    private boolean copy = false;
 
     /**
      * Creates a block using the given parameters; while storing references to comments from the given nodes.
@@ -91,19 +91,21 @@ public class Block<T> {
     }
 
     /**
-     * Sets whether to force copy this block. Used only internally during updater process.
-     * @param forceCopy if to force copy
+     * Sets whether to copy this block. Used only internally during updater process.
+     *
+     * @param copy if to copy
      */
-    public void setForceCopy(boolean forceCopy) {
-        this.forceCopy = forceCopy;
+    public void setCopy(boolean copy) {
+        this.copy = copy;
     }
 
     /**
-     * Returns whether to force copy this block. Used only internally during updater process.
-     * @return if to force copy this block
+     * Returns whether to copy this block. Used only internally during updater process.
+     *
+     * @return if to copy this block
      */
-    public boolean isForceCopy() {
-        return forceCopy;
+    public boolean isCopy() {
+        return copy;
     }
 
     /**

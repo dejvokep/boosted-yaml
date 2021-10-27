@@ -6,6 +6,7 @@ import com.davidcubesvk.yamlUpdater.core.block.Mapping;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.engine.LibConstructor;
 import com.davidcubesvk.yamlUpdater.core.engine.LibRepresenter;
+import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.MergeRule;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
@@ -38,8 +39,8 @@ public class Merger {
      * through these pair of subsections.
      * <p>
      * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
-     * in the defaults) from the user section, unless {@link UpdaterSettings#isForceCopyAll()} is enabled or if they are
-     * marked as force copy ({@link Block#isForceCopy()}).
+     * in the defaults) from the user section, unless {@link UpdaterSettings#isCopyAll()} is enabled or if they are
+     * marked as force copy ({@link Block#isCopy()}).
      *
      * @param userSection the user section
      * @param defSection  the default section equivalent to the user section
@@ -59,8 +60,8 @@ public class Merger {
      * through these pair of subsections.
      * <p>
      * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
-     * in the defaults) from the user section, unless {@link UpdaterSettings#isForceCopyAll()} is enabled or if they are
-     * marked as force copy ({@link Block#isForceCopy()}).
+     * in the defaults) from the user section, unless {@link UpdaterSettings#isCopyAll()} is enabled or if they are
+     * marked as force copy ({@link Block#isCopy()}).
      *
      * @param userSection the user section
      * @param defSection  the default section equivalent to the user section
@@ -74,10 +75,11 @@ public class Merger {
         for (Map.Entry<Object, Block<?>> entry : defSection.getValue().entrySet()) {
             //Key
             Object key = entry.getKey();
+            Path path = Path.fromSingleKey(key);
             //Delete
             userKeys.remove(key);
             //Blocks
-            Block<?> userBlock = userSection.getDirectBlockSafe(key).orElse(null), defBlock = entry.getValue();
+            Block<?> userBlock = userSection.getBlockSafe(path).orElse(null), defBlock = entry.getValue();
             //If user block is present
             if (userBlock != null) {
                 //If are sections
@@ -90,26 +92,28 @@ public class Merger {
                 }
 
                 //Set preserved value
-                userSection.set(key, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
+                userSection.set(path, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
                 continue;
             }
 
             //Set cloned
-            userSection.set(key, cloneBlock(defBlock, userSection));
+            userSection.set(path, cloneBlock(defBlock, userSection));
         }
 
         //If copy all is set to true
-        if (settings.isForceCopyAll())
+        if (settings.isCopyAll())
             return;
 
         //Loop through all default keys
         for (Object userKey : userKeys) {
+            //Path
+            Path path = Path.fromSingleKey(userKey);
             //If present
-            userSection.getDirectBlockSafe(userKey).ifPresent(block -> {
+            userSection.getBlockSafe(path).ifPresent(block -> {
                 //If force copy disabled
-                if (!block.isForceCopy())
+                if (!block.isCopy())
                     //Remove
-                    userSection.remove(userKey);
+                    userSection.remove(path);
             });
         }
     }

@@ -37,9 +37,9 @@ public class UpdaterSettings {
      */
     public static final boolean DEFAULT_ENABLE_DOWNGRADING = true;
     /**
-     * If to force copy all contents from the user file by default.
+     * If to copy all contents from the user file by default.
      */
-    public static final boolean DEFAULT_FORCE_COPY_ALL = false;
+    public static final boolean DEFAULT_COPY_ALL = false;
     /**
      * Default merge preservation rules.
      */
@@ -57,13 +57,13 @@ public class UpdaterSettings {
     private final boolean autoSave;
     //Enable downgrading
     private final boolean enableDowngrading;
-    //Force copy all user file contents
-    private final boolean forceCopyAll;
+    //Copy all user file contents
+    private final boolean copyAll;
     //Merge rules
     private final Map<MergeRule, Boolean> mergeRules;
-    //Paths to force copy
-    private final Map<String, Set<Path>> forceCopy;
-    private final Map<String, Set<String>> stringForceCopy;
+    //Paths to copy
+    private final Map<String, Set<Path>> copy;
+    private final Map<String, Set<String>> stringCopy;
     //Relocations
     private final Map<String, Map<Path, Path>> relocations;
     private final Map<String, Map<String, String>> stringRelocations;
@@ -78,10 +78,10 @@ public class UpdaterSettings {
     public UpdaterSettings(Builder builder) {
         this.autoSave = builder.autoSave;
         this.enableDowngrading = builder.enableDowngrading;
-        this.forceCopyAll = builder.forceCopyAll;
+        this.copyAll = builder.copyAll;
         this.mergeRules = builder.mergeRules;
-        this.forceCopy = builder.forceCopy;
-        this.stringForceCopy = builder.stringForceCopy;
+        this.copy = builder.copy;
+        this.stringCopy = builder.stringCopy;
         this.relocations = builder.relocations;
         this.stringRelocations = builder.stringRelocations;
         this.versioning = builder.versioning;
@@ -100,27 +100,27 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns which blocks (represented by their paths) to force copy to the updated file (regardless if contained
+     * Returns which blocks (represented by their paths) to copy to the updated file (regardless if contained
      * in the default file), if updating from that certain version ID (if the user's file has that version ID). Merges
-     * the string-based force copy paths.
+     * the string-based copy paths.
      * <p>
      * The given map contains version ID (in string format) as the key, with corresponding set of paths to copy
      * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
-     * of the user and default file, must have their force copy paths specified.
+     * of the user and default file, must have their copy paths specified.
      *
      * @param separator separator to split string based relocation paths by
-     * @return force copy paths, per version ID
+     * @return copy paths, per version ID
      */
-    public Map<String, Set<Path>> getForceCopy(char separator) {
+    public Map<String, Set<Path>> getCopy(char separator) {
         //If string relocations are defined
-        if (stringForceCopy.size() > 0) {
+        if (stringCopy.size() > 0) {
             //Create factory
             PathFactory factory = new PathFactory(separator);
 
             //All entries
-            for (Map.Entry<String, Set<String>> entry : stringForceCopy.entrySet()) {
+            for (Map.Entry<String, Set<String>> entry : stringCopy.entrySet()) {
                 //The set
-                Set<Path> paths = forceCopy.computeIfAbsent(entry.getKey(), (key) -> new HashSet<>());
+                Set<Path> paths = copy.computeIfAbsent(entry.getKey(), (key) -> new HashSet<>());
                 //Add all
                 for (String path : entry.getValue())
                     paths.add(factory.create(path));
@@ -128,14 +128,14 @@ public class UpdaterSettings {
         }
 
         //Return
-        return forceCopy;
+        return copy;
     }
 
     /**
      * Returns relocations (in <code>from path = to path</code> format) per version ID string. Merges the string-based
      * relocations.
      *
-     * @param separator separator to split string based force copy paths by
+     * @param separator separator to split string based copy paths by
      * @return the relocations
      */
     public Map<String, Map<Path, Path>> getRelocations(char separator) {
@@ -182,12 +182,12 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns if to force copy all contents of the user file, not only those contained in the default (newest) file.
+     * Returns if to copy all contents of the user file, not only those contained in the default (newest) file.
      *
-     * @return if to force copy all user file contents
+     * @return if to copy all user file contents
      */
-    public boolean isForceCopyAll() {
-        return forceCopyAll;
+    public boolean isCopyAll() {
+        return copyAll;
     }
 
     /**
@@ -217,13 +217,13 @@ public class UpdaterSettings {
         private boolean autoSave = DEFAULT_AUTO_SAVE;
         //Enable downgrading
         private boolean enableDowngrading = DEFAULT_ENABLE_DOWNGRADING;
-        //Force copy all user file contents
-        private boolean forceCopyAll = DEFAULT_FORCE_COPY_ALL;
+        //Copy all user file contents
+        private boolean copyAll = DEFAULT_COPY_ALL;
         //Merge rules
         private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
-        //Paths to force copy
-        private final Map<String, Set<Path>> forceCopy = new HashMap<>();
-        private final Map<String, Set<String>> stringForceCopy = new HashMap<>();
+        //Paths to copy
+        private final Map<String, Set<Path>> copy = new HashMap<>();
+        private final Map<String, Set<String>> stringCopy = new HashMap<>();
         //Relocations
         private final Map<String, Map<Path, Path>> relocations = new HashMap<>();
         private final Map<String, Map<String, String>> stringRelocations = new HashMap<>();
@@ -272,15 +272,15 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if to force copy all contents of the user file, not only those contained in the default (newest) file.
+         * Sets if to copy all contents of the user file, not only those contained in the default (newest) file.
          * <p>
-         * <b>Default: </b>{@link #DEFAULT_FORCE_COPY_ALL}
+         * <b>Default: </b>{@link #DEFAULT_COPY_ALL}
          *
-         * @param forceCopyAll if to force copy all user file contents
+         * @param copyAll if to copy all user file contents
          * @return the builder
          */
-        public Builder setForceCopyAll(boolean forceCopyAll) {
-            this.forceCopyAll = forceCopyAll;
+        public Builder setCopyAll(boolean copyAll) {
+            this.copyAll = copyAll;
             return this;
         }
 
@@ -297,7 +297,7 @@ public class UpdaterSettings {
          * @return the builder
          * @see #setMergeRule(MergeRule, boolean)
          */
-        public Builder setMergeRules(Map<MergeRule, Boolean> mergeRules) {
+        public Builder setMergeRules(@NotNull Map<MergeRule, Boolean> mergeRules) {
             this.mergeRules.putAll(mergeRules);
             return this;
         }
@@ -312,34 +312,34 @@ public class UpdaterSettings {
          * @param preserveUser if to preserve contents from the user file instead of default contents when the given rule is met
          * @return the builder
          */
-        public Builder setMergeRule(MergeRule rule, boolean preserveUser) {
+        public Builder setMergeRule(@NotNull MergeRule rule, boolean preserveUser) {
             this.mergeRules.put(rule, preserveUser);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their paths) to force copy to the updated file (regardless if contained
+         * Sets which blocks (represented by their paths) to copy to the updated file (regardless if contained
          * in the default file), if updating from that certain version ID (if the user's file has that version ID). You
-         * can learn more at {@link #setForceCopy(String, Set)} or {wiki}. If there already are paths defined for version
+         * can learn more at {@link #setCopy(String, Set)} or {wiki}. If there already are paths defined for version
          * ID, which is also present in the given map, they are overwritten.
          * <p>
          * The given map should contain version ID (in string format) as the key, with corresponding set of paths to copy
          * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
-         * of the user and default file, must have their force copy paths specified.
+         * of the user and default file, must have their copy paths specified.
          * <p>
          * <b>Default: </b><i>none</i>
          *
-         * @param forceCopy force copy paths to set, per version ID
+         * @param paths copy paths to set, per version ID
          * @return the builder
-         * @see #setStrForceCopy(String, Set)
+         * @see #setStrCopy(String, Set)
          */
-        public Builder setForceCopy(Map<String, Set<Path>> forceCopy) {
-            this.forceCopy.putAll(forceCopy);
+        public Builder setCopy(@NotNull Map<String, Set<Path>> paths) {
+            this.copy.putAll(paths);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their paths) to force copy from the user file (being updated) to the updated
+         * Sets which blocks (represented by their paths) to copy from the user file (being updated) to the updated
          * file (regardless if contained in the default file), if user file that's being updated has the given version ID.
          * If there already are paths defined for the given version ID, they are overwritten.
          * <p>
@@ -348,57 +348,57 @@ public class UpdaterSettings {
          * Please learn more about blocks at {@link Block} and {wiki}.
          * <p>
          * At the start of each updating process, set of paths representing blocks which to copy is obtained using the
-         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the force copy map
-         * {@link #getForceCopy(char)}. Then, each block in the user file, whose path is contained in the set, is marked
-         * to be copied (via {@link Block#setForceCopy(boolean)}).
+         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the copy map
+         * {@link #getCopy(char)}. Then, each block in the user file, whose path is contained in the set, is marked
+         * to be copied (via {@link Block#setCopy(boolean)}).
          * <p>
          * At the end, during merging, all blocks which have this option enabled and do not exist in the default file
          * (those would have already been merged), will be copied and included in the updated file.
          * <p>
          * For examples and in-depth explanation, please visit {wiki}. It is not required and does not need to be
-         * guaranteed, that all version IDs between version ID of the user and default file, must have their force copy
+         * guaranteed, that all version IDs between version ID of the user and default file, must have their copy
          * paths specified.
          * <p>
          * <b>Default: </b><i>none</i>
          *
          * @param versionId the version ID string to set paths for
-         * @param paths     the set of paths representing blocks to force copy
+         * @param paths     the set of paths representing blocks to copy
          * @return the builder
          */
-        public Builder setForceCopy(String versionId, Set<Path> paths) {
-            this.forceCopy.put(versionId, paths);
+        public Builder setCopy(@NotNull String versionId, @NotNull Set<Path> paths) {
+            this.copy.put(versionId, paths);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their string paths) to force copy to the updated file (regardless if contained
+         * Sets which blocks (represented by their string paths) to copy to the updated file (regardless if contained
          * in the default file), if updating from that certain version ID (if the user's file has that version ID). You
-         * can learn more at {@link #setStrForceCopy(String, Set)} or {wiki}. If there already are string-based paths
+         * can learn more at {@link #setStrCopy(String, Set)} or {wiki}. If there already are string-based paths
          * defined for version ID which is also present in the given map, they are overwritten.
          * <p>
          * The given map should contain version ID (in string format) as the key, with corresponding set of paths to copy
          * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
-         * of the user and default file, must have their force copy paths specified.
+         * of the user and default file, must have their copy paths specified.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrForceCopy(String, Set)} methods are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setForceCopy(Map)}) and will not overwrite each other.
-         * String path-based force copy paths are stored till the updating process, where they are converted to
+         * {@link #setStrCopy(String, Set)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setCopy(Map)}) and will not overwrite each other.
+         * String path-based copy paths are stored till the updating process, where they are converted to
          * {@link Path}-based ones and merged with the ones given via other methods.
          * <p>
          * <b>Default: </b><i>none</i>
          *
-         * @param forceCopy map of sets of <i>string</i> paths representing blocks to force copy, per version ID
+         * @param paths map of sets of <i>string</i> paths representing blocks to copy, per version ID
          * @return the builder
-         * @see #setStrForceCopy(String, Set)
+         * @see #setStrCopy(String, Set)
          */
-        public Builder setStrForceCopy(Map<String, Set<String>> forceCopy) {
-            this.stringForceCopy.putAll(forceCopy);
+        public Builder setStrCopy(@NotNull Map<String, Set<String>> paths) {
+            this.stringCopy.putAll(paths);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their string paths) to force copy to the updated file (regardless if contained
+         * Sets which blocks (represented by their string paths) to copy to the updated file (regardless if contained
          * in the default file), if updating from that certain version ID (if the user's file has that version ID). If
          * there already are string-based paths defined for version ID which is also present in the given map, they are
          * overwritten.
@@ -408,31 +408,31 @@ public class UpdaterSettings {
          * Please learn more about blocks at {@link Block} (and respective sub-interfaces) and {wiki}.
          * <p>
          * At the start of each updating process, set of paths representing blocks which to copy is obtained using the
-         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the force copy map
-         * {@link #getForceCopy(char)}. Then, each block in the user file, whose <i>string</i> path (only if the path
-         * contains string keys only) is contained in the set, is marked to be copied (via {@link Block#setForceCopy(boolean)}).
+         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the copy map
+         * {@link #getCopy(char)}. Then, each block in the user file, whose <i>string</i> path (only if the path
+         * contains string keys only) is contained in the set, is marked to be copied (via {@link Block#setCopy(boolean)}).
          * <p>
          * At the end, during merging, all blocks which have this option enabled and do not exist in the default file
          * (those would have already been merged), will be copied and included in the updated file.
          * <p>
          * For examples and in-depth explanation, please visit {wiki}. It is not required and does not need to be
-         * guaranteed, that all version IDs between version ID of the user and default file, must have their force copy
+         * guaranteed, that all version IDs between version ID of the user and default file, must have their copy
          * paths specified.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrForceCopy(Map)} methods are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setForceCopy(Map)}) and will not overwrite each other.
-         * String path-based force copy paths are stored till the updating process, where they are converted to
+         * {@link #setStrCopy(Map)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setCopy(Map)}) and will not overwrite each other.
+         * String path-based copy paths are stored till the updating process, where they are converted to
          * {@link Path}-based ones and merged with the ones given via other methods.
          * <p>
          * <b>Default: </b><i>none</i>
          *
          * @param versionId the version ID string to set paths for
-         * @param paths     the set of <i>string</i> paths representing blocks to force copy
+         * @param paths     the set of <i>string</i> paths representing blocks to copy
          * @return the builder
          */
-        public Builder setStrForceCopy(String versionId, Set<String> paths) {
-            this.stringForceCopy.put(versionId, paths);
+        public Builder setStrCopy(@NotNull String versionId, @NotNull Set<String> paths) {
+            this.stringCopy.put(versionId, paths);
             return this;
         }
 
@@ -445,7 +445,7 @@ public class UpdaterSettings {
          * @return the builder
          * @see #setStrRelocations(String, Map)
          */
-        public Builder setRelocations(Map<String, Map<Path, Path>> relocations) {
+        public Builder setRelocations(@NotNull Map<String, Map<Path, Path>> relocations) {
             this.relocations.putAll(relocations);
             return this;
         }
@@ -463,7 +463,7 @@ public class UpdaterSettings {
          * @param relocations relocations to set
          * @return the builder
          */
-        public Builder setRelocations(String versionId, Map<Path, Path> relocations) {
+        public Builder setRelocations(@NotNull String versionId, @NotNull Map<Path, Path> relocations) {
             this.relocations.put(versionId, relocations);
             return this;
         }
@@ -483,7 +483,7 @@ public class UpdaterSettings {
          * @return the builder
          * @see #setStrRelocations(String, Map)
          */
-        public Builder setStrRelocations(Map<String, Map<String, String>> relocations) {
+        public Builder setStrRelocations(@NotNull Map<String, Map<String, String>> relocations) {
             this.stringRelocations.putAll(relocations);
             return this;
         }
@@ -507,7 +507,7 @@ public class UpdaterSettings {
          * @param relocations relocations to set
          * @return the builder
          */
-        public Builder setStrRelocations(String versionId, Map<String, String> relocations) {
+        public Builder setStrRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
             this.stringRelocations.put(versionId, relocations);
             return this;
         }
@@ -522,7 +522,7 @@ public class UpdaterSettings {
          * @see #setVersioning(Pattern, String, String)
          * @see #setVersioning(Pattern, Path)
          */
-        public Builder setVersioning(Versioning versioning) {
+        public Builder setVersioning(@NotNull Versioning versioning) {
             this.versioning = versioning;
             return this;
         }
@@ -531,11 +531,11 @@ public class UpdaterSettings {
          * Sets versioning information manually. The given string version IDs must follow the given pattern.
          * <p>
          * If the user file version ID is <code>null</code> (e.g. user file was created before your plugin started using
-         * this library/updater), force copy paths are not effective and it's version will be treated like the oldest
+         * this library/updater), copy paths are not effective, and it's version will be treated like the oldest
          * one specified by the given pattern (which effectively means all relocations given will be applied to it).
          * <p>
          * If any of the version IDs do not follow the given pattern (cannot be parsed), an
-         * {@link IllegalArgumentException} will be thrown during the updating process. Please read the documentation of {@link ManualVersioning}.
+         * {@link IllegalArgumentException} will be thrown now. Please read the documentation of {@link ManualVersioning}.
          * <p>
          * <i>You may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
          * and rather update manually by calling {@link YamlFile#update()} (because if an error is thrown, you won't be able to initialize the file).</i>
@@ -553,21 +553,36 @@ public class UpdaterSettings {
         /**
          * Sets versioning information to be obtained automatically (directly from the user and default file).
          * <p>
-         * If the user file version ID could not be found (e.g. user file was created before your plugin started using
-         * this library/updater), force copy paths are not effective and it's version will be treated like the oldest
-         * one specified by the given pattern (which effectively means all relocations given will be applied to it).
+         * It must be guaranteed that version ID of the default file is present at the path and is valid (following the
+         * pattern), an {@link IllegalArgumentException} will be thrown during the updating process otherwise. If no
+         * version ID is found in the user file at the path, or is invalid, the updater will treat the user file version
+         * ID as the oldest specified by the given pattern.
          * <p>
-         * If any of the version IDs obtained from the files do not follow the given pattern an
-         * {@link IllegalArgumentException} will be thrown. Please read the documentation of {@link AutomaticVersioning}.
-         * <p>
-         * <i>You may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
-         * and rather update manually by calling {@link YamlFile#update()} (because if an error is thrown, you won't be able to initialize the file).</i>
+         * Please read the documentation of {@link AutomaticVersioning}.
          *
          * @param pattern the pattern
          * @param path    the path to version IDs (of both files) in both files
          * @return the builder
          */
         public Builder setVersioning(@NotNull Pattern pattern, @NotNull Path path) {
+            return setVersioning(new AutomaticVersioning(pattern, path));
+        }
+
+        /**
+         * Sets versioning information to be obtained automatically (directly from the user and default file).
+         * <p>
+         * It must be guaranteed that version ID of the default file is present at the path and is valid (following the
+         * pattern), an {@link IllegalArgumentException} will be thrown during the updating process otherwise. If no
+         * version ID is found in the user file at the path, or is invalid, the updater will treat the user file version
+         * ID as the oldest specified by the given pattern.
+         * <p>
+         * Please read the documentation of {@link AutomaticVersioning}.
+         *
+         * @param pattern the pattern
+         * @param path    the path to version IDs (of both files) in both files
+         * @return the builder
+         */
+        public Builder setVersioning(@NotNull Pattern pattern, @NotNull String path) {
             return setVersioning(new AutomaticVersioning(pattern, path));
         }
 

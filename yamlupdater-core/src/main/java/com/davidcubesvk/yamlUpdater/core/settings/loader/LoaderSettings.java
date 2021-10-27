@@ -4,6 +4,8 @@ import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.ConstructNode;
 import org.snakeyaml.engine.v2.api.DumpSettingsBuilder;
 import org.snakeyaml.engine.v2.api.LoadSettings;
@@ -119,7 +121,7 @@ public class LoaderSettings {
         /**
          * If to automatically update the file after load by default.
          */
-        public static final boolean DEFAULT_AUTO_UPDATE = true;
+        public static final boolean DEFAULT_AUTO_UPDATE = false;
         /**
          * If to print detailed error messages by default.
          */
@@ -128,10 +130,6 @@ public class LoaderSettings {
          * If to allow duplicate keys by default.
          */
         public static final boolean DEFAULT_ALLOW_DUPLICATE_KEYS = true;
-        /**
-         * If to allow recursive map/set keys by default.
-         */
-        public static final boolean DEFAULT_ALLOW_RECURSIVE_KEYS = false;
 
         //Underlying SnakeYAML Engine settings builder
         private final LoadSettingsBuilder builder;
@@ -159,7 +157,6 @@ public class LoaderSettings {
             //Set defaults
             setDetailedErrors(DEFAULT_DETAILED_ERRORS);
             setAllowDuplicateKeys(DEFAULT_ALLOW_DUPLICATE_KEYS);
-            setAllowRecursiveKeys(DEFAULT_ALLOW_RECURSIVE_KEYS);
         }
 
         /**
@@ -210,7 +207,7 @@ public class LoaderSettings {
          * @param label the label
          * @return the builder
          */
-        public Builder setErrorLabel(String label) {
+        public Builder setErrorLabel(@NotNull String label) {
             builder.setLabel(label);
             return this;
         }
@@ -236,9 +233,6 @@ public class LoaderSettings {
         /**
          * Sets if to allow duplicate keys in sections (last key wins when loading).
          * <p>
-         * YAML 1.1 (used by Spigot/BungeeCord API), supported those as if this option was enabled, YAML 1.2 however,
-         * requires unique keys. This is just a compatibility method.
-         * <p>
          * For additional information, please refer to documentation of the parent method listed below.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_ALLOW_DUPLICATE_KEYS}<br>
@@ -255,27 +249,8 @@ public class LoaderSettings {
         }
 
         /**
-         * Sets if to allow recursive keys for maps and sets. Manipulate with caution, as it loading such structures
-         * might cause unexpected issues.
-         * <p>
-         * For additional information, please refer to documentation of the parent method listed below.
-         * <p>
-         * <b>Default: </b> {@link #DEFAULT_ALLOW_RECURSIVE_KEYS}<br>
-         * <b>Parent method: </b> {@link LoadSettingsBuilder#setAllowRecursiveKeys(boolean)}<br>
-         * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setAllowRecursiveKeys(boolean)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b>-
-         *
-         * @param allowRecursiveKeys if to allow recursive keys
-         * @return the builder
-         */
-        public Builder setAllowRecursiveKeys(boolean allowRecursiveKeys) {
-            builder.setAllowRecursiveKeys(allowRecursiveKeys);
-            return this;
-        }
-
-        /**
-         * Sets maximum aliases for collections to prevent memory leaks
-         * (<a href="https://en.wikipedia.org/wiki/Billion_laughs_attack">Billion laughs attack</a> to be more specific).
+         * Sets maximum aliases a collection can have to prevent memory leaks (see
+         * <a href="https://en.wikipedia.org/wiki/Billion_laughs_attack">Billion laughs attack</a>).
          * <p>
          * For additional information, please refer to documentation of the parent method listed below.
          * <p>
@@ -306,13 +281,13 @@ public class LoaderSettings {
          * @param constructors constructor map
          * @return the builder
          */
-        public Builder setObjectConstructors(Map<Tag, ConstructNode> constructors) {
+        public Builder setTagConstructors(@NotNull Map<Tag, ConstructNode> constructors) {
             builder.setTagConstructors(constructors);
             return this;
         }
 
         /**
-         * Sets custom scalar resolver, used to resolve tags for objects in string format (<code>!str "x"</code>).
+         * Sets custom scalar resolver, used to resolve tags for objects.
          * <p>
          * For additional information, please refer to documentation of the parent method listed below.
          * <p>
@@ -325,7 +300,7 @@ public class LoaderSettings {
          * @return the builder
          * @see DumpSettingsBuilder#setScalarResolver(ScalarResolver)
          */
-        public Builder setScalarResolver(ScalarResolver resolver) {
+        public Builder setScalarResolver(@NotNull ScalarResolver resolver) {
             builder.setScalarResolver(resolver);
             return this;
         }
@@ -344,7 +319,7 @@ public class LoaderSettings {
          * @return the builder
          * @see DumpSettingsBuilder#setScalarResolver(ScalarResolver)
          */
-        public Builder setEnvironmentConfig(EnvConfig envConfig) {
+        public Builder setEnvironmentConfig(@Nullable EnvConfig envConfig) {
             builder.setEnvConfig(Optional.ofNullable(envConfig));
             return this;
         }

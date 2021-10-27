@@ -58,7 +58,7 @@ public class Path {
      * <p>
      * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
      * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
-     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * {@link GeneralSettings.KeyMode#STRING}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
@@ -81,7 +81,7 @@ public class Path {
      * <p>
      * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
      * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
-     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * {@link GeneralSettings.KeyMode#STRING}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented-paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
@@ -100,7 +100,7 @@ public class Path {
      * <p>
      * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
      * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
-     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * {@link GeneralSettings.KeyMode#STRING}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
@@ -164,7 +164,7 @@ public class Path {
      * <p>
      * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
      * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
-     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * {@link GeneralSettings.KeyMode#STRING}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
@@ -191,7 +191,7 @@ public class Path {
      * <p>
      * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
      * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
-     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * {@link GeneralSettings.KeyMode#STRING}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
@@ -219,7 +219,7 @@ public class Path {
      * <p>
      * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
      * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
-     * {@link GeneralSettings.KeyMode#STRING_BASED}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * {@link GeneralSettings.KeyMode#STRING}). Please learn more at {@link Section#getBlockSafe(String)}.
      * <p>
      * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
      * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for

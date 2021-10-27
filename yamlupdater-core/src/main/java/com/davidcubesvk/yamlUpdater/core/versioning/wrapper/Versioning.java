@@ -2,6 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.versioning.wrapper;
 
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents versioning information supplier.
@@ -17,7 +18,7 @@ public interface Versioning {
      * @param section the user section (file)
      * @return the version of the user section (file)
      */
-    Version getUserSectionVersion(Section section);
+    Version getUserSectionVersion(@NotNull Section section);
 
     /**
      * Returns version of the given default section (file; according to the implementation).
@@ -31,7 +32,7 @@ public interface Versioning {
      * @param section the default section (file)
      * @return the version of the default section (file)
      */
-    Version getDefSectionVersion(Section section);
+    Version getDefSectionVersion(@NotNull Section section);
 
     /**
      * Returns the oldest version specified by the underlying pattern.
@@ -39,5 +40,16 @@ public interface Versioning {
      * @return the oldest version
      */
     Version getOldest();
+
+    /**
+     * Sets version ID of the default section into the updated section content. Called only after successful update.
+     * <p>
+     * Should be implemented only if the underlying versioning supports file manipulation ({@link AutomaticVersioning}).
+     *
+     * @param updated the updated section
+     * @param def     the default section equivalent
+     */
+    default void updateVersionID(@NotNull Section updated, @NotNull Section def) {
+    }
 
 }

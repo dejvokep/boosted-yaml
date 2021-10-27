@@ -24,23 +24,17 @@ import java.util.function.Supplier;
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class DumperSettings {
 
-    /**
-     * Dumping style presets.
-     */
-    public enum StylePreset {
-        /**
-         * Dumping preset in extended, human-readable format.
-         * <p>
-         * Represents {@link FlowStyle#BLOCK} and {@link ScalarStyle#PLAIN}.
-         */
-        YAML,
+    public enum Encoding {
+        UNICODE(true), ASCII(false);
 
-        /**
-         * Dumping preset in JSON-compatible format (is still compatible with YAML)
-         * <p>
-         * Represents {@link FlowStyle#FLOW} and {@link ScalarStyle#DOUBLE_QUOTED}.
-         */
-        JSON
+        private final boolean unicode;
+        Encoding(boolean unicode) {
+            this.unicode = unicode;
+        }
+
+        boolean isUnicode() {
+            return unicode;
+        }
     }
 
     /**
@@ -116,13 +110,13 @@ public class DumperSettings {
          */
         public static final ScalarStyle DEFAULT_SCALAR_STYLE = ScalarStyle.PLAIN;
         /**
-         * If to add explicit document start by default.
+         * If to add document start by default.
          */
-        public static final boolean DEFAULT_ADD_EXPLICIT_START = false;
+        public static final boolean DEFAULT_START_MARKER = false;
         /**
-         * If to add explicit document end by default.
+         * If to add document end by default.
          */
-        public static final boolean DEFAULT_ADD_EXPLICIT_END = false;
+        public static final boolean DEFAULT_END_MARKER = false;
         /**
          * If to dump in canonical form by default.
          */
@@ -132,9 +126,9 @@ public class DumperSettings {
          */
         public static final boolean DEFAULT_MULTILINE_FORMAT = false;
         /**
-         * If to use unicode instead of ASCII charset by default.
+         * Default encoding.
          */
-        public static final boolean DEFAULT_UNICODE = true;
+        public static final Encoding DEFAULT_ENCODING = Encoding.UNICODE;
         /**
          * Default spaces per one indentation level.
          */
@@ -142,15 +136,15 @@ public class DumperSettings {
         /**
          * Default spaces to use to indent indicators.
          */
-        public static final int DEFAULT_INDICATOR_INDENTATION = -1;
+        public static final int DEFAULT_INDICATOR_INDENTATION = 0;
         /**
          * Max line width by default.
          */
-        public static final int DEFAULT_MAX_LINE_WIDTH = -1;
+        public static final int DEFAULT_MAX_LINE_WIDTH = 0;
         /**
          * Max length for a key to have to be dumped in simple format.
          */
-        public static final int DEFAULT_MAX_SIMPLE_KEY_LENGTH = -1;
+        public static final int DEFAULT_MAX_SIMPLE_KEY_LENGTH = 0;
         /**
          * If to escape unprintable unicode characters by default.
          */
@@ -182,11 +176,11 @@ public class DumperSettings {
             //Set defaults
             setFlowStyle(DEFAULT_FLOW_STYLE);
             setScalarStyle(DEFAULT_SCALAR_STYLE);
-            setAddExplicitStart(DEFAULT_ADD_EXPLICIT_START);
-            setAddExplicitEnd(DEFAULT_ADD_EXPLICIT_END);
-            setCanonical(DEFAULT_CANONICAL);
-            setMultilineFormat(DEFAULT_MULTILINE_FORMAT);
-            setUseUnicode(DEFAULT_UNICODE);
+            setStartMarker(DEFAULT_START_MARKER);
+            setEndMarker(DEFAULT_END_MARKER);
+            setCanonicalForm(DEFAULT_CANONICAL);
+            setMultilineStyle(DEFAULT_MULTILINE_FORMAT);
+            setEncoding(DEFAULT_ENCODING);
             setIndentation(DEFAULT_INDENTATION);
             setIndicatorIndentation(DEFAULT_INDICATOR_INDENTATION);
             setMaxLineWidth(DEFAULT_MAX_LINE_WIDTH);
@@ -195,11 +189,8 @@ public class DumperSettings {
         }
 
         /**
-         * Sets anchor generator supplier used to supply generators when dumping.
-         * <p>
-         * It is a supplier to ensure that brand new, yet unused generator, is used on every dump and it is not reused
-         * (which might cause higher anchor IDs being generated as the file is saved more for the default number-based
-         * generator for example).
+         * Sets custom anchor generator supplier used to supply generators when dumping. Supplier ensures that a brand
+         * new, yet unused generator, is used on every dump.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -218,57 +209,15 @@ public class DumperSettings {
         }
 
         /**
-         * Applies the given style preset to this builder.
-         * <table class="preset-table">
-         *     <tr>
-         *         <th>Given {@link StylePreset}</th>
-         *         <th>Sets {@link #setFlowStyle(FlowStyle)} to</th>
-         *         <th>Sets {@link #setScalarStyle(ScalarStyle)} to</th>
-         *     </tr>
-         *     <tr>
-         *         <td>{@link StylePreset#YAML}</td>
-         *         <td>{@link FlowStyle#BLOCK}</td>
-         *         <td>{@link ScalarStyle#PLAIN}</td>
-         *     </tr>
-         *     <tr>
-         *         <td>{@link StylePreset#JSON}</td>
-         *         <td>{@link FlowStyle#FLOW}</td>
-         *         <td>{@link ScalarStyle#DOUBLE_QUOTED}</td>
-         *     </tr>
-         * </table>
-         * Please note you can always alter the options modified by this preset, by calling their respective methods.
-         *
-         * @param stylePreset the style preset to apply
-         * @return the builder
-         * @see #setFlowStyle(FlowStyle)
-         * @see #setScalarStyle(ScalarStyle)
-         */
-        public Builder applyStylePreset(@NotNull StylePreset stylePreset) {
-            setFlowStyle(stylePreset == StylePreset.YAML ? FlowStyle.BLOCK : FlowStyle.FLOW);
-            return setScalarStyle(stylePreset == StylePreset.YAML ? ScalarStyle.PLAIN : ScalarStyle.DOUBLE_QUOTED);
-        }
-
-        /**
-         * Sets the given flow style. Flow style applies to sequences (lists, arrays) and maps, where they can either be
+         * Sets flow style to use. Flow style applies to sequence (lists, arrays) and map, where they can either be
          * dumped as blocks (expanded), or branched (using brackets).
          * <p>
-         * Sample output with flow style set to {@link FlowStyle#BLOCK BLOCK}:
-         * <pre>{@code
-         * a:
-         *   b:
-         *   - x
-         *   - y
-         *   c: false
-         * }</pre>
-         * Sample output with flow style set to {@link FlowStyle#FLOW FLOW} (the same file context):
-         * <pre>{@code
-         * {a: {b: [x, y], c: false}}
-         * }</pre>
          * If using {@link FlowStyle#FLOW FLOW}, you may also want to dump the contents in multiline format for better
-         * readability - please use {@link #setMultilineFormat(boolean)} to do that.
+         * readability - please use {@link #setMultilineStyle(boolean)} to do that.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
+         * <b>Documentation: </b><a href="">{wiki}</a><br>
          * <b>Default: </b> {@link #DEFAULT_FLOW_STYLE}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
          * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultFlowStyle(org.snakeyaml.engine.v2.common.FlowStyle)">click</a><br>
@@ -284,22 +233,11 @@ public class DumperSettings {
         }
 
         /**
-         * Sets the given scalar style.
-         * <p>
-         * Sample output with scalar style set to {@link ScalarStyle#PLAIN}:
-         * <pre>{@code
-         * a:
-         *   b: true
-         *   c: false
-         *   d: 1
-         * }</pre>
-         * Sample output with flow style set to {@link FlowStyle#FLOW FLOW} (the same file context):
-         * <pre>{@code
-         * {a: {b: [x, y], c: false}}
-         * }</pre>
+         * Sets scalar style to use.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
+         * <b>Documentation: </b><a href="">{wiki}</a><br>
          * <b>Default: </b> {@link #DEFAULT_SCALAR_STYLE}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)}<br>
          * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultScalarStyle(org.snakeyaml.engine.v2.common.ScalarStyle)">click</a><br>
@@ -315,46 +253,46 @@ public class DumperSettings {
         }
 
         /**
-         * Sets if to explicitly add document start marker (<code>---</code>). If there are any directives to be
-         * dumped, it will be added automatically not depending on the value set.
+         * Sets if to add document start marker (<code>---</code>). If there are any directives to be
+         * dumped, it is added automatically.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
-         * <b>Default: </b> {@link #DEFAULT_ADD_EXPLICIT_START}<br>
+         * <b>Default: </b> {@link #DEFAULT_START_MARKER}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setExplicitStart(boolean)}<br>
          * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setExplicitStart(boolean)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#document-markers">document markers</a>
          *
-         * @param explicitStart if to add explicit document start marker
+         * @param startMarker if to add explicit document start marker
          * @return the builder
          * @see DumpSettingsBuilder#setExplicitStart(boolean)
          */
-        public Builder setAddExplicitStart(boolean explicitStart) {
-            builder.setExplicitStart(explicitStart);
+        public Builder setStartMarker(boolean startMarker) {
+            builder.setExplicitStart(startMarker);
             return this;
         }
 
         /**
-         * Sets if to explicitly add document end marker (<code>...</code>).
+         * Sets if to add document end marker (<code>...</code>).
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
-         * <b>Default: </b> {@link #DEFAULT_ADD_EXPLICIT_END}<br>
+         * <b>Default: </b> {@link #DEFAULT_END_MARKER}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setExplicitEnd(boolean)}<br>
          * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setExplicitEnd(boolean)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#document-markers">document markers</a>
          *
-         * @param explicitEnd if to add explicit document end marker
+         * @param endMarker if to add explicit document end marker
          * @return the builder
          * @see DumpSettingsBuilder#setExplicitEnd(boolean)
          */
-        public Builder setAddExplicitEnd(boolean explicitEnd) {
-            builder.setExplicitEnd(explicitEnd);
+        public Builder setEndMarker(boolean endMarker) {
+            builder.setExplicitEnd(endMarker);
             return this;
         }
 
         /**
-         * Sets custom scalar resolver, used to resolve tags for objects in string format (<code>!str "x"</code>).
+         * Sets custom scalar resolver, used to resolve tags for objects.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -377,7 +315,7 @@ public class DumperSettings {
          * than {@link Map} for the top-level object, the given tag must be referring to a class implementing {@link Map}
          * interface, serious issues will occur otherwise (the given tag is not validated).
          * <p>
-         * If <code>null</code>, does not dump any tag for the root section (which will make the resolver resolve it
+         * If <code>null</code>, does not dump any explicit tag for the root section (which will make the resolver resolve it
          * automatically on next load).
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
@@ -399,7 +337,7 @@ public class DumperSettings {
         /**
          * Sets the version (<code>%YAML</code>) directive. If <code>null</code>, does not dump any explicit version
          * directive. SnakeYAML engine supports YAML v1.2 only, however, per the engine specification, most of the older
-         * YAML can be processed. Proceed with caution.
+         * YAML can be processed.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -418,8 +356,8 @@ public class DumperSettings {
         }
 
         /**
-         * Sets the given tag (<code>%TAG</code>) directives in form of a map, where key is the <code>handle</code> and
-         * value the <code>prefix</code> (per the YAML spec). If there was anything set previously, it is overwritten.
+         * Sets the given tag (<code>%TAG</code>) directives in form of a map, where key is the <i>handle</i> and
+         * value the <i>prefix</i> (per the YAML spec). If there were any tag directives set previously, they are <b>all</b> overwritten.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -440,37 +378,16 @@ public class DumperSettings {
         /**
          * Sets if to dump in canonical form.
          * <p>
-         * If set to <code>true</code>, each node and scalar will have it's own tag explicitly specified, with map keys
-         * and values having their indicators added beforehand. Strings, integers and booleans will be formatted as
-         * strings (double quoted).
-         * <p>
-         * Also, the dumped result will have the style of {@link FlowStyle#FLOW} with {@link #setMultilineFormat(boolean)} and
-         * {@link #setAddExplicitStart(boolean)} set to <code>true</code>. Please keep in mind that those settings will
-         * be overwritten (still, only if set to <code>true</code>).
-         * <p>
-         * Please see the differences below:
-         * <p>
-         * Sample output with canonical set to <code>false</code>:
-         * <pre>{@code
-         * a:
-         *   b: true
-         *   c: false
-         * }</pre>
-         * Sample output with canonical set to <code>true</code> (the same file context):
-         * <pre>{@code
-         * ---
-         * !!map {
-         *   ? !!str "a"
-         *   : !!map {
-         *     ? !!str "b"
-         *     : !!bool "true",
-         *     ? !!str "c"
-         *     : !!bool "false",
-         *   },
-         * }
-         * }</pre>
-         * <b>The specification displayed above is rather informative as it was made only from what's the difference,
-         * there is no SnakeYAML Engine documentation provided.</b>
+         * Though there is no information and/or specification regarding "canonical form", if enabled (according to
+         * experiment shown at the wiki), the dumped file looks as if:
+         * <ul>
+         *     <li>{@link #setFlowStyle(FlowStyle)} is set to {@link FlowStyle#FLOW},</li>
+         *     <li>{@link #setScalarStyle(ScalarStyle)} is set to {@link ScalarStyle#DOUBLE_QUOTED},</li>
+         *     <li>{@link #setMultilineStyle(boolean)} is enabled,</li>
+         *     <li>{@link #setMaxSimpleKeyLength(int)} is set to <code>1</code>,</li>
+         *     <li>{@link #setStartMarker(boolean)} is enabled.</li>
+         * </ul>
+         * Enabling this option might overwrite those settings as well, detailed behaviour is not documented.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -479,11 +396,11 @@ public class DumperSettings {
          * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setCanonical(boolean)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#canonical-form">canonical form</a>
          *
-         * @param canonical if to use canonical format
+         * @param canonical if to use canonical form
          * @return the builder
          * @see DumpSettingsBuilder#setCanonical(boolean)
          */
-        public Builder setCanonical(boolean canonical) {
+        public Builder setCanonicalForm(boolean canonical) {
             builder.setCanonical(canonical);
             return this;
         }
@@ -503,32 +420,32 @@ public class DumperSettings {
          * @return the builder
          * @see DumpSettingsBuilder#setMultiLineFlow(boolean)
          */
-        public Builder setMultilineFormat(boolean multilineFlow) {
+        public Builder setMultilineStyle(boolean multilineFlow) {
             builder.setMultiLineFlow(multilineFlow);
             return this;
         }
 
         /**
-         * Sets if to use unicode encoding for content characters instead of ASCII charset (where all non-ASCII chars will be escaped).
+         * Sets the encoding to use.
          * <p>
          * For additional information regarding this option and charsets, please refer to documentation of the parent method listed below.
          * <p>
-         * <b>Default: </b> {@link #DEFAULT_UNICODE}<br>
+         * <b>Default: </b> {@link #DEFAULT_ENCODING}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setUseUnicodeEncoding(boolean)}<br>
          * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setUseUnicodeEncoding(boolean)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character sets</a>
          *
-         * @param unicodeEncoding if to use full unicode encoding
+         * @param encoding the encoding to use
          * @return the builder
          * @see DumpSettingsBuilder#setUseUnicodeEncoding(boolean)
          */
-        public Builder setUseUnicode(boolean unicodeEncoding) {
-            builder.setUseUnicodeEncoding(unicodeEncoding);
+        public Builder setEncoding(Encoding encoding) {
+            builder.setUseUnicodeEncoding(encoding.isUnicode());
             return this;
         }
 
         /**
-         * Sets how many spaces to use per one indentation level.
+         * Sets how many spaces to use per one indent = one level in YAML indentation hierarchy.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -586,7 +503,7 @@ public class DumperSettings {
          * @see DumpSettingsBuilder#setWidth(int)
          * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setWidth(int)">docs for the wrapped method</a>
          */
-        public Builder setMaxLineWidth(int width) {
+            public Builder setMaxLineWidth(int width) {
             builder.setWidth(width <= 0 ? Integer.MAX_VALUE : width);
             return this;
         }
@@ -605,7 +522,7 @@ public class DumperSettings {
          * @return the builder
          * @see DumpSettingsBuilder#setBestLineBreak(String)
          */
-        public Builder setLineBreak(String lineBreak) {
+        public Builder setLineBreak(@NotNull String lineBreak) {
             builder.setBestLineBreak(lineBreak);
             return this;
         }
@@ -640,7 +557,7 @@ public class DumperSettings {
          * <p>
          * <b>Default: </b> {@link #DEFAULT_ESCAPE_UNPRINTABLE}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setNonPrintableStyle(NonPrintableStyle)}<br>
-         * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setMaxSimpleKeyLength(int)">click</a><br>
+         * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setNonPrintableStyle(org.snakeyaml.engine.v2.common.NonPrintableStyle)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character sets</a>
          *
          * @param escape if to escape rather than dumping as binary
