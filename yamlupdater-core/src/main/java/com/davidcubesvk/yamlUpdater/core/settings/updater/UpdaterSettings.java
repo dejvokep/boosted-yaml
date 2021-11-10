@@ -37,9 +37,9 @@ public class UpdaterSettings {
      */
     public static final boolean DEFAULT_ENABLE_DOWNGRADING = true;
     /**
-     * If to copy all contents from the user file by default.
+     * If to keep all contents of the user file not contained in the default file by default.
      */
-    public static final boolean DEFAULT_COPY_ALL = false;
+    public static final boolean DEFAULT_KEEP_ALL = false;
     /**
      * Default merge preservation rules.
      */
@@ -57,13 +57,13 @@ public class UpdaterSettings {
     private final boolean autoSave;
     //Enable downgrading
     private final boolean enableDowngrading;
-    //Copy all user file contents
-    private final boolean copyAll;
+    //Keep all user file contents
+    private final boolean keepAll;
     //Merge rules
     private final Map<MergeRule, Boolean> mergeRules;
-    //Paths to copy
-    private final Map<String, Set<Path>> copy;
-    private final Map<String, Set<String>> stringCopy;
+    //Paths to keep
+    private final Map<String, Set<Path>> keep;
+    private final Map<String, Set<String>> stringKeep;
     //Relocations
     private final Map<String, Map<Path, Path>> relocations;
     private final Map<String, Map<String, String>> stringRelocations;
@@ -78,10 +78,10 @@ public class UpdaterSettings {
     public UpdaterSettings(Builder builder) {
         this.autoSave = builder.autoSave;
         this.enableDowngrading = builder.enableDowngrading;
-        this.copyAll = builder.copyAll;
+        this.keepAll = builder.keepAll;
         this.mergeRules = builder.mergeRules;
-        this.copy = builder.copy;
-        this.stringCopy = builder.stringCopy;
+        this.keep = builder.keep;
+        this.stringKeep = builder.stringKeep;
         this.relocations = builder.relocations;
         this.stringRelocations = builder.stringRelocations;
         this.versioning = builder.versioning;
@@ -100,27 +100,29 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns which blocks (represented by their paths) to copy to the updated file (regardless if contained
-     * in the default file), if updating from that certain version ID (if the user's file has that version ID). Merges
-     * the string-based copy paths.
+     * Returns which blocks (represented by their paths) to keep in the user file (will not be deleted); if updating
+     * from that certain version ID (if the user's file has that version ID). Merges the string-based paths with path
+     * objects.
      * <p>
-     * The given map contains version ID (in string format) as the key, with corresponding set of paths to copy
-     * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
-     * of the user and default file, must have their copy paths specified.
+     * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the defaults).
+     * <p>
+     * The given map contains version ID (in string format) as the key, with corresponding set of paths to keep
+     * as value. It, naturally, is not required and not guaranteed, that all version IDs between version ID of the user
+     * and default file, must have their paths specified.
      *
-     * @param separator separator to split string based relocation paths by
-     * @return copy paths, per version ID
+     * @param separator separator to split string based paths by
+     * @return paths representing blocks to keep, per version ID
      */
-    public Map<String, Set<Path>> getCopy(char separator) {
+    public Map<String, Set<Path>> getKeep(char separator) {
         //If string relocations are defined
-        if (stringCopy.size() > 0) {
+        if (stringKeep.size() > 0) {
             //Create factory
             PathFactory factory = new PathFactory(separator);
 
             //All entries
-            for (Map.Entry<String, Set<String>> entry : stringCopy.entrySet()) {
+            for (Map.Entry<String, Set<String>> entry : stringKeep.entrySet()) {
                 //The set
-                Set<Path> paths = copy.computeIfAbsent(entry.getKey(), (key) -> new HashSet<>());
+                Set<Path> paths = keep.computeIfAbsent(entry.getKey(), (key) -> new HashSet<>());
                 //Add all
                 for (String path : entry.getValue())
                     paths.add(factory.create(path));
@@ -128,14 +130,14 @@ public class UpdaterSettings {
         }
 
         //Return
-        return copy;
+        return keep;
     }
 
     /**
      * Returns relocations (in <code>from path = to path</code> format) per version ID string. Merges the string-based
      * relocations.
      *
-     * @param separator separator to split string based copy paths by
+     * @param separator separator to split string based relocation paths by
      * @return the relocations
      */
     public Map<String, Map<Path, Path>> getRelocations(char separator) {
@@ -182,12 +184,12 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns if to copy all contents of the user file, not only those contained in the default (newest) file.
+     * Returns if to keep all non-merged contents of the user file.
      *
-     * @return if to copy all user file contents
+     * @return if to keep all non-merged user file contents
      */
-    public boolean isCopyAll() {
-        return copyAll;
+    public boolean isKeepAll() {
+        return keepAll;
     }
 
     /**
@@ -217,13 +219,13 @@ public class UpdaterSettings {
         private boolean autoSave = DEFAULT_AUTO_SAVE;
         //Enable downgrading
         private boolean enableDowngrading = DEFAULT_ENABLE_DOWNGRADING;
-        //Copy all user file contents
-        private boolean copyAll = DEFAULT_COPY_ALL;
+        //Keep all user file contents
+        private boolean keepAll = DEFAULT_KEEP_ALL;
         //Merge rules
         private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
-        //Paths to copy
-        private final Map<String, Set<Path>> copy = new HashMap<>();
-        private final Map<String, Set<String>> stringCopy = new HashMap<>();
+        //Paths to keep
+        private final Map<String, Set<Path>> keep = new HashMap<>();
+        private final Map<String, Set<String>> stringKeep = new HashMap<>();
         //Relocations
         private final Map<String, Map<Path, Path>> relocations = new HashMap<>();
         private final Map<String, Map<String, String>> stringRelocations = new HashMap<>();
@@ -272,15 +274,15 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if to copy all contents of the user file, not only those contained in the default (newest) file.
+         * Sets if to keep all non-merged (they don't have equivalent in the default file) blocks of the user file.
          * <p>
-         * <b>Default: </b>{@link #DEFAULT_COPY_ALL}
+         * <b>Default: </b>{@link #DEFAULT_KEEP_ALL}
          *
-         * @param copyAll if to copy all user file contents
+         * @param keepAll if to keep all user file blocks
          * @return the builder
          */
-        public Builder setCopyAll(boolean copyAll) {
-            this.copyAll = copyAll;
+        public Builder setKeepAll(boolean keepAll) {
+            this.keepAll = keepAll;
             return this;
         }
 
@@ -318,121 +320,104 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets which blocks (represented by their paths) to copy to the updated file (regardless if contained
-         * in the default file), if updating from that certain version ID (if the user's file has that version ID). You
-         * can learn more at {@link #setCopy(String, Set)} or {wiki}. If there already are paths defined for version
-         * ID, which is also present in the given map, they are overwritten.
+         * Sets which blocks (represented by their paths) to keep in the user file (will not be deleted); if updating
+         * from that certain version ID (if the user's file has that version ID). You can learn more at
+         * {@link #setKeep(String, Set)} or {wiki}. If there already are paths defined for version ID, which is also
+         * present in the given map, they are overwritten.
          * <p>
-         * The given map should contain version ID (in string format) as the key, with corresponding set of paths to copy
-         * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
-         * of the user and default file, must have their copy paths specified.
+         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the defaults).
+         * <p>
+         * The given map should contain version ID (in string format) as the key, with corresponding set of paths to keep
+         * as value. It, naturally, is not required and does not need to be guaranteed, that all version IDs between
+         * version ID of the user and default file, must have their paths specified.
          * <p>
          * <b>Default: </b><i>none</i>
          *
-         * @param paths copy paths to set, per version ID
+         * @param paths paths to set, per version ID
          * @return the builder
-         * @see #setStrCopy(String, Set)
+         * @see #setKeep(String, Set)
          */
-        public Builder setCopy(@NotNull Map<String, Set<Path>> paths) {
-            this.copy.putAll(paths);
+        public Builder setKeep(@NotNull Map<String, Set<Path>> paths) {
+            this.keep.putAll(paths);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their paths) to copy from the user file (being updated) to the updated
-         * file (regardless if contained in the default file), if user file that's being updated has the given version ID.
-         * If there already are paths defined for the given version ID, they are overwritten.
-         * <p>
-         * A block can either represent a section, or a mapping (section entry); while storing corresponding comments,
-         * as written in the file. Blocks are copied, that means their contents including comments are also copied.
-         * Please learn more about blocks at {@link Block} and {wiki}.
-         * <p>
-         * At the start of each updating process, set of paths representing blocks which to copy is obtained using the
-         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the copy map
-         * {@link #getCopy(char)}. Then, each block in the user file, whose path is contained in the set, is marked
-         * to be copied (via {@link Block#setCopy(boolean)}).
-         * <p>
-         * At the end, during merging, all blocks which have this option enabled and do not exist in the default file
-         * (those would have already been merged), will be copied and included in the updated file.
-         * <p>
-         * For examples and in-depth explanation, please visit {wiki}. It is not required and does not need to be
-         * guaranteed, that all version IDs between version ID of the user and default file, must have their copy
-         * paths specified.
-         * <p>
-         * <b>Default: </b><i>none</i>
-         *
-         * @param versionId the version ID string to set paths for
-         * @param paths     the set of paths representing blocks to copy
-         * @return the builder
-         */
-        public Builder setCopy(@NotNull String versionId, @NotNull Set<Path> paths) {
-            this.copy.put(versionId, paths);
-            return this;
-        }
-
-        /**
-         * Sets which blocks (represented by their string paths) to copy to the updated file (regardless if contained
-         * in the default file), if updating from that certain version ID (if the user's file has that version ID). You
-         * can learn more at {@link #setStrCopy(String, Set)} or {wiki}. If there already are string-based paths
-         * defined for version ID which is also present in the given map, they are overwritten.
-         * <p>
-         * The given map should contain version ID (in string format) as the key, with corresponding set of paths to copy
-         * as value. It is not required and does not need to be guaranteed, that all version IDs between version ID
-         * of the user and default file, must have their copy paths specified.
-         * <p>
-         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrCopy(String, Set)} methods are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setCopy(Map)}) and will not overwrite each other.
-         * String path-based copy paths are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods.
-         * <p>
-         * <b>Default: </b><i>none</i>
-         *
-         * @param paths map of sets of <i>string</i> paths representing blocks to copy, per version ID
-         * @return the builder
-         * @see #setStrCopy(String, Set)
-         */
-        public Builder setStrCopy(@NotNull Map<String, Set<String>> paths) {
-            this.stringCopy.putAll(paths);
-            return this;
-        }
-
-        /**
-         * Sets which blocks (represented by their string paths) to copy to the updated file (regardless if contained
-         * in the default file), if updating from that certain version ID (if the user's file has that version ID). If
-         * there already are string-based paths defined for version ID which is also present in the given map, they are
+         * Sets which blocks (represented by their paths) to keep in the user file (will not be deleted); if user file
+         * that's being updated has the given version ID. If there already are paths defined for the given ID, they are
          * overwritten.
          * <p>
-         * A block can either represent a section, or a mapping (section entry); while storing corresponding comments,
-         * as written in the file. Blocks are copied, that means their contents including comments are also copied.
-         * Please learn more about blocks at {@link Block} (and respective sub-interfaces) and {wiki}.
+         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the
+         * defaults). For examples and in-depth explanation, please visit {wiki}.
          * <p>
-         * At the start of each updating process, set of paths representing blocks which to copy is obtained using the
-         * user file's version ID (if available, see {@link #setVersioning(Pattern, Path)}) from the copy map
-         * {@link #getCopy(char)}. Then, each block in the user file, whose <i>string</i> path (only if the path
-         * contains string keys only) is contained in the set, is marked to be copied (via {@link Block#setCopy(boolean)}).
+         * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of
+         * the user and default file, must have their paths specified.
          * <p>
-         * At the end, during merging, all blocks which have this option enabled and do not exist in the default file
-         * (those would have already been merged), will be copied and included in the updated file.
+         * <b>Default: </b><i>none</i>
+         *
+         * @param versionId the version ID string to set paths for
+         * @param paths     the set of paths representing blocks to keep
+         * @return the builder
+         */
+        public Builder setKeep(@NotNull String versionId, @NotNull Set<Path> paths) {
+            this.keep.put(versionId, paths);
+            return this;
+        }
+
+        /**
+         * Sets which blocks (represented by their <i>string</i> paths) to keep in the user file (will not be deleted); if updating
+         * from that certain version ID (if the user's file has that version ID). You can learn more at
+         * {@link #setStrKeep(String, Set)} or {wiki}. If there already are paths defined for version ID, which is also
+         * present in the given map, they are overwritten.
          * <p>
-         * For examples and in-depth explanation, please visit {wiki}. It is not required and does not need to be
-         * guaranteed, that all version IDs between version ID of the user and default file, must have their copy
-         * paths specified.
+         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the defaults).
+         * <p>
+         * The given map should contain version ID (in string format) as the key, with corresponding set of paths to keep
+         * as value. It, naturally, is not required and does not need to be guaranteed, that all version IDs between
+         * version ID of the user and default file, must have their paths specified.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrCopy(Map)} methods are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setCopy(Map)}) and will not overwrite each other.
-         * String path-based copy paths are stored till the updating process, where they are converted to
+         * {@link #setStrKeep(String, Set)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setKeep(Map)}) and will not overwrite each other.
+         * String path-based keep paths are stored till the updating process, where they are converted to
+         * {@link Path}-based ones and merged with the ones given via other methods.
+         * <p>
+         * <b>Default: </b><i>none</i>
+         *
+         * @param paths <i>string</i> paths to set, per version ID
+         * @return the builder
+         * @see #setStrKeep(String, Set)
+         */
+        public Builder setStrKeep(@NotNull Map<String, Set<String>> paths) {
+            this.stringKeep.putAll(paths);
+            return this;
+        }
+
+        /**
+         * Sets which blocks (represented by their <i>string</i> paths) to keep in the user file (will not be deleted); if user file
+         * that's being updated has the given version ID. If there already are paths defined for the given ID, they are
+         * overwritten.
+         * <p>
+         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the
+         * defaults). For examples and in-depth explanation, please visit {wiki}.
+         * <p>
+         * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of
+         * the user and default file, must have their paths specified.
+         * <p>
+         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
+         * {@link #setStrKeep(Map)} methods are cached differently from paths supplied via
+         * {@link Path}-based methods (e.g. {@link #setKeep(Map)}) and will not overwrite each other.
+         * String path-based keep paths are stored till the updating process, where they are converted to
          * {@link Path}-based ones and merged with the ones given via other methods.
          * <p>
          * <b>Default: </b><i>none</i>
          *
          * @param versionId the version ID string to set paths for
-         * @param paths     the set of <i>string</i> paths representing blocks to copy
+         * @param paths     the set of <i>string</i> paths representing blocks to keep
          * @return the builder
          */
-        public Builder setStrCopy(@NotNull String versionId, @NotNull Set<String> paths) {
-            this.stringCopy.put(versionId, paths);
+        public Builder setStrKeep(@NotNull String versionId, @NotNull Set<String> paths) {
+            this.stringKeep.put(versionId, paths);
             return this;
         }
 
@@ -531,7 +516,7 @@ public class UpdaterSettings {
          * Sets versioning information manually. The given string version IDs must follow the given pattern.
          * <p>
          * If the user file version ID is <code>null</code> (e.g. user file was created before your plugin started using
-         * this library/updater), copy paths are not effective, and it's version will be treated like the oldest
+         * this library/updater), keep paths are not effective, and it's version will be treated like the oldest
          * one specified by the given pattern (which effectively means all relocations given will be applied to it).
          * <p>
          * If any of the version IDs do not follow the given pattern (cannot be parsed), an

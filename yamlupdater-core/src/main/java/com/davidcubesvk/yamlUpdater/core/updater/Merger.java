@@ -39,7 +39,7 @@ public class Merger {
      * through these pair of subsections.
      * <p>
      * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
-     * in the defaults) from the user section, unless {@link UpdaterSettings#isCopyAll()} is enabled or if they are
+     * in the defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled or if they are
      * marked as force copy ({@link Block#isCopy()}).
      *
      * @param userSection the user section
@@ -60,7 +60,7 @@ public class Merger {
      * through these pair of subsections.
      * <p>
      * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
-     * in the defaults) from the user section, unless {@link UpdaterSettings#isCopyAll()} is enabled or if they are
+     * in the defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled or if they are
      * marked as force copy ({@link Block#isCopy()}).
      *
      * @param userSection the user section
@@ -101,7 +101,7 @@ public class Merger {
         }
 
         //If copy all is set to true
-        if (settings.isCopyAll())
+        if (settings.isKeepAll())
             return;
 
         //Loop through all default keys

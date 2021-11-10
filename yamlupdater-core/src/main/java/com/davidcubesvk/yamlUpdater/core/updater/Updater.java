@@ -64,8 +64,8 @@ public class Updater {
      *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
      *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
-     *     (see {@link Versioning#getOldest()}). If provided, marks all blocks which have force copy option enabled
-     *     (determined by the set of paths, see {@link UpdaterSettings#getCopy(char)}).</li>
+     *     (see {@link Versioning#getOldest()}). If provided, marks all blocks that should be kept
+     *     (determined by the set of paths, see {@link UpdaterSettings#getKeep(char)}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
      *     <li>If version IDs equal, does not proceed as well.</li>
@@ -88,16 +88,10 @@ public class Updater {
         Version user = versioning.getUserSectionVersion(userSection), def = versioning.getDefSectionVersion(defaultSection);
         //Check default file version
         Objects.requireNonNull(def, "Version ID of the default file cannot be null!");
-        //If user ID is not null
-        if (user != null) {
-            //Go through all force copy paths
-            for (Path path : settings.getCopy(separator).get(user.asID()))
-                //Set
-                userSection.getBlockSafe(path).ifPresent(block -> block.setCopy(true));
-        } else {
-            //Set to oldest (to go through all relocations supplied)
+        //If user ID is null
+        if (user == null)
+            //Set to the oldest (to go through all relocations supplied)
             user = versioning.getOldest();
-        }
 
         //Compare
         int compared = user.compareTo(def);
@@ -111,9 +105,14 @@ public class Updater {
             throw new UnsupportedOperationException(String.format("Downgrading is not enabled (%s > %s)!", def.asID(), user.asID()));
         }
 
-        //No relocating needed
+        //No update needed
         if (compared == 0)
             return;
+
+        //Go through all force copy paths
+        for (Path path : settings.getKeep(separator).get(user.asID()))
+            //Set
+            userSection.getBlockSafe(path).ifPresent(block -> block.setCopy(true));
 
         //Initialize relocator
         Relocator relocator = new Relocator(userSection, user, def);
