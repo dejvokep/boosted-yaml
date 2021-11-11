@@ -33,11 +33,12 @@ public class Version implements Comparable<Version> {
 
     @Override
     public int compareTo(Version o) {
-        //If parts don't equal
+        //If patterns are not equal
         if (!pattern.equals(o.pattern))
             throw new ClassCastException("Versions to compare do not have the same part pattern.");
+
         //Go through all indexes
-        for (int index = cursors.length - 1; index >= 0; index--) {
+        for (int index = 0; index < cursors.length; index++) {
             //Compare
             int compared = Integer.compare(cursors[index], o.cursors[index]);
             //If 0
@@ -77,8 +78,14 @@ public class Version implements Comparable<Version> {
             cursors[index] = cursor + 1;
             break;
         }
+
+        //Build ID
+        buildID();
     }
 
+    /**
+     * Builds the ID representation for this version. The result is cached.
+     */
     private void buildID() {
         //The builder
         StringBuilder builder = new StringBuilder();
