@@ -24,11 +24,6 @@ import java.util.Set;
 public class UpdaterSettings {
 
     /**
-     * Default updater settings.
-     */
-    public static final UpdaterSettings DEFAULT = builder().build();
-
-    /**
      * If to, by default, automatically save the file after updating.
      */
     public static final boolean DEFAULT_AUTO_SAVE = true;
@@ -52,6 +47,11 @@ public class UpdaterSettings {
      * Default versioning.
      */
     public static final Versioning DEFAULT_VERSIONING = null;
+
+    /**
+     * Default updater settings.
+     */
+    public static final UpdaterSettings DEFAULT = builder().build();
 
     //Save automatically
     private final boolean autoSave;

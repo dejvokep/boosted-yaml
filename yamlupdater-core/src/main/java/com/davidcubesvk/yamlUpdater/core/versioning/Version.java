@@ -53,6 +53,21 @@ public class Version implements Comparable<Version> {
     }
 
     /**
+     * Returns the position of cursor corresponding to pattern's part at the given index.
+     * <p>
+     * The given index must be equal or greater than <code>0</code>, simultaneously less than the amount of parts forming
+     * the underlying pattern.
+     * <p>
+     * The returned cursor is in range from <code>0</code> (inclusive) to {@link Pattern.Part#length()} (exclusive).
+     *
+     * @param index the index to return the cursor for
+     * @return the cursor
+     */
+    public int getCursor(int index) {
+        return cursors[index];
+    }
+
+    /**
      * Moves to the next version ID (as per the specified pattern).
      * <p>
      * More formally, shifts the cursor index of the least significant (on the right) version part. If it is the last

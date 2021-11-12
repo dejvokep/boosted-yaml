@@ -2,13 +2,11 @@ package com.davidcubesvk.yamlUpdater.core.versioning;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class VersionTest {
 
-    // Testing pattern
+    // Pattern
     private static final Pattern PATTERN = new Pattern(new Pattern.Part(1, 100), new Pattern.Part("."), new Pattern.Part(0, 10));
 
     @Test
@@ -54,5 +52,10 @@ class VersionTest {
     @Test
     void getPattern() {
         assertEquals(PATTERN.getVersion("1.4").getPattern(), PATTERN);
+    }
+
+    @Test
+    void getCursor() {
+        assertEquals(PATTERN.getVersion("1.2").getCursor(2), 2);
     }
 }

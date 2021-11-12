@@ -83,11 +83,4 @@ public class AutomaticVersioning implements Versioning {
         return (path != null ? section.getStringSafe(path) : section.getStringSafe(strPath)).map(pattern::getVersion).orElse(null);
     }
 
-    /**
-     * Returns the path to the version ID.
-     * @return the path to the version ID
-     */
-    public Path getPath() {
-        return path;
-    }
 }

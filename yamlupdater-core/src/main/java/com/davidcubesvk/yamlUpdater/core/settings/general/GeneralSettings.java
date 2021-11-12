@@ -4,6 +4,7 @@ import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.serialization.Serializer;
 import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
+import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.SetSupplier;
@@ -90,6 +91,11 @@ public class GeneralSettings {
      * Default map supplier.
      */
     public static final MapSupplier DEFAULT_MAP = LinkedHashMap::new;
+
+    /**
+     * Default general settings.
+     */
+    public static final GeneralSettings DEFAULT = builder().build();
 
     //key mode
     private final KeyMode keyMode;
