@@ -4,7 +4,6 @@ import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
-import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RelocatorTest {
 
@@ -40,21 +39,21 @@ class RelocatorTest {
             put(Path.fromSingleKey("z"), Path.fromSingleKey("i"));
         }});
     }};
-    // Files
-    private static final YamlFile FILE = new YamlFile(new ByteArrayInputStream("x: a\ny: b\nz:\n  a: 1\n  b: 10".getBytes(StandardCharsets.UTF_8)), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT);
 
     @Test
     void apply() {
+        // File
+        YamlFile file = new YamlFile(new ByteArrayInputStream("x: a\ny: b\nz:\n  a: 1\n  b: 10".getBytes(StandardCharsets.UTF_8)), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT);
         // Create relocator
-        Relocator relocator = new Relocator(FILE, VERSION_USER, VERSION_DEFAULT);
+        Relocator relocator = new Relocator(file, VERSION_USER, VERSION_DEFAULT);
         // Apply
         relocator.apply(RELOCATIONS);
         // Assert
-        assertEquals(FILE.get("h", null), "a");
-        assertEquals(FILE.get("x", null), "b");
-        assertEquals(FILE.get("i.a", 0), 1);
-        assertEquals(FILE.get("i.b", 0), 10);
-        assertEquals(FILE.getKeys().size(), 3);
-        assertEquals(FILE.getSection("i").getKeys().size(), 2);
+        assertEquals(file.get("h", null), "a");
+        assertEquals(file.get("x", null), "b");
+        assertEquals(file.get("i.a", null), 1);
+        assertEquals(file.get("i.b", null), 10);
+        assertEquals(file.getKeys().size(), 3);
+        assertEquals(file.getSection("i").getKeys().size(), 2);
     }
 }

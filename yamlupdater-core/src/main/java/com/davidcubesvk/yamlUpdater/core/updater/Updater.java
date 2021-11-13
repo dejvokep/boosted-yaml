@@ -9,6 +9,7 @@ import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Updater class responsible for executing the whole process:
@@ -109,10 +110,14 @@ public class Updater {
         if (compared == 0)
             return;
 
-        //Go through all force copy paths
-        for (Path path : settings.getKeep(separator).get(user.asID()))
-            //Set
-            userSection.getBlockSafe(path).ifPresent(block -> block.setKeep(true));
+        // Keep paths
+        Set<Path> keepPaths = settings.getKeep(separator).getOrDefault(user.asID(), null);
+        //If there are any keep paths
+        if (keepPaths != null)
+            //Go through all keep paths
+            for (Path path : keepPaths)
+                //Set
+                userSection.getBlockSafe(path).ifPresent(block -> block.setKeep(true));
 
         //Initialize relocator
         Relocator relocator = new Relocator(userSection, user, def);
