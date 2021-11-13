@@ -711,7 +711,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = path.indexOf(lastSeparator, root.getGeneralSettings().getSeparator());
+            int nextSeparator = path.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
             //If found
             if (nextSeparator != -1)
                 //Create section
@@ -724,7 +724,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
 
         //Return
-        return createSectionInternal(path.substring(lastSeparator), null);
+        return section.createSectionInternal(path.substring(lastSeparator), null);
     }
 
     /**
@@ -844,7 +844,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = path.indexOf(lastSeparator, root.getGeneralSettings().getSeparator());
+            int nextSeparator = path.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
             //If found
             if (nextSeparator != -1) {
                 //Create section
@@ -1023,8 +1023,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * which might - if consisting of multiple keys - refer to subsections) - similar to {@link Map#get(Object)}.
      * <p>
      * <b>Please note</b> that this class also supports <code>null</code> keys, or empty string keys (<code>""</code>)
-     * as specified by YAML 1.2 spec. This also means that compatibility with Spigot/BungeeCord API is not maintained in
-     * regards to empty string keys, where those APIs would return the instance of the current block - this section.
+     * as specified by YAML 1.2 spec. This also means that compatibility with Spigot/BungeeCord API is not maintained
+     * regarding empty string keys, where those APIs would return the instance of the current block - this section.
      * <p>
      * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
      *
@@ -1066,8 +1066,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <code>null</code> keys) by SnakeYAML Engine (please see <a href="https://yaml.org/spec/1.2.2/">YAML 1.2 spec</a>).
      * If such functionality is needed, use {@link #getBlockSafe(Path)} instead, please.
      * <p>
-     * <b>Please note</b> that compatibility with Spigot/BungeeCord API is not maintained in regards to empty string
-     * keys, where those APIs would return the instance of the current block - this section.
+     * <b>Please note</b> that compatibility with Spigot/BungeeCord API is not maintained regarding empty string keys,
+     * where those APIs would return the instance of the current block - this section.
      * <p>
      * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
      *
@@ -1109,7 +1109,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = path.indexOf(lastSeparator, root.getGeneralSettings().getSeparator());
+            int nextSeparator = path.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
             //If not found
             if (nextSeparator == -1)
                 break;
@@ -1126,7 +1126,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
 
         //Return
-        return Optional.ofNullable(parent ? this : getValue().get(path.substring(lastSeparator)));
+        return Optional.ofNullable(parent ? section : section.getValue().get(path.substring(lastSeparator)));
     }
 
     /**
@@ -1157,7 +1157,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
 
         //Return
-        return Optional.ofNullable(parent ? this : getValue().get(adaptKey(path.get(i))));
+        return Optional.ofNullable(parent ? section : section.getValue().get(adaptKey(path.get(i))));
     }
 
     //

@@ -305,4 +305,17 @@ public class Path {
     public Path parent() {
         return Path.from(Arrays.copyOf(this.path, this.path.length - 1));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Path)) return false;
+        Path path1 = (Path) o;
+        return Arrays.equals(path, path1.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(path);
+    }
 }

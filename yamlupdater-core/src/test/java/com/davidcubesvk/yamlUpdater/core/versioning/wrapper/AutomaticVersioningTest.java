@@ -17,7 +17,7 @@ class AutomaticVersioningTest {
     private static final Pattern PATTERN = new Pattern(new Pattern.Part(1, 100), new Pattern.Part("."), new Pattern.Part(0, 10));
     // Versioning
     private static final AutomaticVersioning VERSIONING = new AutomaticVersioning(PATTERN, "x");
-    // File
+    // Files
     private static final YamlFile USER_FILE = new YamlFile(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT),
             DEFAULT_FILE = new YamlFile(new ByteArrayInputStream("x: 1.4\ny: false".getBytes(StandardCharsets.UTF_8)), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT);
 

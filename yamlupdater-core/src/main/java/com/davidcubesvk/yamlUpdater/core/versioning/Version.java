@@ -1,6 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core.versioning;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Represents file version IDs, while providing methods to shift to the next ID, or to compare two.
@@ -138,5 +139,20 @@ public class Version implements Comparable<Version> {
      */
     public Pattern getPattern() {
         return pattern;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Version)) return false;
+        Version version = (Version) o;
+        return pattern.equals(version.pattern) && Arrays.equals(cursors, version.cursors);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(pattern);
+        result = 31 * result + Arrays.hashCode(cursors);
+        return result;
     }
 }

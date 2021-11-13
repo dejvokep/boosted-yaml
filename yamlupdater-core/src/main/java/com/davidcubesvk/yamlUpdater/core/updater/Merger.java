@@ -36,11 +36,11 @@ public class Merger {
      * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default block)
      * outputs the preserved one (according to the merging rules) into the user section. If the preserved block is the
      * default one, deep copies it (so it is isolated from the defaults). If both blocks represent sections, iterates
-     * through these pair of subsections.
+     * through that pair of subsections recursively.
      * <p>
-     * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
-     * in the defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled or if they are
-     * marked as force copy ({@link Block#isCopy()}).
+     * Additionally, after iteration had finished, deletes all non-merged blocks (those which are not contained in the
+     * defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled, or they are marked as to
+     * be kept ({@link Block#isKeep()}).
      *
      * @param userSection the user section
      * @param defSection  the default section equivalent to the user section
@@ -61,7 +61,7 @@ public class Merger {
      * <p>
      * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
      * in the defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled or if they are
-     * marked as force copy ({@link Block#isCopy()}).
+     * marked as force copy ({@link Block#isKeep()}).
      *
      * @param userSection the user section
      * @param defSection  the default section equivalent to the user section
@@ -111,7 +111,7 @@ public class Merger {
             //If present
             userSection.getBlockSafe(path).ifPresent(block -> {
                 //If force copy disabled
-                if (!block.isCopy())
+                if (!block.isKeep())
                     //Remove
                     userSection.remove(path);
             });

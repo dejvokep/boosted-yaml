@@ -112,7 +112,7 @@ public class Updater {
         //Go through all force copy paths
         for (Path path : settings.getKeep(separator).get(user.asID()))
             //Set
-            userSection.getBlockSafe(path).ifPresent(block -> block.setCopy(true));
+            userSection.getBlockSafe(path).ifPresent(block -> block.setKeep(true));
 
         //Initialize relocator
         Relocator relocator = new Relocator(userSection, user, def);

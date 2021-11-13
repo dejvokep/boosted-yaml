@@ -27,18 +27,23 @@ class VersionTest {
         Version version = PATTERN.getVersion("1.9");
         version.next();
         // If equals
-        assertEquals(version.asID(), "2.0");
+        assertEquals(version, PATTERN.getVersion("2.0"));
 
         // Shift the other part
         version = PATTERN.getVersion("1.4");
         version.next();
         // If equals
-        assertEquals(version.asID(), "1.5");
+        assertEquals(version, PATTERN.getVersion("1.5"));
     }
 
     @Test
     void asID() {
+        // Assert directly initialized
         assertEquals(PATTERN.getVersion("1.4").asID(), "1.4");
+        // Assert shifted
+        Version version = PATTERN.getVersion("1.5");
+        version.next();
+        assertEquals(version.asID(), "1.6");
     }
 
     @Test
@@ -46,7 +51,7 @@ class VersionTest {
         // Create a version
         Version version = PATTERN.getVersion("1.2");
         // If equals
-        assertEquals(version.copy().compareTo(version), 0);
+        assertEquals(version.copy(), version);
     }
 
     @Test
@@ -58,4 +63,5 @@ class VersionTest {
     void getCursor() {
         assertEquals(PATTERN.getVersion("1.2").getCursor(2), 2);
     }
+
 }

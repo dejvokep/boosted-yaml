@@ -18,8 +18,8 @@ public class Block<T> {
     private List<CommentLine> keyBlockComments, keyInlineComments, keyEndComments, valueBlockComments, valueInlineComments, valueEndComments;
     //Value
     private final T value;
-    //Force copy (updater)
-    private boolean copy = false;
+    //Keep (updater)
+    private boolean keep = false;
 
     /**
      * Creates a block using the given parameters; while storing references to comments from the given nodes.
@@ -91,21 +91,21 @@ public class Block<T> {
     }
 
     /**
-     * Sets whether to copy this block. Used only internally during updater process.
+     * Sets whether to keep this block. Used only internally during updater process.
      *
-     * @param copy if to copy
+     * @param keep if to keep
      */
-    public void setCopy(boolean copy) {
-        this.copy = copy;
+    public void setKeep(boolean keep) {
+        this.keep = keep;
     }
 
     /**
-     * Returns whether to copy this block. Used only internally during updater process.
+     * Returns whether to keep this block. Used only internally during updater process.
      *
-     * @return if to copy this block
+     * @return if to keep this block
      */
-    public boolean isCopy() {
-        return copy;
+    public boolean isKeep() {
+        return keep;
     }
 
     /**

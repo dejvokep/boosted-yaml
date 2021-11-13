@@ -31,7 +31,7 @@ public class Relocator {
     }
 
     /**
-     * Applies all the given relocations to the given file (in constructor), one by one using
+     * Applies all the given relocations to the given section (in constructor), one by one using
      * {@link #apply(Map, Iterator, Path)}.
      * <p>
      * More formally, iterates through all version IDs, starting from the just next version ID of the user file version ID,
@@ -79,21 +79,24 @@ public class Relocator {
         //If there is no relocation
         if (from == null || !relocations.containsKey(from))
             return;
-        //To
-        Path to = relocations.get(from);
         //The parent section
-        Optional<Section> parent = file.getParent(to);
+        Optional<Section> parent = file.getParent(from);
         //If absent
         if (!parent.isPresent())
             return;
+        // Last key
+        Object lastKey = from.get(from.length() - 1);
         //The block
-        Block<?> block = parent.get().getValue().get(to.get(to.length() - 1));
+        Block<?> block = parent.get().getValue().get(lastKey);
         //If absent
         if (block == null)
             return;
+        //To
+        Path to = relocations.get(from);
 
         //Remove
         keyIterator.remove();
+        parent.get().getValue().remove(lastKey);
         removeParents(parent.get());
 
         //Relocate to
