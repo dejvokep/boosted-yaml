@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * A custom representer for the SnakeYAML Engine allowing to represent {@link Section} objects, deserializing custom
- * objects, all of which while keeping comments and without any additional time consuming.
+ * objects, all of which while keeping comments and without any additional time consumption.
  */
 public class LibRepresenter extends StandardRepresenter {
 
@@ -46,9 +46,9 @@ public class LibRepresenter extends StandardRepresenter {
         @Override
         public Node representData(Object o) {
             //Serialize
-            Object deserialized = generalSettings.getSerializer().serialize(o, generalSettings.getDefaultMapSupplier());
+            Object serialized = generalSettings.getSerializer().serialize(o, generalSettings.getDefaultMapSupplier());
             //Return
-            return LibRepresenter.this.representData(deserialized == null ? o : deserialized);
+            return LibRepresenter.this.representData(serialized == null ? o : serialized);
         }
 
     }

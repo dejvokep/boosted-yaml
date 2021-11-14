@@ -16,11 +16,11 @@ import static com.davidcubesvk.yamlUpdater.core.utils.conversion.NumericConversi
 import static com.davidcubesvk.yamlUpdater.core.utils.conversion.ListConversions.*;
 
 /**
- * Represents one YAML section (map), while storing it's contents and comments. Section can also be referred to as
+ * Represents one YAML section (map), while storing its contents and comments. Section can also be referred to as
  * <i>collection of mappings (key=value pairs)</i>.
  * <p>
  * Functionality of this class is heavily dependent on the root file (instance of root {@link YamlFile}), to be more
- * specific, on it's settings.
+ * specific, on its settings.
  * <p>
  * The public methods of this class are divided into 2 groups, by what they require as the path and therefore, what should be used for certain key mode:
  * <ul>
@@ -108,8 +108,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * parent section to <code>null</code>, section name to an empty string and path to an empty path.
      * <p>
      * <b>This constructor is only used by extending class {@link YamlFile}, where the respective nodes are unknown at
-     * the time of initialization. In such a scenario, it is needed to call
-     * {@link #init(YamlFile, Node, MappingNode, LibConstructor)} afterwards.</b>
+     * the time of initialization. It is needed to call {@link #init(YamlFile, Node, MappingNode, LibConstructor)} afterwards.</b>
      *
      * @param defaultMap the content map
      * @see Block#Block(Object) superclass constructor used
@@ -397,7 +396,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The set, however, is a <i>shallow</i> copy of the map's key set, therefore, the caller is able to modify it
      * freely, without modifying this section.
      *
-     * @return the complete set of paths directly contained by this section
+     * @return the complete set of keys directly contained by this section
      */
     public Set<Object> getKeys() {
         //Create a set
@@ -592,7 +591,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Path to this entry
             Path entryPath = Path.addTo(current, entry.getKey());
             //Call
-            consumer.accept(current, entry);
+            consumer.accept(entryPath, entry);
             //If a section and deep is enabled
             if (deep && entry.getValue() instanceof Section)
                 ((Section) entry.getValue()).addData(consumer, entryPath, true);
@@ -617,6 +616,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
         for (Map.Entry<?, Block<?>> entry : getValue().entrySet()) {
             //Current length
             int length = pathBuilder.length();
+            //Add separator if there is a key already
+            if (length > 0)
+                pathBuilder.append(separator);
             //Call
             consumer.accept(pathBuilder.append(entry.getKey().toString()).toString(), entry);
             //If a section and deep is enabled

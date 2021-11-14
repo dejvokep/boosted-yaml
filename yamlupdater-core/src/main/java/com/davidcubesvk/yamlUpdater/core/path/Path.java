@@ -251,7 +251,7 @@ public class Path {
      * to the documentation above
      */
     public static Path addTo(@Nullable Path path, @Nullable Object key) {
-        return path == null ? Path.from(key) : path.add(key);
+        return path == null ? Path.fromSingleKey(key) : path.add(key);
     }
 
     /**
