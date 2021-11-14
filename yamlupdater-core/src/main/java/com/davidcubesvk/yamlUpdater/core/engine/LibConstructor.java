@@ -6,6 +6,7 @@ import org.snakeyaml.engine.v2.constructor.StandardConstructor;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.Tag;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,8 +66,8 @@ public class LibConstructor extends StandardConstructor {
     }
 
     /**
-     * Clears all the (previously) constructed objects - therefore, freeing up the memory. It is always recommended to
-     * call this method after this instance of the constructor is done constructing.
+     * Clears all the (previously) constructed objects - therefore, freeing up the memory. It is always recommended
+     * calling this method after this instance of the constructor is done constructing.
      */
     public void clear() {
         constructed.clear();
@@ -95,7 +96,7 @@ public class LibConstructor extends StandardConstructor {
             @SuppressWarnings("unchecked")
             Map<Object, Object> map = (Map<Object, Object>) previous.construct(node);
             //Deserialize
-            Object deserialized = serializer.deserialize(map);
+            Object deserialized = serializer.deserialize(Collections.unmodifiableMap(map));
 
             //Return
             return deserialized == null ? map : deserialized;

@@ -154,7 +154,7 @@ public class Path {
      * @see #from(Object...)
      */
     public static Path fromSingleKey(@Nullable Object key) {
-        return key == null ? NULL_KEY : new Path(key);
+        return NULL_KEY == null ? new Path(key) : key == null ? NULL_KEY : new Path(key);
     }
 
     /**

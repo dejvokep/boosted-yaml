@@ -13,9 +13,9 @@ public interface YamlSerializer {
     /**
      * Attempts to deserialize the given map into a class instance using this serializer.
      * <p>
-     * The given map is a raw object map - there are no {@link com.davidcubesvk.yamlUpdater.core.block.Block} instances,
-     * just the values themselves. The map is also guaranteed and this method will be called only if it contains a key
-     * defined by {@link #getClassIdentifierKey()}.
+     * The given map is an <b>immutable</b> raw object map - there are no {@link com.davidcubesvk.yamlUpdater.core.block.Block}
+     * instances, just the values themselves. The map is also guaranteed and this method will be called only if it
+     * contains a key defined by {@link #getClassIdentifierKey()}.
      * <p>
      * If no class in this serializer is registered (no class was found to deserialize the given map), or could not
      * deserialize the map, <b>this method must return <code>null</code></b>.

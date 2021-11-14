@@ -1,24 +1,33 @@
 package com.davidcubesvk.yamlUpdater.core.serialization;
 
+import com.davidcubesvk.yamlUpdater.core.block.Block;
+import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
+
 import java.util.Map;
 
 /**
  * Interface used to (de)serialize custom objects.
  * <p>
  * Please note that classes implementing this interface must also be registered in the appropriate serializer used to
- * load/save files (see the corresponding wiki page or {@link com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings.Builder#setSerializer(YamlSerializer)}.
+ * load/save files (see the corresponding wiki page or {@link GeneralSettings.Builder#setSerializer(YamlSerializer)}).
+ * <p>
+ * <b>Implementing classes must also contain</b> following method for deserialization (return type does not matter,
+ * although, it should be an instance of the class implementing this interface):
+ * <p>
+ * <code>&#47;**<br>
+ * &nbsp;* Deserializes the given map into instance of this class (that's implementing<br>
+ * &nbsp;* this interface).<br>
+ * &nbsp;*<br>
+ * &nbsp;* The given map is an <b>immutable</b> raw object map; there are no {@link Block}<br>
+ * &nbsp;* instances, just the values themselves.<br>
+ * &nbsp;*<br>
+ * &nbsp;* @param map the raw map to deserialize<br>
+ * &nbsp;* @return the deserialized object (should be an instance of the class; where<br>
+ * &nbsp;* &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this method is a member)<br>
+ * &nbsp;*&#47;<br>
+ * public static Object deserialize(Map<Object, Object> map) {...}</code>
  */
 public interface Serializable {
-
-    /**
-     * Deserializes the given map into instance of this class (that's implementing this interface).
-     * <p>
-     * The given map is a raw object map - there are no {@link com.davidcubesvk.yamlUpdater.core.block.Block} instances, just the values themselves.
-     *
-     * @param map the raw map to deserialize
-     * @return the deserialized object (must be an instance of the class implementing this interface)
-     */
-    Object deserialize(Map<Object, Object> map);
 
     /**
      * Serializes the current state of this instance into a map and returns it.

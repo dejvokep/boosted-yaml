@@ -19,8 +19,8 @@ class LoaderSettingsTest {
 
     @Test
     void isCreateFileIfAbsent() {
-        assertTrue(LoaderSettings.builder().setAutoUpdate(true).build().isCreateFileIfAbsent());
-        assertFalse(LoaderSettings.builder().setAutoUpdate(false).build().isCreateFileIfAbsent());
+        assertTrue(LoaderSettings.builder().setCreateFileIfAbsent(true).build().isCreateFileIfAbsent());
+        assertFalse(LoaderSettings.builder().setCreateFileIfAbsent(false).build().isCreateFileIfAbsent());
     }
 
     @Test
@@ -32,7 +32,7 @@ class LoaderSettingsTest {
             public <T> List<T> supply(int size) {
                 return new LinkedList<>();
             }
-        }).build()).getDefaultList() instanceof LinkedList);
+        }).build()).getDefaultList().apply(1) instanceof LinkedList);
     }
 
 }
