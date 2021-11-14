@@ -12,13 +12,13 @@ class VersionTest {
     @Test
     void compareTo() {
         // Compare -1 cases
-        assertEquals(PATTERN.getVersion("1.9").compareTo(PATTERN.getVersion("2.1")), -1);
-        assertEquals(PATTERN.getVersion("1.4").compareTo(PATTERN.getVersion("1.6")), -1);
+        assertEquals(-1, PATTERN.getVersion("1.9").compareTo(PATTERN.getVersion("2.1")));
+        assertEquals(-1, PATTERN.getVersion("1.4").compareTo(PATTERN.getVersion("1.6")));
         // Compare 0 cases
-        assertEquals(PATTERN.getVersion("1.2").compareTo(PATTERN.getVersion("1.2")), 0);
+        assertEquals(0, PATTERN.getVersion("1.2").compareTo(PATTERN.getVersion("1.2")));
         // Compare 1 cases
-        assertEquals(PATTERN.getVersion("2.1").compareTo(PATTERN.getVersion("1.9")), 1);
-        assertEquals(PATTERN.getVersion("1.6").compareTo(PATTERN.getVersion("1.4")), 1);
+        assertEquals(1, PATTERN.getVersion("2.1").compareTo(PATTERN.getVersion("1.9")));
+        assertEquals(1, PATTERN.getVersion("1.6").compareTo(PATTERN.getVersion("1.4")));
     }
 
     @Test
@@ -27,23 +27,23 @@ class VersionTest {
         Version version = PATTERN.getVersion("1.9");
         version.next();
         // If equals
-        assertEquals(version, PATTERN.getVersion("2.0"));
+        assertEquals(PATTERN.getVersion("2.0"), version);
 
         // Shift the other part
         version = PATTERN.getVersion("1.4");
         version.next();
         // If equals
-        assertEquals(version, PATTERN.getVersion("1.5"));
+        assertEquals(PATTERN.getVersion("1.5"), version);
     }
 
     @Test
     void asID() {
         // Assert directly initialized
-        assertEquals(PATTERN.getVersion("1.4").asID(), "1.4");
+        assertEquals("1.4", PATTERN.getVersion("1.4").asID());
         // Assert shifted
         Version version = PATTERN.getVersion("1.5");
         version.next();
-        assertEquals(version.asID(), "1.6");
+        assertEquals("1.6", version.asID());
     }
 
     @Test
@@ -51,17 +51,17 @@ class VersionTest {
         // Create a version
         Version version = PATTERN.getVersion("1.2");
         // If equals
-        assertEquals(version.copy(), version);
+        assertEquals(version, version.copy());
     }
 
     @Test
     void getPattern() {
-        assertEquals(PATTERN.getVersion("1.4").getPattern(), PATTERN);
+        assertEquals(PATTERN, PATTERN.getVersion("1.4").getPattern());
     }
 
     @Test
     void getCursor() {
-        assertEquals(PATTERN.getVersion("1.2").getCursor(2), 2);
+        assertEquals(2, PATTERN.getVersion("1.2").getCursor(2));
     }
 
 }

@@ -15,24 +15,24 @@ class PatternTest {
     @Test
     void getPart() {
         // Assert all
-        assertEquals(PATTERN.getPart(0), PART_FIRST);
-        assertEquals(PATTERN.getPart(1), PART_SECOND);
-        assertEquals(PATTERN.getPart(2), PART_THIRD);
+        assertEquals(PART_FIRST, PATTERN.getPart(0));
+        assertEquals(PART_SECOND, PATTERN.getPart(1));
+        assertEquals(PART_THIRD, PATTERN.getPart(2));
         assertThrows(ArrayIndexOutOfBoundsException.class, () -> PATTERN.getPart(3));
     }
 
     @Test
     void getVersion() {
         // Create a version
-        Version version = PATTERN.getVersion("1.4");
+        Version version = PATTERN.getVersion("2.4");
         // Assert all cursors
-        assertEquals(version.getCursor(0), 0);
-        assertEquals(version.getCursor(1), 0);
-        assertEquals(version.getCursor(2), 4);
+        assertEquals(1, version.getCursor(0));
+        assertEquals(0, version.getCursor(1));
+        assertEquals(4, version.getCursor(2));
     }
 
     @Test
     void getOldestVersion() {
-        assertEquals(PATTERN.getOldestVersion(), PATTERN.getVersion("1.0"));
+        assertEquals(PATTERN.getVersion("1.0"), PATTERN.getOldestVersion());
     }
 }

@@ -27,17 +27,17 @@ class AutomaticVersioningTest {
 
     @Test
     void getDefSectionVersion() {
-        assertEquals(VERSIONING.getDefSectionVersion(file.getDefaults()).compareTo(PATTERN.getVersion("1.4")), 0);
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefSectionVersion(file.getDefaults()));
     }
 
     @Test
     void getUserSectionVersion() {
-        assertEquals(VERSIONING.getUserSectionVersion(file).compareTo(PATTERN.getVersion("1.2")), 0);
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getUserSectionVersion(file));
     }
 
     @Test
     void getOldest() {
-        assertEquals(VERSIONING.getOldest().compareTo(PATTERN.getOldestVersion()), 0);
+        assertEquals(PATTERN.getOldestVersion(), VERSIONING.getOldest());
     }
 
     @Test
@@ -47,6 +47,6 @@ class AutomaticVersioningTest {
         // Update
         VERSIONING.updateVersionID(userFile, file.getDefaults());
         // Assert
-        assertEquals(userFile.getString("x"), "1.4");
+        assertEquals("1.4", userFile.getString("x"));
     }
 }

@@ -30,13 +30,13 @@ class MergerTest {
         // Merge
         Merger.merge(file, file.getDefaults(), UPDATER_SETTINGS);
         // Verify all
-        assertEquals(file.get("x", null), 1.2);
-        assertEquals(file.get("y", null), true);
-        assertEquals(file.get("z.a", null), 1);
-        assertEquals(file.get("z.b", null), 10);
-        assertEquals(file.get("m", null), "a: c");
-        assertEquals(file.get("p", null), false);
-        assertEquals(file.getKeys().size(), 5);
-        assertEquals(file.getSection("z").getKeys().size(), 2);
+        assertEquals(1.2, file.get("x", null));
+        assertEquals(true, file.get("y", null));
+        assertEquals(1, file.get("z.a", null));
+        assertEquals(10 ,file.get("z.b", null));
+        assertEquals("a: c", file.get("m", null));
+        assertEquals(false, file.get("p", null));
+        assertEquals(5, file.getKeys().size());
+        assertEquals(2, file.getSection("z").getKeys().size());
     }
 }

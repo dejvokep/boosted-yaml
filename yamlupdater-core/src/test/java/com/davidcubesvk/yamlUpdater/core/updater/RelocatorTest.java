@@ -49,11 +49,11 @@ class RelocatorTest {
         // Apply
         relocator.apply(RELOCATIONS);
         // Assert
-        assertEquals(file.get("h", null), "a");
-        assertEquals(file.get("x", null), "b");
-        assertEquals(file.get("i.a", null), 1);
-        assertEquals(file.get("i.b", null), 10);
-        assertEquals(file.getKeys().size(), 3);
-        assertEquals(file.getSection("i").getKeys().size(), 2);
+        assertEquals("a", file.get("h", null));
+        assertEquals("b", file.get("x", null));
+        assertEquals(1, file.get("i.a", null));
+        assertEquals(10, file.get("i.b", null));
+        assertEquals(3, file.getKeys().size());
+        assertEquals(2, file.getSection("i").getKeys().size());
     }
 }

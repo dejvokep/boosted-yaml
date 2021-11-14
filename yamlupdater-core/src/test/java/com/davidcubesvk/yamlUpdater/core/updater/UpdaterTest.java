@@ -41,14 +41,14 @@ class UpdaterTest {
         // Update
         Updater.update(file, file.getDefaults(), file.getUpdaterSettings(), file.getGeneralSettings());
         // Assert
-        assertEquals(file.getString("a", null), "2.3");
-        assertEquals(file.get("y", null), true);
-        assertEquals(file.get("s.a", null), 5);
-        assertEquals(file.get("s.b", null), 15);
-        assertEquals(file.get("m", null), "a: b");
-        assertEquals(file.get("r", null), 1);
-        assertEquals(file.get("t", null), 100);
-        assertEquals(file.getKeys().size(), 6);
-        assertEquals(file.getSection("s").getKeys().size(), 2);
+        assertEquals("2.3", file.getString("a", null));
+        assertEquals(true, file.get("y", null));
+        assertEquals(5, file.get("s.a", null));
+        assertEquals(15, file.get("s.b", null));
+        assertEquals("a: b", file.get("m", null));
+        assertEquals(1, file.get("r", null));
+        assertEquals(100, file.get("t", null));
+        assertEquals(6, file.getKeys().size());
+        assertEquals(2, file.getSection("s").getKeys().size());
     }
 }

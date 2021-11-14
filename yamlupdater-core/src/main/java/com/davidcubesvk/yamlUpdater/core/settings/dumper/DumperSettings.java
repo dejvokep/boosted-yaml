@@ -483,7 +483,7 @@ public class DumperSettings {
          */
         public Builder setIndicatorIndentation(int spaces) {
             builder.setIndentWithIndicator(spaces > 0);
-            builder.setIndicatorIndent(spaces);
+            builder.setIndicatorIndent(Math.max(spaces, 0));
             return this;
         }
 

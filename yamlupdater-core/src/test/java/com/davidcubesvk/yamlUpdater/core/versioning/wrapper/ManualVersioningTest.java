@@ -23,16 +23,16 @@ class ManualVersioningTest {
 
     @Test
     void getDefSectionVersion() {
-        assertEquals(VERSIONING.getDefSectionVersion(FILE).compareTo(PATTERN.getVersion("1.4")), 0);
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefSectionVersion(FILE));
     }
 
     @Test
     void getUserSectionVersion() {
-        assertEquals(VERSIONING.getUserSectionVersion(FILE).compareTo(PATTERN.getVersion("1.2")), 0);
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getUserSectionVersion(FILE));
     }
 
     @Test
     void getOldest() {
-        assertEquals(VERSIONING.getOldest().compareTo(PATTERN.getOldestVersion()), 0);
+        assertEquals(PATTERN.getOldestVersion(), VERSIONING.getOldest());
     }
 }

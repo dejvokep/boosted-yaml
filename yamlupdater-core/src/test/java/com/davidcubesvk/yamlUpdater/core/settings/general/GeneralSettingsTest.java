@@ -16,44 +16,44 @@ class GeneralSettingsTest {
 
     @Test
     void getKeyMode() {
-        assertEquals(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build().getKeyMode(), GeneralSettings.KeyMode.OBJECT);
+        assertEquals(GeneralSettings.KeyMode.OBJECT, GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build().getKeyMode());
     }
 
     @Test
     void getSeparator() {
-        assertEquals(GeneralSettings.builder().setSeparator(',').build().getSeparator(), ',');
+        assertEquals(',', GeneralSettings.builder().setSeparator(',').build().getSeparator());
     }
 
     @Test
     void getEscapedSeparator() {
-        assertEquals(GeneralSettings.builder().setSeparator(',').build().getEscapedSeparator(), Pattern.quote(","));
+        assertEquals(Pattern.quote(","), GeneralSettings.builder().setSeparator(',').build().getEscapedSeparator());
     }
 
     @Test
     void getSerializer() {
         YamlSerializer serializer = new Serializer("!=");
-        assertEquals(GeneralSettings.builder().setSerializer(serializer).build().getSerializer(), serializer);
+        assertEquals(serializer, GeneralSettings.builder().setSerializer(serializer).build().getSerializer());
     }
 
     @Test
     void getDefaultObject() {
         Object o = new Object();
-        assertEquals(GeneralSettings.builder().setDefaultObject(o).build().getDefaultObject(), o);
+        assertEquals(o, GeneralSettings.builder().setDefaultObject(o).build().getDefaultObject());
     }
 
     @Test
     void getDefaultString() {
-        assertEquals(GeneralSettings.builder().setDefaultString("a").build().getDefaultString(), "a");
+        assertEquals("a", GeneralSettings.builder().setDefaultString("a").build().getDefaultString());
     }
 
     @Test
     void getDefaultChar() {
-        assertEquals(GeneralSettings.builder().setDefaultChar('b').build().getDefaultChar(), 'b');
+        assertEquals('b', GeneralSettings.builder().setDefaultChar('b').build().getDefaultChar());
     }
 
     @Test
     void getDefaultNumber() {
-        assertEquals(GeneralSettings.builder().setDefaultNumber(5).build().getDefaultNumber(), 5);
+        assertEquals(5, GeneralSettings.builder().setDefaultNumber(5).build().getDefaultNumber());
     }
 
     @Test
@@ -97,6 +97,6 @@ class GeneralSettingsTest {
     @Test
     void getDefaultMapSupplier() {
         MapSupplier supplier = LinkedHashMap::new;
-        assertEquals(GeneralSettings.builder().setDefaultMap(supplier).build().getDefaultMapSupplier(), supplier);
+        assertEquals(supplier, GeneralSettings.builder().setDefaultMap(supplier).build().getDefaultMapSupplier());
     }
 }

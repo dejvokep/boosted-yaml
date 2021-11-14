@@ -33,9 +33,9 @@ class UpdaterSettingsTest {
                     put(MergeRule.SECTION_AT_MAPPING, true);
                 }}).build();
         // Assert
-        assertEquals(settings.getMergeRules().get(MergeRule.MAPPINGS), false);
-        assertEquals(settings.getMergeRules().get(MergeRule.MAPPING_AT_SECTION), true);
-        assertEquals(settings.getMergeRules().get(MergeRule.SECTION_AT_MAPPING), true);
+        assertEquals(false, settings.getMergeRules().get(MergeRule.MAPPINGS));
+        assertEquals(true, settings.getMergeRules().get(MergeRule.MAPPING_AT_SECTION));
+        assertEquals(true, settings.getMergeRules().get(MergeRule.SECTION_AT_MAPPING));
     }
 
     @Test
@@ -67,21 +67,21 @@ class UpdaterSettingsTest {
         // Map
         Map<String, Set<Path>> paths = settings.getKeep('.');
         // Assert
-        assertEquals(paths.get("1.2"), new HashSet<Path>() {{
+        assertEquals(new HashSet<Path>() {{
             add(Path.fromSingleKey("a"));
             add(Path.fromSingleKey("b"));
-        }});
-        assertEquals(paths.get("1.3"), new HashSet<Path>() {{
+        }}, paths.get("1.2"));
+        assertEquals(new HashSet<Path>() {{
             add(Path.fromSingleKey("c"));
-        }});
-        assertEquals(paths.get("1.4"), new HashSet<Path>() {{
+        }}, paths.get("1.3"));
+        assertEquals(new HashSet<Path>() {{
             add(Path.fromSingleKey("d"));
-        }});
-        assertEquals(paths.get("1.5"), new HashSet<Path>() {{
+        }}, paths.get("1.4"));
+        assertEquals(new HashSet<Path>() {{
             add(Path.fromSingleKey("e"));
             add(Path.fromSingleKey("f"));
-        }});
-        assertEquals(paths.keySet().size(), 4);
+        }}, paths.get("1.5"));
+        assertEquals(4, paths.keySet().size());
     }
 
     @Test
@@ -113,21 +113,21 @@ class UpdaterSettingsTest {
         // Map
         Map<String, Map<Path, Path>> relocations = settings.getRelocations('.');
         // Assert
-        assertEquals(relocations.get("1.2"), new HashMap<Path, Path>() {{
+        assertEquals(new HashMap<Path, Path>() {{
             put(Path.fromSingleKey("a"), Path.fromSingleKey("g"));
             put(Path.fromSingleKey("b"), Path.fromSingleKey("h"));
-        }});
-        assertEquals(relocations.get("1.3"), new HashMap<Path, Path>() {{
+        }}, relocations.get("1.2"));
+        assertEquals(new HashMap<Path, Path>() {{
             put(Path.fromSingleKey("c"), Path.fromSingleKey("i"));
-        }});
-        assertEquals(relocations.get("1.4"), new HashMap<Path, Path>() {{
+        }}, relocations.get("1.3"));
+        assertEquals(new HashMap<Path, Path>() {{
             put(Path.fromSingleKey("d"), Path.fromSingleKey("j"));
-        }});
-        assertEquals(relocations.get("1.5"), new HashMap<Path, Path>() {{
+        }}, relocations.get("1.4"));
+        assertEquals(new HashMap<Path, Path>() {{
             put(Path.fromSingleKey("e"), Path.fromSingleKey("k"));
             put(Path.fromSingleKey("f"), Path.fromSingleKey("l"));
-        }});
-        assertEquals(relocations.keySet().size(), 4);
+        }}, relocations.get("1.5"));
+        assertEquals(4, relocations.keySet().size());
     }
 
     @Test
@@ -141,10 +141,10 @@ class UpdaterSettingsTest {
         // Target version
         Version version = pattern.getVersion("1.2");
         // Assert
-        assertEquals(UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getUserSectionVersion(file), version);
-        assertEquals(UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getUserSectionVersion(file), version);
-        assertEquals(UpdaterSettings.builder().setVersioning(pattern, Path.fromSingleKey("a")).build().getVersioning().getUserSectionVersion(file), version);
-        assertEquals(UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getUserSectionVersion(file), version);
+        assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getUserSectionVersion(file));
+        assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getUserSectionVersion(file));
+        assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Path.fromSingleKey("a")).build().getVersioning().getUserSectionVersion(file));
+        assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getUserSectionVersion(file));
     }
 
     @Test

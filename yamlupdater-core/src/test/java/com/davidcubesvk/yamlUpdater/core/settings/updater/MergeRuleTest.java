@@ -8,9 +8,9 @@ class MergeRuleTest {
 
     @Test
     void getFor() {
-        assertEquals(MergeRule.getFor(false, false), MergeRule.MAPPINGS);
-        assertEquals(MergeRule.getFor(true, false), MergeRule.MAPPING_AT_SECTION);
-        assertEquals(MergeRule.getFor(false, true), MergeRule.SECTION_AT_MAPPING);
+        assertEquals(MergeRule.MAPPINGS, MergeRule.getFor(false, false));
+        assertEquals(MergeRule.MAPPING_AT_SECTION, MergeRule.getFor(true, false));
+        assertEquals(MergeRule.SECTION_AT_MAPPING, MergeRule.getFor(false, true));
         assertNull(MergeRule.getFor(true, true));
     }
 }

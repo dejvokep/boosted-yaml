@@ -38,17 +38,17 @@ class ListConversionsTest {
         assertFalse(ListConversions.toStringList(Optional.empty()).isPresent());
         assertTrue(ListConversions.toStringList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), 9);
+            assertEquals(9, list.size());
             //Assert individual elements
-            assertEquals(list.get(0), "x");
-            assertEquals(list.get(1), "true");
-            assertEquals(list.get(2), String.valueOf(Integer.MAX_VALUE));
-            assertEquals(list.get(3), String.valueOf(BigInteger.ONE));
-            assertEquals(list.get(4), String.valueOf(Byte.MAX_VALUE));
-            assertEquals(list.get(5), String.valueOf(Long.MAX_VALUE));
-            assertEquals(list.get(6), String.valueOf(Double.MAX_VALUE));
-            assertEquals(list.get(7), String.valueOf(Float.MAX_VALUE));
-            assertEquals(list.get(8), String.valueOf(Short.MAX_VALUE));
+            assertEquals("x", list.get(0));
+            assertEquals("true", list.get(1));
+            assertEquals(String.valueOf(Integer.MAX_VALUE), list.get(2));
+            assertEquals(String.valueOf(BigInteger.ONE), list.get(3));
+            assertEquals(String.valueOf(Byte.MAX_VALUE), list.get(4));
+            assertEquals(String.valueOf(Long.MAX_VALUE), list.get(5));
+            assertEquals(String.valueOf(Double.MAX_VALUE), list.get(6));
+            assertEquals(String.valueOf(Float.MAX_VALUE), list.get(7));
+            assertEquals(String.valueOf(Short.MAX_VALUE), list.get(8));
             //Return
             return list;
         }).isPresent());
@@ -58,10 +58,10 @@ class ListConversionsTest {
     void toIntList() {
         assertTrue(ListConversions.toIntList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), NUMBER_LIST.size());
+            assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(list.get(i), NUMBER_LIST.get(i).intValue());
+                assertEquals(NUMBER_LIST.get(i).intValue(), list.get(i));
             //Return
             return list;
         }).isPresent());
@@ -71,10 +71,10 @@ class ListConversionsTest {
     void toBigIntList() {
         assertTrue(ListConversions.toBigIntList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), NUMBER_LIST.size());
+            assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(list.get(i), NumericConversions.toBigInt(NUMBER_LIST.get(i)).orElse(BigInteger.TEN));
+                assertEquals(NumericConversions.toBigInt(NUMBER_LIST.get(i)).orElse(BigInteger.TEN), list.get(i));
             //Return
             return list;
         }).isPresent());
@@ -84,10 +84,10 @@ class ListConversionsTest {
     void toByteList() {
         assertTrue(ListConversions.toByteList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), NUMBER_LIST.size());
+            assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(list.get(i), NUMBER_LIST.get(i).byteValue());
+                assertEquals(NUMBER_LIST.get(i).byteValue(), list.get(i));
             //Return
             return list;
         }).isPresent());
@@ -97,10 +97,10 @@ class ListConversionsTest {
     void toLongList() {
         assertTrue(ListConversions.toLongList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), NUMBER_LIST.size());
+            assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(list.get(i), NUMBER_LIST.get(i).longValue());
+                assertEquals(NUMBER_LIST.get(i).longValue(), list.get(i));
             //Return
             return list;
         }).isPresent());
@@ -110,10 +110,10 @@ class ListConversionsTest {
     void toDoubleList() {
         assertTrue(ListConversions.toDoubleList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), NUMBER_LIST.size());
+            assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(list.get(i), NUMBER_LIST.get(i).doubleValue());
+                assertEquals(NUMBER_LIST.get(i).doubleValue(), list.get(i));
             //Return
             return list;
         }).isPresent());
@@ -123,10 +123,10 @@ class ListConversionsTest {
     void toFloatList() {
         assertTrue(ListConversions.toFloatList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), NUMBER_LIST.size());
+            assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(list.get(i), NUMBER_LIST.get(i).floatValue());
+                assertEquals(NUMBER_LIST.get(i).floatValue(), list.get(i));
             //Return
             return list;
         }).isPresent());
@@ -136,10 +136,10 @@ class ListConversionsTest {
     void toShortList() {
         assertTrue(ListConversions.toShortList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), NUMBER_LIST.size());
+            assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(list.get(i), NUMBER_LIST.get(i).shortValue());
+                assertEquals(NUMBER_LIST.get(i).shortValue(), list.get(i));
             //Return
             return list;
         }).isPresent());
@@ -149,11 +149,11 @@ class ListConversionsTest {
     void toMapList() {
         assertTrue(ListConversions.toMapList(LIST).map(list -> {
             //Assert the size
-            assertEquals(list.size(), 1);
+            assertEquals(1, list.size());
             //Assert element
-            assertEquals(list.get(0), new HashMap<String, String>(){{
+            assertEquals(new HashMap<String, String>(){{
                 put("x", "y");
-            }});
+            }}, list.get(0));
             //Return
             return list;
         }).isPresent());
