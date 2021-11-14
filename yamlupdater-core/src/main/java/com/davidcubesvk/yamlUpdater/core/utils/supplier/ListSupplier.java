@@ -10,7 +10,7 @@ public interface ListSupplier {
     /**
      * Supplies list of the given type and (initial) size.
      *
-     * @param size the (initial) size of the returned list
+     * @param size the (initial) size of the returned list, if supported by the list implementation returned
      * @param <T>  the type of the list
      * @return the list of the given size
      */

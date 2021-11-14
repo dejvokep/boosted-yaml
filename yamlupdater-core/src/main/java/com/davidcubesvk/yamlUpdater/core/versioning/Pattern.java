@@ -19,10 +19,11 @@ public class Pattern {
      * Initializes the pattern with the given parts. The given parts must be ordered from left to right, as specified in
      * an example version ID (e.g. <code>1.2</code>).
      * <p>
-     * As paths are immutable objects, you may reuse the same part instance unlimited times, even in the same pattern.
+     * As parts are immutable objects, you may reuse the same part instance unlimited times, even in the same pattern.
+     * Immutability also applies to patterns.
      * <p>
      * Make sure no parts are overlapping, which might produce unexpected results when parsing version IDs. Generally, to avoid this,
-     * reserve one character (e.g. <code>'.'</code>) and create a static path (path with only one element - the character,
+     * reserve one character (e.g. <code>'.'</code>) and create a static part (part with only one element - the character,
      * e.g. <code>new Path(".")</code>). Then, separate dynamic (changing; composed of more than 1 element) parts using
      * that static part, while no element (in all the dynamic parts) contains the reserved character. This approach
      * might also be used with character sequences.

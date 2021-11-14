@@ -4,7 +4,6 @@ import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.serialization.Serializer;
 import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
-import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.SetSupplier;

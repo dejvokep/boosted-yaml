@@ -125,7 +125,7 @@ public class YamlFile extends Section {
 
     public void load(BufferedInputStream inputStream) {
         //Create the settings
-        LoadSettings settings = loaderSettings.getSettings(generalSettings);
+        LoadSettings settings = loaderSettings.buildEngineSettings(generalSettings);
         //Create the constructor
         LibConstructor constructor = new LibConstructor(settings, generalSettings.getSerializer());
         //Create the parser and composer
@@ -219,7 +219,7 @@ public class YamlFile extends Section {
 
     public String dump(DumperSettings dumperSettings) {
         //Create the settings
-        DumpSettings settings = dumperSettings.getSettings();
+        DumpSettings settings = dumperSettings.buildEngineSettings();
         //Output
         SerializedStream stream = new SerializedStream();
         //Create the representer

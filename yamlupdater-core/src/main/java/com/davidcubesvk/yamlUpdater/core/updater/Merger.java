@@ -149,9 +149,9 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().getSettings());
+        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
         //Create the constructor
-        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
+        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
         //Represent
         Node represented = representer.represent(section);
         //Construct
@@ -181,9 +181,9 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().getSettings());
+        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
         //Create the constructor
-        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().getSettings(generalSettings), generalSettings.getSerializer());
+        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
         //Represent
         Node represented = representer.represent(mapping.getValue());
         //Construct

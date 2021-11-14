@@ -1,13 +1,12 @@
 package com.davidcubesvk.yamlUpdater.core.settings.updater;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
 import com.davidcubesvk.yamlUpdater.core.path.PathFactory;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
+import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.AutomaticVersioning;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.ManualVersioning;
-import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,8 +150,13 @@ public class UpdaterSettings {
                 //The map
                 Map<Path, Path> relocations = this.relocations.computeIfAbsent(entry.getKey(), (key) -> new HashMap<>());
                 //Add all
-                for (Map.Entry<String, String> relocation : entry.getValue().entrySet())
-                    relocations.put(factory.create(relocation.getKey()), factory.create(relocation.getValue()));
+                for (Map.Entry<String, String> relocation : entry.getValue().entrySet()) {
+                    // From path
+                    Path from = factory.create(relocation.getKey());
+                    // If not already present
+                    if (!relocations.containsKey(from))
+                        relocations.put(from, factory.create(relocation.getValue()));
+                }
             }
         }
 
@@ -377,10 +381,12 @@ public class UpdaterSettings {
          * version ID of the user and default file, must have their paths specified.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrKeep(String, Set)} methods are cached differently from paths supplied via
+         * {@link #setStrKeep(String, Set)} method are cached differently from paths supplied via
          * {@link Path}-based methods (e.g. {@link #setKeep(Map)}) and will not overwrite each other.
+         * <p>
          * String path-based keep paths are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods.
+         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * have higher priority.</b>
          * <p>
          * <b>Default: </b><i>none</i>
          *
@@ -405,10 +411,12 @@ public class UpdaterSettings {
          * the user and default file, must have their paths specified.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrKeep(Map)} methods are cached differently from paths supplied via
+         * {@link #setStrKeep(Map)} method are cached differently from paths supplied via
          * {@link Path}-based methods (e.g. {@link #setKeep(Map)}) and will not overwrite each other.
+         * <p>
          * String path-based keep paths are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods.
+         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * have higher priority.</b>
          * <p>
          * <b>Default: </b><i>none</i>
          *
@@ -459,10 +467,12 @@ public class UpdaterSettings {
          * version ID which is also present in the given map, they are overwritten.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrRelocations(String, Map)} methods are cached differently from paths supplied via
+         * {@link #setStrRelocations(String, Map)} method are cached differently from paths supplied via
          * {@link Path}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
+         * <p>
          * String path-based relocations are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods.
+         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * have higher priority.</b>
          *
          * @param relocations the relocations to add
          * @return the builder
@@ -483,10 +493,12 @@ public class UpdaterSettings {
          * or whatever), the relocation is considered to be made at version ID <code>2</code>.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrRelocations(Map)} methods are cached differently from paths supplied via
+         * {@link #setStrRelocations(Map)} method are cached differently from paths supplied via
          * {@link Path}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
+         * <p>
          * String path-based relocations are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods.
+         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * have higher priority.</b>
          *
          * @param versionId   the version ID to set relocations for
          * @param relocations relocations to set

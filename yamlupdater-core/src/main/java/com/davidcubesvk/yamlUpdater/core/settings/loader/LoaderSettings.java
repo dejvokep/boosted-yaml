@@ -73,13 +73,13 @@ public class LoaderSettings {
     }
 
     /**
-     * Builds new settings and returns them. If the underlying builder was changed somehow, just in case, resets all
+     * Builds new SnakeYAML engine settings. If the underlying builder was changed somehow, just in case, resets all
      * settings (those which should not be modified).
      *
-     * @param generalSettings settings used to get defaults from
+     * @param generalSettings settings used to get defaults (list, set, map) from
      * @return the new settings
      */
-    public LoadSettings getSettings(GeneralSettings generalSettings) {
+    public LoadSettings buildEngineSettings(GeneralSettings generalSettings) {
         return this.builder.setParseComments(true).setDefaultList(generalSettings::getDefaultList).setDefaultSet(generalSettings::getDefaultSet).setDefaultMap(generalSettings::getDefaultMap).build();
     }
 

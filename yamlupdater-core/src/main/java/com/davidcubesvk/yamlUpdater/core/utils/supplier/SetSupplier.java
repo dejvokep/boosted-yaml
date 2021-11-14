@@ -10,7 +10,7 @@ public interface SetSupplier {
     /**
      * Supplies set of the given type and (initial) size.
      *
-     * @param size the (initial) size of the returned set
+     * @param size the (initial) size of the returned set, if supported by the set implementation returned
      * @param <T>  the type of the list
      * @return the set of the given size
      */

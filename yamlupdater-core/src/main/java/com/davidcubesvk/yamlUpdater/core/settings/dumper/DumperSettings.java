@@ -58,11 +58,11 @@ public class DumperSettings {
     }
 
     /**
-     * Builds new settings using the configured generator supplier and returns them.
+     * Builds new SnakeYAML engine settings using the configured generator supplier.
      *
      * @return the new settings
      */
-    public DumpSettings getSettings() {
+    public DumpSettings buildEngineSettings() {
         return builder.setAnchorGenerator(generatorSupplier.get()).build();
     }
 
@@ -183,7 +183,7 @@ public class DumperSettings {
             setEncoding(DEFAULT_ENCODING);
             setIndentation(DEFAULT_INDENTATION);
             setIndicatorIndentation(DEFAULT_INDICATOR_INDENTATION);
-            setMaxLineWidth(DEFAULT_MAX_LINE_WIDTH);
+            setLineWidth(DEFAULT_MAX_LINE_WIDTH);
             setMaxSimpleKeyLength(DEFAULT_MAX_SIMPLE_KEY_LENGTH);
             setEscapeUnprintable(DEFAULT_ESCAPE_UNPRINTABLE);
         }
@@ -356,8 +356,9 @@ public class DumperSettings {
         }
 
         /**
-         * Sets the given tag (<code>%TAG</code>) directives in form of a map, where key is the <i>handle</i> and
-         * value the <i>prefix</i> (per the YAML spec). If there were any tag directives set previously, they are <b>all</b> overwritten.
+         * Sets the given tag (<code>%TAG</code>) directives in form of a map, where key is the <i>!handle!</i> (including
+         * the exclamation marks) and value the <i>prefix</i> (per the YAML spec). If there were any tag directives set
+         * previously, they are <b>all</b> overwritten.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -487,8 +488,8 @@ public class DumperSettings {
         }
 
         /**
-         * Sets the maximum line width. If any scalar makes the line longer than the given width, the dumper attempts to
-         * break the line at the nearest (next) whitespace. If the given value is less than or equal to <code>0</code>,
+         * Sets the preferred line width. If any scalar makes the line longer than the given width, the dumper attempts to
+         * break the line at the nearest (next) applicable whitespace. If the given value is less than or equal to <code>0</code>,
          * disables the limit and therefore, allows for theoretically unlimited line lengths (up to {@link Integer#MAX_VALUE}).
          * <p>
          * For additional information, please refer to documentation of the parent method listed below.
@@ -498,12 +499,12 @@ public class DumperSettings {
          * <b>Method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setWidth(int)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b>-
          *
-         * @param width maximum line width
+         * @param width preferred line width
          * @return the builder
          * @see DumpSettingsBuilder#setWidth(int)
          * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setWidth(int)">docs for the wrapped method</a>
          */
-            public Builder setMaxLineWidth(int width) {
+            public Builder setLineWidth(int width) {
             builder.setWidth(width <= 0 ? Integer.MAX_VALUE : width);
             return this;
         }

@@ -10,7 +10,7 @@ public interface MapSupplier {
     /**
      * Supplies map of the given key and value types and (initial) size.
      *
-     * @param size the (initial) size of the returned map
+     * @param size the (initial) size of the returned map, if supported by the map implementation returned
      * @param <K>  key type
      * @param <V>  value type
      * @return the map of the given size
