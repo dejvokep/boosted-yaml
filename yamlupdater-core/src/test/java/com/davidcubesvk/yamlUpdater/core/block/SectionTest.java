@@ -289,78 +289,89 @@ class SectionTest {
 
     @Test
     void getBlockSafe() {
+        // Create file
+        YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        // Assert
+        assertEquals(file.getValue().get("x"), file.getBlockSafe("x").orElse(null));
+        assertEquals(file.getValue().get("y"), file.getBlockSafe("y").orElse(null));
+        assertEquals(file.getSection("y").getValue().get("a"), file.getBlockSafe("y.a").orElse(null));
+        assertEquals(file.getValue().get(7), file.getBlockSafe(Path.from(7)).orElse(null));
+        assertFalse(file.getBlockSafe("z").isPresent());
     }
 
     @Test
-    void getDirectBlockSafe() {
-    }
-
-    @Test
-    void testGetBlockSafe() {
-    }
-
-    @Test
-    void testGetParent() {
-    }
-
-    @Test
-    void testGetParent1() {
+    void getParentOfPath() {
+        // Create file
+        YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        // Assert
+        assertEquals(file.getSection("y"), file.getParent("y.a").orElse(null));
+        assertEquals(file, file.getParent(Path.from(7)).orElse(null));
     }
 
     @Test
     void getSafe() {
-    }
-
-    @Test
-    void testGetSafe() {
+        // Create file
+        YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        // Assert
+        assertEquals(5, file.getSafe("x").orElse(null));
+        assertEquals(file.getValue().get("y"), file.getSafe("y").orElse(null));
+        assertEquals(true, file.getSafe("y.a").orElse(null));
+        assertEquals(false, file.getSafe(Path.from(7)).orElse(null));
+        assertFalse(file.getSafe("z").isPresent());
     }
 
     @Test
     void get() {
-    }
-
-    @Test
-    void testGet() {
-    }
-
-    @Test
-    void testGet1() {
-    }
-
-    @Test
-    void testGet2() {
+        // Create file
+        YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        // Assert
+        assertEquals(5, file.get("x"));
+        assertEquals(file.get("y"), file.getValue().get("y"));
+        assertEquals(true, file.get("y.a"));
+        assertEquals(GeneralSettings.DEFAULT_OBJECT, file.get(Path.from("a", "c")));
+        assertEquals(false, file.get(Path.from(7)));
+        assertNull(file.get("z", null));
     }
 
     @Test
     void getAsSafe() {
-    }
-
-    @Test
-    void testGetAsSafe() {
+        // Create file
+        YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        // Assert
+        assertEquals(5D, file.getAsSafe("x", double.class).orElse(null));
+        assertEquals(file.getValue().get("y"), file.getAsSafe("y", Section.class).orElse(null));
+        assertEquals(true, file.getAsSafe("y.a", boolean.class).orElse(null));
+        assertEquals(false, file.getAsSafe(Path.from(7), boolean.class).orElse(null));
+        assertFalse(file.getAsSafe(Path.from("a", "c"), int.class).isPresent());
+        assertFalse(file.getAsSafe("z", double.class).isPresent());
     }
 
     @Test
     void getAs() {
-    }
-
-    @Test
-    void testGetAs() {
-    }
-
-    @Test
-    void testGetAs1() {
-    }
-
-    @Test
-    void testGetAs2() {
+        // Create file
+        YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        // Assert
+        assertEquals(5D, file.getAs("x", double.class));
+        assertEquals(file.getValue().get("y"), file.getAs("y", Block.class));
+        assertEquals(true, file.getAs("y.a", boolean.class));
+        assertEquals(false, file.getAs(Path.from(7), boolean.class));
+        assertNull(file.getAs(Path.from("a", "c"), int.class));
+        assertNull(file.getAs("z", double.class));
     }
 
     @Test
     void is() {
-    }
-
-    @Test
-    void testIs() {
+        // Create file
+        YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        // Assert
+        assertTrue(file.is("x", double.class));
+        assertTrue(file.is("x", Double.class));
+        assertTrue(file.is("y", Block.class));
+        assertTrue(file.is("y.a", boolean.class));
+        assertTrue(file.is(Path.from(7), boolean.class));
+        assertFalse(file.is("x", boolean.class));
+        assertFalse(file.is(Path.from("a", "c"), int.class));
+        assertFalse(file.is("z", double.class));
     }
 
     private YamlFile createFile(GeneralSettings settings) {

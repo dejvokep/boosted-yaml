@@ -1033,7 +1033,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param key the key to get the block at
      * @return block at the given path encapsulated in an optional
      */
-    protected Optional<Block<?>> getDirectBlockSafe(@Nullable Object key) {
+    private Optional<Block<?>> getDirectBlockSafe(@Nullable Object key) {
         return Optional.ofNullable(getValue().get(adaptKey(key)));
     }
 
@@ -1321,60 +1321,73 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
-     * {@link Section} instance, in both cases casted to instance of the given class; encapsulated in an instance of
+     * {@link Section} instance, in both cases cast to instance of the given class; encapsulated in an instance of
      * {@link Optional}.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
      * value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
-     * More formally, returns the result of {@link #getSafe(Path)} casted to the given class if not empty (or an empty
+     * More formally, returns the result of {@link #getSafe(Path)} cast to the given class if not empty (or an empty
      * optional if the returned is empty, or types are incompatible).
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return the value casted to the given type
+     * @return the value cast to the given type
      */
     @SuppressWarnings("unchecked")
     public <T> Optional<T> getAsSafe(@NotNull Path path, @NotNull Class<T> clazz) {
-        return getSafe(path).map((object) -> clazz.isInstance(object) ? (T) object : null);
+        return getSafe(path).map((object) -> clazz.isInstance(object) ? (T) object :
+                isNumber(object.getClass()) && isNumber(clazz) ? (T) convertNumber(object, clazz) :
+                        NON_NUMERICAL_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERICAL_CONVERSIONS.containsKey(clazz) ? (T) object : null);
     }
 
 
     /**
      * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
-     * {@link Section} instance, in both cases casted to instance of the given class; encapsulated in an instance of
+     * {@link Section} instance, in both cases cast to instance of the given class; encapsulated in an instance of
      * {@link Optional}.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
      * value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
-     * More formally, returns the result of {@link #getSafe(String)} casted to the given class if not empty (or an empty
+     * More formally, returns the result of {@link #getSafe(String)} cast to the given class if not empty (or an empty
      * optional if the returned is empty, or types are incompatible).
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return the value casted to the given type
+     * @return the value cast to the given type
      */
     @SuppressWarnings("unchecked")
     public <T> Optional<T> getAsSafe(@NotNull String path, @NotNull Class<T> clazz) {
-        return getSafe(path).map((object) -> clazz.isInstance(object) ? (T) object : null);
+        return getSafe(path).map((object) -> clazz.isInstance(object) ? (T) object :
+                isNumber(object.getClass()) && isNumber(clazz) ? (T) convertNumber(object, clazz) :
+                        NON_NUMERICAL_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERICAL_CONVERSIONS.containsKey(clazz) ? (T) object : null);
     }
 
     /**
      * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
-     * {@link Section} instance, in both cases casted to instance of the given class.
+     * {@link Section} instance, in both cases cast to instance of the given class.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
      * value or {@link Section} instance) is not castable to the given type, returns <code>null</code>.
      * <p>
      * More formally, returns the result of {@link #getAs(Path, Class, Object)} with <code>null</code> default.
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return the value casted to the given type, or <code>null</code> according to the documentation above
+     * @return the value cast to the given type, or <code>null</code> according to the documentation above
      */
     public <T> T getAs(@NotNull Path path, @NotNull Class<T> clazz) {
         return getAs(path, clazz, null);
@@ -1382,17 +1395,20 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
-     * {@link Section} instance, in both cases casted to instance of the given class.
+     * {@link Section} instance, in both cases cast to instance of the given class.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
      * value or {@link Section} instance) is not castable to the given type, returns <code>null</code>.
      * <p>
      * More formally, returns the result of {@link #getAs(String, Class, Object)} with <code>null</code> default.
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return the value casted to the given type, or <code>null</code> according to the documentation above
+     * @return the value cast to the given type, or <code>null</code> according to the documentation above
      */
     public <T> T getAs(@NotNull String path, @NotNull Class<T> clazz) {
         return getAs(path, clazz, null);
@@ -1400,19 +1416,22 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
-     * {@link Section} instance, in both cases casted to instance of the given class.
+     * {@link Section} instance, in both cases cast to instance of the given class.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
      * value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
      * More formally, returns the result of {@link #getAsSafe(Path, Class)} or the provided default if the returned
      * optional is empty.
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
      * @param clazz class of the target type
      * @param def   the default value
      * @param <T>   the target type
-     * @return the value casted to the given type, or default according to the documentation above
+     * @return the value cast to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull Path path, @NotNull Class<T> clazz, @Nullable T def) {
         return getAsSafe(path, clazz).orElse(def);
@@ -1420,19 +1439,22 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns the value of the block (the actual value) at the given path, or if it is a section, the corresponding
-     * {@link Section} instance, in both cases casted to instance of the given class.
+     * {@link Section} instance, in both cases cast to instance of the given class.
      * <p>
      * If there is no block present at the given path (therefore no value can be returned), or the value (block's actual
      * value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
      * More formally, returns the result of {@link #getAsSafe(String, Class)} or the provided default if the returned
      * optional is empty.
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
      * @param clazz class of the target type
      * @param def   the default value
      * @param <T>   the target type
-     * @return the value casted to the given type, or default according to the documentation above
+     * @return the value cast to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull String path, @NotNull Class<T> clazz, @Nullable T def) {
         return getAsSafe(path, clazz).orElse(def);
@@ -1443,6 +1465,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is an instance of the given class.
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Path, Class)}.
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to check the value at
      * @param clazz class of the target type
@@ -1458,6 +1483,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is an instance of the given class.
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(String, Class)}.
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to check the value at
      * @param clazz class of the target type

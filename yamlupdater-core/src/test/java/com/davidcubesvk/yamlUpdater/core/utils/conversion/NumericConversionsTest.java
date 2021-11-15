@@ -58,4 +58,31 @@ class NumericConversionsTest {
         assertEquals(Short.MAX_VALUE, NumericConversions.toShort(String.valueOf(Short.MAX_VALUE)).orElse(Short.MIN_VALUE));
     }
 
+    @Test
+    void isNumber() {
+        assertTrue(NumericConversions.isNumber(int.class));
+        assertTrue(NumericConversions.isNumber(byte.class));
+        assertTrue(NumericConversions.isNumber(short.class));
+        assertTrue(NumericConversions.isNumber(long.class));
+        assertTrue(NumericConversions.isNumber(float.class));
+        assertTrue(NumericConversions.isNumber(double.class));
+        assertTrue(NumericConversions.isNumber(Integer.class));
+        assertTrue(NumericConversions.isNumber(Byte.class));
+        assertTrue(NumericConversions.isNumber(Short.class));
+        assertTrue(NumericConversions.isNumber(Long.class));
+        assertTrue(NumericConversions.isNumber(Float.class));
+        assertTrue(NumericConversions.isNumber(Double.class));
+        assertFalse(NumericConversions.isNumber(boolean.class));
+        assertFalse(NumericConversions.isNumber(Character.class));
+    }
+
+    @Test
+    void convertNumber() {
+        assertEquals(NumericConversions.convertNumber(1, int.class), 1);
+        assertEquals(NumericConversions.convertNumber(1, Integer.class), 1);
+        assertEquals(NumericConversions.convertNumber(1, double.class), 1D);
+        assertEquals(NumericConversions.convertNumber(1, Double.class), 1D);
+        assertEquals(NumericConversions.convertNumber(1, float.class), 1F);
+        assertEquals(NumericConversions.convertNumber(1, Float.class), 1F);
+    }
 }

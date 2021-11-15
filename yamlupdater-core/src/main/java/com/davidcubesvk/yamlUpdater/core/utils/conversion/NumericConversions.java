@@ -3,7 +3,7 @@ package com.davidcubesvk.yamlUpdater.core.utils.conversion;
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 
 import java.math.BigInteger;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Utility class used to convert number optionals (or objects) into numbers of target types.
@@ -13,6 +13,91 @@ import java.util.Optional;
  */
 @SuppressWarnings({"OptionalUsedAsFieldOrParameterType"})
 public class NumericConversions {
+
+    /**
+     * All numerical primitives and their corresponding non-primitive representations.
+     */
+    public static final Map<Class<?>, Class<?>> NUMERICAL_PRIMITIVES = new HashMap<Class<?>, Class<?>>() {{
+        put(int.class, Integer.class);
+        put(byte.class, Byte.class);
+        put(short.class, Short.class);
+        put(long.class, Long.class);
+        put(float.class, Float.class);
+        put(double.class, Double.class);
+    }};
+
+    /**
+     * All non-numerical primitives and their corresponding non-primitive representations; vice-versa.
+     */
+    public static final Map<Class<?>, Class<?>> NON_NUMERICAL_CONVERSIONS = new HashMap<Class<?>, Class<?>>() {{
+        put(boolean.class, Boolean.class);
+        put(char.class, Character.class);
+        put(Boolean.class, boolean.class);
+        put(Character.class, char.class);
+    }};
+
+    /**
+     * All numerical data type classes.
+     */
+    public static final Set<Class<?>> NUMERICAL_CLASSES = new HashSet<Class<?>>() {{
+        add(int.class);
+        add(byte.class);
+        add(short.class);
+        add(long.class);
+        add(float.class);
+        add(double.class);
+        add(Integer.class);
+        add(Byte.class);
+        add(Short.class);
+        add(Long.class);
+        add(Float.class);
+        add(Double.class);
+    }};
+
+    /**
+     * Returns if the given class represents a numerical data type.
+     *
+     * @param clazz the class to check
+     * @return if it's a numerical class
+     */
+    public static boolean isNumber(Class<?> clazz) {
+        return NUMERICAL_CLASSES.contains(clazz);
+    }
+
+    /**
+     * Converts a number to the target type. It must be guaranteed that the given object is an instance of {@link Number}
+     * and {@link #NUMERICAL_CLASSES} must contain the target class.
+     * <p>
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
+     *
+     * @param value  the value to convert
+     * @param target the target type
+     * @return the converted number
+     */
+    public static Object convertNumber(Object value, Class<?> target) {
+        // Convert to number
+        Number number = (Number) value;
+        // Primitive
+        boolean primitive = target.isPrimitive();
+        // If primitive
+        if (primitive)
+            target = NUMERICAL_PRIMITIVES.get(target);
+
+        // Convert
+        if (target == Integer.class)
+            return number.intValue();
+        else if (target == Byte.class)
+            return number.byteValue();
+        else if (target == Short.class)
+            return number.shortValue();
+        else if (target == Long.class)
+            return number.longValue();
+        else if (target == Float.class)
+            return number.floatValue();
+        else
+            return number.doubleValue();
+    }
 
     /**
      * Converts the given number to integer, returns an empty optional if an only the given one is empty.
