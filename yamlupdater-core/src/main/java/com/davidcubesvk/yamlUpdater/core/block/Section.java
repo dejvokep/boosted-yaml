@@ -1330,7 +1330,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getSafe(Path)} cast to the given class if not empty (or an empty
      * optional if the returned is empty, or types are incompatible).
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
@@ -1357,7 +1357,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getSafe(String)} cast to the given class if not empty (or an empty
      * optional if the returned is empty, or types are incompatible).
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
@@ -1381,7 +1381,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, returns the result of {@link #getAs(Path, Class, Object)} with <code>null</code> default.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
@@ -1402,7 +1402,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, returns the result of {@link #getAs(String, Class, Object)} with <code>null</code> default.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
@@ -1424,7 +1424,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getAsSafe(Path, Class)} or the provided default if the returned
      * optional is empty.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
@@ -1447,7 +1447,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the result of {@link #getAsSafe(String, Class)} or the provided default if the returned
      * optional is empty.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to get the value at
@@ -1466,7 +1466,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Path, Class)}.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to check the value at
@@ -1484,7 +1484,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(String, Class)}.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param path  the path to check the value at
