@@ -17,7 +17,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Updater settings; immutable object.
+ * Updater settings cover all options related explicitly (only) to file updating.
+ * <p>
+ * To start using this library, it is recommended to take a look at the following methods:
+ * <ul>
+ *     <li>{@link Builder#setAutoSave(boolean)}</li>
+ *     <li>{@link Builder#setVersioning(Versioning)}</li>
+ * </ul>
  */
 @SuppressWarnings("unused")
 public class UpdaterSettings {
@@ -243,7 +249,11 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if the file should automatically be saved after finished updating (does not require successful update).
+         * Sets if the file should automatically be saved after the updater has finished updating (does not require successful update) using {@link YamlFile#save()}.
+         * <p>
+         * Not effective if there is no user file associated with the YamlFile that's being loaded.
+         * <p>
+         * <b>Default: </b>{@link #DEFAULT_AUTO_SAVE}
          *
          * @param autoSave if to save automatically after update
          * @return the builder
@@ -256,18 +266,22 @@ public class UpdaterSettings {
         /**
          * Sets if to enable downgrading.
          * <p>
-         * Effective if and only there are version IDs found for both files (supplied via
-         * {@link #setVersioning(Pattern, String, String)} or automatically from files via
-         * {@link #setVersioning(Pattern, Path)}) and ID of the user file represents newer
-         * file version than default file's version ID.
+         * <b>Downgrading is considered to be a situation:</b>
+         * <ul>
+         *     <li>when there are valid version IDs found for both files (supplied manually or automatically from files),</li>
+         *     <li>the version ID of the user file represents newer version than default file's version ID.</li>
+         * </ul>
+         * Please note that by specification, the default file has to have a valid ID supplied/specified.
          * <p>
-         * In this case, if this option is set to <code>true</code>, skips version-dependent operations (relocations)
-         * directly to merging. Throws an error otherwise.
+         * That means, if no versioning is supplied, if the version ID of the user file was not found (automatic FVS) or
+         * not supplied (manual FVS), or the ID of the user file is not parsable by the given pattern, this method is not effective.
+         * <p>
+         * If enabled and the updater detects downgrading, the updater will skip keep paths and relocations, proceeding directly to merging. Throws an error otherwise (if disabled).
+         * <p>
+         * If disabled, throws an error if downgrading. If configured like so, you may also want to disable
+         * {@link LoaderSettings.Builder#setAutoUpdate(boolean)} (if an error is thrown, you won't be able to initialize the file - update manually).
          * <p>
          * <b>Default: </b>{@link #DEFAULT_ENABLE_DOWNGRADING}
-         * <p>
-         * <i>If disabled, you may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
-         * and rather update manually by calling {@link YamlFile#update()} (because if an error is thrown, you won't be able to initialize the file).</i>
          *
          * @param enableDowngrading if to enable downgrading
          * @return the builder
@@ -329,7 +343,7 @@ public class UpdaterSettings {
          * {@link #setKeep(String, Set)} or {wiki}. If there already are paths defined for version ID, which is also
          * present in the given map, they are overwritten.
          * <p>
-         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the defaults).
+         * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the defaults).
          * <p>
          * The given map should contain version ID (in string format) as the key, with corresponding set of paths to keep
          * as value. It, naturally, is not required and does not need to be guaranteed, that all version IDs between
@@ -351,7 +365,7 @@ public class UpdaterSettings {
          * that's being updated has the given version ID. If there already are paths defined for the given ID, they are
          * overwritten.
          * <p>
-         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the
+         * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the
          * defaults). For examples and in-depth explanation, please visit {wiki}.
          * <p>
          * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of
@@ -374,7 +388,7 @@ public class UpdaterSettings {
          * {@link #setStrKeep(String, Set)} or {wiki}. If there already are paths defined for version ID, which is also
          * present in the given map, they are overwritten.
          * <p>
-         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the defaults).
+         * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the defaults).
          * <p>
          * The given map should contain version ID (in string format) as the key, with corresponding set of paths to keep
          * as value. It, naturally, is not required and does not need to be guaranteed, that all version IDs between
@@ -404,7 +418,7 @@ public class UpdaterSettings {
          * that's being updated has the given version ID. If there already are paths defined for the given ID, they are
          * overwritten.
          * <p>
-         * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the
+         * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the
          * defaults). For examples and in-depth explanation, please visit {wiki}.
          * <p>
          * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of

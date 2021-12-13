@@ -75,7 +75,7 @@ public class Merger {
         for (Map.Entry<Object, Block<?>> entry : defSection.getValue().entrySet()) {
             //Key
             Object key = entry.getKey();
-            Path path = Path.fromSingleKey(key);
+            Path path = Path.from(key);
             //Delete
             userKeys.remove(key);
             //Blocks
@@ -107,7 +107,7 @@ public class Merger {
         //Loop through all default keys
         for (Object userKey : userKeys) {
             //Path
-            Path path = Path.fromSingleKey(userKey);
+            Path path = Path.from(userKey);
             //If present
             userSection.getBlockSafe(path).ifPresent(block -> {
                 //If force copy disabled

@@ -1,7 +1,6 @@
 package com.davidcubesvk.yamlUpdater.core.serialization;
 
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
-import com.sun.org.apache.xpath.internal.operations.Mod;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -11,7 +10,7 @@ import java.util.Map;
 /**
  * Standard library serializer.
  */
-public class Serializer implements YamlSerializer {
+public class BaseSerializer implements YamlSerializer {
 
     /**
      * Default key for serialized class identifier. Used by the default serializer {@link #DEFAULT}.
@@ -21,7 +20,7 @@ public class Serializer implements YamlSerializer {
     /**
      * The default serializer.
      */
-    public static final Serializer DEFAULT = new Serializer(DEFAULT_SERIALIZED_TYPE_KEY);
+    public static final BaseSerializer DEFAULT = new BaseSerializer(DEFAULT_SERIALIZED_TYPE_KEY);
 
     //Registered classes
     private final Map<String, Class<? extends Serializable>> classes = new HashMap<>();
@@ -33,7 +32,7 @@ public class Serializer implements YamlSerializer {
      *
      * @param serializedTypeKey the key for serialized class identifier
      */
-    public Serializer(Object serializedTypeKey) {
+    public BaseSerializer(Object serializedTypeKey) {
         this.serializedTypeKey = serializedTypeKey;
     }
 

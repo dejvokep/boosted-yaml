@@ -7,6 +7,7 @@ import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
 import com.davidcubesvk.yamlUpdater.core.versioning.Version;
 import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -44,7 +45,7 @@ public class Updater {
      * @param updaterSettings the updater settings
      * @param generalSettings the general settings used to obtain the path separator, to split string-based relocations and force copy paths
      */
-    public static void update(Section userSection, Section defSection, UpdaterSettings updaterSettings, GeneralSettings generalSettings) {
+    public static void update(Section userSection, Section defSection, UpdaterSettings updaterSettings, GeneralSettings generalSettings) throws IOException {
         //Apply versioning stuff
         UPDATER.runVersionDependent(userSection, defSection, updaterSettings, generalSettings.getSeparator());
         //Merge

@@ -14,8 +14,10 @@ import java.util.List;
  */
 public class Block<T> {
 
+
+
     //Comments
-    private List<CommentLine> keyBlockComments, keyInlineComments, keyEndComments, valueBlockComments, valueInlineComments, valueEndComments;
+    List<CommentLine> keyBeforeComments, keyInlineComments, keyAfterComments, valueBeforeComments, valueInlineComments, valueAfterComments;
     //Value
     private final T value;
     //Keep (updater)
@@ -59,12 +61,12 @@ public class Block<T> {
             return;
 
         //Set
-        this.keyBlockComments = previous.keyBlockComments;
+        this.keyBeforeComments = previous.keyBeforeComments;
         this.keyInlineComments = previous.keyInlineComments;
-        this.keyEndComments = previous.keyEndComments;
-        this.valueBlockComments = previous.valueBlockComments;
+        this.keyAfterComments = previous.keyAfterComments;
+        this.valueBeforeComments = previous.valueBeforeComments;
         this.valueInlineComments = previous.valueInlineComments;
-        this.valueEndComments = previous.valueEndComments;
+        this.valueAfterComments = previous.valueAfterComments;
     }
 
     /**
@@ -77,16 +79,16 @@ public class Block<T> {
     protected void init(@Nullable Node key, @Nullable Node value) {
         //If not null
         if (key != null) {
-            keyBlockComments = key.getBlockComments();
+            keyBeforeComments = key.getBlockComments();
             keyInlineComments = key.getInLineComments();
-            keyEndComments = key.getEndComments();
+            keyAfterComments = key.getEndComments();
         }
 
         //If not null
         if (value != null) {
-            valueBlockComments = value.getBlockComments();
+            valueBeforeComments = value.getBlockComments();
             valueInlineComments = value.getInLineComments();
-            valueEndComments = value.getEndComments();
+            valueAfterComments = value.getEndComments();
         }
     }
 
@@ -106,60 +108,6 @@ public class Block<T> {
      */
     public boolean isKeep() {
         return keep;
-    }
-
-    /**
-     * Returns block comments associated with the key node (given on initialization).
-     *
-     * @return block comments associated with the key node
-     */
-    public List<CommentLine> getKeyBlockComments() {
-        return keyBlockComments;
-    }
-
-    /**
-     * Returns inline comments associated with the key node (given on initialization).
-     *
-     * @return inline comments associated with the key node
-     */
-    public List<CommentLine> getKeyInlineComments() {
-        return keyInlineComments;
-    }
-
-    /**
-     * Returns end comments associated with the key node (given on initialization).
-     *
-     * @return end comments associated with the key node
-     */
-    public List<CommentLine> getKeyEndComments() {
-        return keyEndComments;
-    }
-
-    /**
-     * Returns block comments associated with the value node (given on initialization).
-     *
-     * @return block comments associated with the value node
-     */
-    public List<CommentLine> getValueBlockComments() {
-        return valueBlockComments;
-    }
-
-    /**
-     * Returns inline comments associated with the value node (given on initialization).
-     *
-     * @return inline comments associated with the value node
-     */
-    public List<CommentLine> getValueInlineComments() {
-        return valueInlineComments;
-    }
-
-    /**
-     * Returns end comments associated with the value node (given on initialization).
-     *
-     * @return end comments associated with the value node
-     */
-    public List<CommentLine> getValueEndComments() {
-        return valueEndComments;
     }
 
     /**

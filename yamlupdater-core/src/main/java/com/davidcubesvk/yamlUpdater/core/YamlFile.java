@@ -8,6 +8,8 @@ import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.api.StreamDataWriter;
@@ -23,6 +25,7 @@ import org.snakeyaml.engine.v2.scanner.StreamReader;
 import org.snakeyaml.engine.v2.serializer.Serializer;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -30,14 +33,17 @@ import java.util.*;
  */
 public class YamlFile extends Section {
 
+    // The file
     private final File file;
-    private final GeneralSettings generalSettings;
-    private final LoaderSettings loaderSettings;
+    // Defaults
+    private YamlFile defaults;
+    // Settings
+    private GeneralSettings generalSettings;
+    private LoaderSettings loaderSettings;
     private DumperSettings dumperSettings;
     private UpdaterSettings updaterSettings;
-    private final YamlFile defaults;
 
-    public YamlFile(InputStream userFile, YamlFile defaultFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {
+    private YamlFile(@NotNull InputStream userFile, @Nullable YamlFile defaultFile, @NotNull GeneralSettings generalSettings, @NotNull LoaderSettings loaderSettings, @NotNull DumperSettings dumperSettings, @NotNull UpdaterSettings updaterSettings) throws IOException {
         //Call superclass
         super(generalSettings.getDefaultMap());
         //Set
@@ -50,20 +56,9 @@ public class YamlFile extends Section {
 
         //Load
         load(new BufferedInputStream(userFile));
-        //Update if enabled
-        if (defaultFile != null && loaderSettings.isAutoUpdate())
-            Updater.update(this, defaultFile, updaterSettings, generalSettings);
     }
 
-    public YamlFile(InputStream userFile, InputStream defaultFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) {
-        this(userFile, new YamlFile(new BufferedInputStream(defaultFile), generalSettings, loaderSettings), generalSettings, loaderSettings, dumperSettings, updaterSettings);
-    }
-
-    public YamlFile(File userFile, InputStream defaultFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws FileNotFoundException {
-        this(userFile, new YamlFile(new BufferedInputStream(defaultFile), generalSettings, loaderSettings), generalSettings, loaderSettings, dumperSettings, updaterSettings);
-    }
-
-    public YamlFile(File file, YamlFile defaults, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws FileNotFoundException {
+    private YamlFile(@NotNull File userFile, @Nullable YamlFile defaults, @NotNull GeneralSettings generalSettings, @NotNull LoaderSettings loaderSettings, @NotNull DumperSettings dumperSettings, @NotNull UpdaterSettings updaterSettings) throws IOException {
         //Call superclass
         super(generalSettings.getDefaultMap());
         //Set
@@ -71,38 +66,18 @@ public class YamlFile extends Section {
         this.loaderSettings = loaderSettings;
         this.dumperSettings = dumperSettings;
         this.updaterSettings = updaterSettings;
-        this.file = file;
+        this.file = userFile;
         this.defaults = defaults;
-
-        //If the file exists
-        if (file.exists()) {
-            //Load
-            load();
-            //Update if enabled
-            if (defaults != null && loaderSettings.isAutoUpdate())
-                Updater.update(this, defaults, updaterSettings, generalSettings);
-            return;
-        }
-
-        //If enabled
-        if (loaderSettings.isCreateFileIfAbsent()) {
-            //Save
-            try (FileWriter writer = new FileWriter(file)) {
-                //Write
-                writer.write(defaults.dump(dumperSettings));
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            //Load
-            load();
-        } else {
-            //Load
-            load(new BufferedInputStream(new ByteArrayInputStream(defaults.dump(dumperSettings).getBytes())));
-        }
+        //Load
+        load();
     }
 
-    public YamlFile(InputStream inputStream, GeneralSettings generalSettings, LoaderSettings loaderSettings) {
-        this(inputStream, (YamlFile) null, generalSettings, loaderSettings, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    private YamlFile(File userFile, InputStream defaultFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws IOException {
+        this(userFile, new YamlFile(new BufferedInputStream(defaultFile), generalSettings, loaderSettings), generalSettings, loaderSettings, dumperSettings, updaterSettings);
+    }
+
+    public YamlFile(InputStream inputStream, GeneralSettings generalSettings, LoaderSettings loaderSettings) throws IOException {
+        this(inputStream, null, generalSettings, loaderSettings, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
     }
 
     @Override
@@ -110,7 +85,16 @@ public class YamlFile extends Section {
         return true;
     }
 
-    public boolean load() throws FileNotFoundException {
+    /**
+     * Loads the contents from the associated user file ({@link #getFile}) and using {@link #getLoaderSettings()}
+     * and {@link #getGeneralSettings()} settings.
+     * <p>
+     * If there is no associated user file, returns <code>false</code>. Returns <code>true</code> otherwise.
+     *
+     * @return if there is any associated (user) file
+     * @throws IOException if an IO error occurred
+     */
+    public boolean load() throws IOException {
         //If not present
         if (file == null)
             return false;
@@ -119,11 +103,83 @@ public class YamlFile extends Section {
         return true;
     }
 
-    public void load(File file) throws FileNotFoundException {
-        load(new BufferedInputStream(new FileInputStream(file)));
+    /**
+     * Loads the contents from the given file and using associated settings ({@link #getLoaderSettings()}
+     * and {@link #getGeneralSettings()}).
+     * <p>
+     * Does not change the associated file: if enabled by {@link LoaderSettings#isCreateFileIfAbsent()}, saves the
+     * loaded content into the associated user file {@link #getFile()}.
+     * <p>
+     * If the given file does not physically exist, loads the defaults instead.
+     *
+     * @param file file to load the contents from
+     * @throws IOException if an IO error occurred
+     */
+    public void load(@NotNull File file) throws IOException {
+        //If exists
+        if (file.exists()) {
+            //Load from the file
+            load(new BufferedInputStream(new FileInputStream(file)));
+            return;
+        }
+
+        //Create if enabled
+        if (loaderSettings.isCreateFileIfAbsent())
+            file.createNewFile();
+
+        //If there are no defaults
+        if (defaults == null) {
+            //Initialize empty
+            initEmpty(this);
+            return;
+        }
+
+        //Dump
+        String dump = defaults.dump();
+        //Copy defaults
+        if (loaderSettings.isCreateFileIfAbsent()) {
+            //Save
+            try (FileWriter writer = new FileWriter(this.file)) {
+                //Write
+                writer.write(dump);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        //Load from the file
+        load(new BufferedInputStream(new ByteArrayInputStream(dump.getBytes(StandardCharsets.UTF_8))));
     }
 
-    public void load(BufferedInputStream inputStream) {
+    /**
+     * Loads the contents from the given stream and using associated settings ({@link #getLoaderSettings()}
+     * and {@link #getGeneralSettings()}).
+     * <p>
+     * Does not change the associated file: if enabled by {@link LoaderSettings#isCreateFileIfAbsent()}, saves the
+     * loaded content into the associated user file {@link #getFile()}.
+     * <p>
+     * If the given file does not physically exist, loads the defaults instead.
+     *
+     * @param inputStream stream to load the contents from
+     * @throws IOException if an IO error occurred
+     */
+    public void load(@NotNull BufferedInputStream inputStream) throws IOException {
+        load(inputStream, loaderSettings, generalSettings);
+    }
+
+    /**
+     * Loads the contents from the given stream and using the given settings
+     * <p>
+     * Does not change the associated file nor settings: if enabled by {@link LoaderSettings#isCreateFileIfAbsent()},
+     * saves the loaded content into the associated user file {@link #getFile()}.
+     * <p>
+     * If the given file does not physically exist, loads the defaults instead.
+     *
+     * @param inputStream     stream to load the contents from
+     * @param loaderSettings  the loader settings to use for this load
+     * @param generalSettings the general settings to use for this load
+     * @throws IOException if an IO error occurred
+     */
+    public void load(@NotNull BufferedInputStream inputStream, @NotNull LoaderSettings loaderSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Create the settings
         LoadSettings settings = loaderSettings.buildEngineSettings(generalSettings);
         //Create the constructor
@@ -142,17 +198,34 @@ public class YamlFile extends Section {
         init(this, null, (MappingNode) node, constructor);
         //Clear
         constructor.clear();
+
+        //If enabled
+        if (file != null && loaderSettings.isCreateFileIfAbsent() && !file.exists()) {
+            //Create new file
+            file.createNewFile();
+            //Save
+            save();
+        }
+
+        //Update if enabled
+        if (defaults != null && loaderSettings.isAutoUpdate())
+            Updater.update(this, defaults, updaterSettings, generalSettings);
     }
 
+    /**
+     * Returns the defaults associated with the file.
+     *
+     * @return the defaults associated
+     */
     public YamlFile getDefaults() {
         return defaults;
     }
 
-    public boolean update() {
+    public boolean update() throws IOException {
         return update(updaterSettings);
     }
 
-    public boolean update(UpdaterSettings updaterSettings) {
+    public boolean update(UpdaterSettings updaterSettings) throws IOException {
         //Check
         Objects.requireNonNull(updaterSettings);
         //If there are no defaults
@@ -164,60 +237,107 @@ public class YamlFile extends Section {
         return true;
     }
 
+    /**
+     * Returns the general settings associated with the file.
+     *
+     * @return the general settings associated
+     */
     public GeneralSettings getGeneralSettings() {
         return generalSettings;
     }
 
+    /**
+     * Returns the dumper settings associated with the file.
+     *
+     * @return the dumper settings associated
+     */
     public DumperSettings getDumperSettings() {
         return dumperSettings;
     }
 
+    /**
+     * Returns the updater settings associated with the file.
+     *
+     * @return the updater settings associated
+     */
     public UpdaterSettings getUpdaterSettings() {
         return updaterSettings;
     }
 
+    /**
+     * Returns the loader settings associated with the file.
+     *
+     * @return the loader settings associated
+     */
     public LoaderSettings getLoaderSettings() {
         return loaderSettings;
     }
 
-    public boolean save() {
+    /**
+     * Returns the user file associated with this file.
+     *
+     * @return the user file associated
+     */
+    public File getFile() {
+        return file;
+    }
+
+    /**
+     * Saves the contents into the associated user file {@link #getFile()}, using the associated {@link #getDumperSettings()} and
+     * {@link #getGeneralSettings()} settings.
+     * <p>
+     * If there is no associated user file, returns <code>false</code>. Returns <code>true</code> otherwise.
+     *
+     * @return if there is any associated (user) file
+     * @throws IOException if an IO error occurred
+     */
+    public boolean save() throws IOException {
         //If not present
         if (file == null)
             return false;
 
         //Save
-        return save(file);
-    }
-
-    public boolean save(File file) {
-        //Check
-        Objects.requireNonNull(file);
-
-        try (FileWriter fileWriter = new FileWriter(file)) {
-            //Save
-            return save(fileWriter);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean save(OutputStreamWriter writer) {
-        //Check
-        Objects.requireNonNull(file);
-
-        try {
-            //Write
-            writer.write(dump());
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return false;
-        }
-
+        save(file);
         return true;
     }
 
-    public String dump(DumperSettings dumperSettings) {
+    /**
+     * Saves the contents into the given file, using the associated {@link #getDumperSettings()} and {@link #getGeneralSettings()} settings.
+     *
+     * @throws IOException if an IO error occurred
+     */
+    public void save(@NotNull File file) throws IOException {
+        try (FileWriter fileWriter = new FileWriter(file)) {
+            //Save
+            save(fileWriter);
+        }
+    }
+
+    /**
+     * Saves the contents to the given stream, using the associated {@link #getDumperSettings()} and {@link #getGeneralSettings()} settings.
+     *
+     * @throws IOException if an IO error occurred
+     */
+    public void save(@NotNull OutputStreamWriter writer) throws IOException {
+        //Write
+        writer.write(dump());
+    }
+
+    /**
+     * Dumps the contents to a string, using the associated {@link #getDumperSettings()} and {@link #getGeneralSettings()} settings.
+     *
+     * @return the dumped contents
+     */
+    public String dump() {
+        return dump(dumperSettings, generalSettings);
+    }
+
+    /**
+     * Dumps the contents to a string, using the given settings.
+     *
+     * @return the dumped contents
+     */
+    public String dump(DumperSettings dumperSettings, GeneralSettings generalSettings) {
         //Create the settings
         DumpSettings settings = dumperSettings.buildEngineSettings();
         //Output
@@ -237,10 +357,107 @@ public class YamlFile extends Section {
         return stream.toString();
     }
 
-    public String dump() {
-        return dump(dumperSettings);
+    /**
+     * Associates the new defaults.
+     * <p>
+     * To clear defaults, pass <code>null</code>.
+     *
+     * @param defaults the new defaults
+     */
+    public void setDefaults(@Nullable YamlFile defaults) {
+        this.defaults = defaults;
     }
 
+    /**
+     * Loads (using the associated {@link #getGeneralSettings()} and {@link #getLoaderSettings()} settings) and associates the new defaults.
+     * <p>
+     * To clear defaults, pass <code>null</code>.
+     *
+     * @param defaults the new defaults
+     */
+    public void setDefaults(@Nullable InputStream defaults) throws IOException {
+        this.defaults = defaults == null ? null : new YamlFile(defaults, generalSettings, loaderSettings);
+    }
+
+    /**
+     * Associates new loader settings
+     *
+     * @param loaderSettings the new loader settings
+     */
+    public void setLoaderSettings(@NotNull LoaderSettings loaderSettings) {
+        this.loaderSettings = loaderSettings;
+    }
+
+    /**
+     * Associates new dumper settings
+     *
+     * @param dumperSettings the new dumper settings
+     */
+    public void setDumperSettings(@NotNull DumperSettings dumperSettings) {
+        this.dumperSettings = dumperSettings;
+    }
+
+    /**
+     * Associates new general settings
+     *
+     * @param generalSettings the new general settings
+     */
+    public void setGeneralSettings(@NotNull GeneralSettings generalSettings) {
+        this.generalSettings = generalSettings;
+    }
+
+    /**
+     * Associates new updater settings
+     *
+     * @param updaterSettings the new updater settings
+     */
+    public void setUpdaterSettings(@NotNull UpdaterSettings updaterSettings) {
+        this.updaterSettings = updaterSettings;
+    }
+
+    public static YamlFile create(File userFile, InputStream defaults, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws IOException {
+        return new YamlFile(userFile, defaults, generalSettings, loaderSettings, dumperSettings, updaterSettings);
+    }
+
+    public static YamlFile create(File userFile, InputStream defaults) throws IOException {
+        return create(userFile, defaults, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    }
+
+    public static YamlFile create(InputStream userFile, InputStream defaults, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws IOException {
+        return new YamlFile(userFile, create(new BufferedInputStream(defaults), generalSettings, loaderSettings, dumperSettings, updaterSettings), generalSettings, loaderSettings, dumperSettings, updaterSettings);
+    }
+
+    public static YamlFile create(InputStream userFile, InputStream defaults) throws IOException {
+        return create(userFile, defaults, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    }
+
+    public static YamlFile create(File userFile, YamlFile defaults, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws IOException {
+        return new YamlFile(userFile, defaults, generalSettings, loaderSettings, dumperSettings, updaterSettings);
+    }
+
+    public static YamlFile create(File userFile, YamlFile defaults) throws IOException {
+        return create(userFile, defaults, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    }
+
+    public static YamlFile create(File userFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws IOException {
+        return create(userFile, (YamlFile) null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
+    }
+
+    public static YamlFile create(File userFile) throws IOException {
+        return create(userFile, (YamlFile) null, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    }
+
+    public static YamlFile create(InputStream userFile, GeneralSettings generalSettings, LoaderSettings loaderSettings, DumperSettings dumperSettings, UpdaterSettings updaterSettings) throws IOException {
+        return new YamlFile(userFile, null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
+    }
+
+    public static YamlFile create(InputStream userFile) throws IOException {
+        return create(userFile, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    }
+
+    /**
+     * Class used to write to a string.
+     */
     private class SerializedStream extends StringWriter implements StreamDataWriter {
     }
 

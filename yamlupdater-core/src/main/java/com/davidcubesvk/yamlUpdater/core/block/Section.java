@@ -135,8 +135,15 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
     //
 
+    protected void initEmpty(@NotNull YamlFile root) {
+        //Call superclass
+        super.init(null, null);
+        //Set
+        this.root = root;
+    }
+
     /**
-     * Initializes this section and it's contents using the given parameters, while also initializing the superclass by
+     * Initializes this section, and it's contents using the given parameters, while also initializing the superclass by
      * calling {@link Block#init(Node, Node)}.
      * <p>
      * This method can also be referred to as <i>secondary</i> constructor.
@@ -195,7 +202,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
         //Loop through all values
         for (Block<?> value : getValue().values()) {
-            //If a mapping or non empty section
+            //If a mapping or non-empty section
             if (value instanceof Mapping || (value instanceof Section && !((Section) value).isEmpty(true)))
                 return false;
         }
@@ -745,7 +752,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Adapt
         Object adapted = adaptKey(key);
 
-        return getSectionSafe(Path.fromSingleKey(adapted)).orElseGet(() -> {
+        return getSectionSafe(Path.from(adapted)).orElseGet(() -> {
             //The new section
             Section section = new Section(root, Section.this, adapted, getSubPath(adapted), previous, root.getGeneralSettings().getDefaultMap());
             //Add
@@ -968,7 +975,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given key as there is not a parent section), otherwise, returns if anything was present (and removed) at the
      * given key.
      *
-     * @param parent the parent section, or <code>null</code> if does not exist
+     * @param parent the parent section, or <code>null</code> if it does not exist
      * @param key    the last key; key to check in the parent section, adapted using {@link #adaptKey(Object)}
      * @return if any value has been removed
      */
@@ -996,13 +1003,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given path encapsulated in an instance of {@link Optional}. If there is no block present (no
      * value) at the given path, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Mapping} (section map entry) or {@link Section} (the value is a section)
-     * block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached
-     * to the declaration of this class.
+     * Each value is encapsulated in a {@link Block}: {@link Mapping} (section map entry) or {@link Section} (the value
+     * is a section) instances. See the {wiki} for more information.
      * <p>
      * <b>Functionality notes:</b> When individual elements (keys) of the given path are traversed, they are (without
-     * modifying the path object given - it is immutable) adapted to the current key mode setting (see
-     * {@link #adaptKey(Object)}).
+     * modifying the path object given - it is immutable) adapted to the current key mode setting (see {@link #adaptKey(Object)}).
      * <p>
      * <b>This is one of the foundation methods, upon which the functionality of other methods in this class is built.</b>
      *
@@ -1017,9 +1022,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given direct key encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given key, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Mapping} (section map entry) or {@link Section} (the value is a section)
-     * block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached
-     * to the declaration of this class.
+     * Each value is encapsulated in a {@link Block}: {@link Mapping} (section map entry) or {@link Section} (the value
+     * is a section) instances. See the {wiki} for more information.
      * <p>
      * <b>A direct key</b> means the key is referring to object in this section directly (e.g. does not work like path,
      * which might - if consisting of multiple keys - refer to subsections) - similar to {@link Map#get(Object)}.
@@ -1041,9 +1045,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given string path encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given path, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Mapping} (section map entry) or {@link Section} (the value is a section)
-     * block instances. Their values can then be obtained by calling {@link Block#getValue()}. See the comments attached
-     * to the declaration of this class.
+     * Each value is encapsulated in a {@link Block}: {@link Mapping} (section map entry) or {@link Section} (the value
+     * is a section) instances. See the {wiki} for more information.
      * <p>
      * <b>Functionality notes:</b> The given path must contain individual keys separated using the separator character
      * configured using {@link GeneralSettings.Builder#setSeparator(char)}, unlike storing each key as an array
@@ -1052,10 +1055,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If the given string path does not contain the separator character (is only one key), returns the result of
      * {@link #getDirectBlockSafe(Object)} with the given path as the parameter.
      * <p>
-     * Otherwise, traverses appropriate subsections determined by the keys contained (sequentially until the last one)
-     * and returns the block in that subsection at the last key defined in the given path. For example, for path
-     * separator <code>'.'</code> and path <code>a.b.c</code>, this method firstly attempts to get the section at key
-     * <code>"a"</code> in <b>this</b> section, <b>then</b> section <code>b</code> in <b>that</b> (keyed as <code>"a"</code>)
+     * Otherwise, traverses appropriate subsections determined by the keys contained (in order as defined except the last one)
+     * and returns the block at the last key defined in the given path. For example, for path separator <code>'.'</code>
+     * and path <code>a.b.c</code>, this method firstly attempts to get the section at key <code>"a"</code> in
+     * <b>this</b> section, <b>then</b> section <code>b</code> in <b>that</b> (keyed as <code>"a"</code>)
      * section and <b>finally</b> the block at <code>"c"</code> in <b>that</b> (keyed as <code>"a.b"</code>) section.
      * <p>
      * We can also interpret this behaviour as a call to {@link #getBlockSafe(Path)} with path created via constructor
@@ -1078,6 +1081,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public Optional<Block<?>> getBlockSafe(@NotNull String path) {
         return path.indexOf(root.getGeneralSettings().getSeparator()) != -1 ? getSafeInternalString(path, false) : getDirectBlockSafe(path);
+    }
+
+    /**
+     * Returns the value encapsulated in the result of {@link #getBlockSafe(Path)}.
+     * <p>
+     * If it's an empty {@link Optional}, returns <code>null</code>.
+     *
+     * @param path the string path to get the block at
+     * @return block at the given path, or <code>null</code> if it doesn't exist
+     */
+    public Block<?> getBlock(@NotNull Path path) {
+        return getBlockSafe(path).orElse(null);
+    }
+
+    /**
+     * Returns the value encapsulated in the result of {@link #getBlockSafe(String)}.
+     * <p>
+     * If it's an empty {@link Optional}, returns <code>null</code>.
+     *
+     * @param path the string path to get the block at
+     * @return block at the given path, or <code>null</code> if it doesn't exist
+     */
+    public Block<?> getBlock(@NotNull String path) {
+        return getBlockSafe(path).orElse(null);
     }
 
     //
@@ -1461,7 +1488,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given path exists and it
+     * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given path exists, and it
      * is an instance of the given class.
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(Path, Class)}.
@@ -1472,14 +1499,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param path  the path to check the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return if a value exists at the given path and it is an instance of the given class
+     * @return if a value exists at the given path, and it is an instance of the given class
      */
     public <T> boolean is(@NotNull Path path, @NotNull Class<T> clazz) {
         return getAsSafe(path, clazz).isPresent();
     }
 
     /**
-     * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given path exists and it
+     * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given path exists, and it
      * is an instance of the given class.
      * <p>
      * More formally, returns {@link Optional#isPresent()} called on the result of {@link #getAsSafe(String, Class)}.
@@ -1490,7 +1517,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param path  the path to check the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return if a value exists at the given path and it is an instance of the given class
+     * @return if a value exists at the given path, and it is an instance of the given class
      */
     public <T> boolean is(@NotNull String path, @NotNull Class<T> clazz) {
         return getAsSafe(path, clazz).isPresent();
@@ -1584,7 +1611,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Section}.
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Section}.
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a section
@@ -1595,7 +1622,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Section}.
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Section}.
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a section
@@ -1619,7 +1646,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
      * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
@@ -1635,7 +1662,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns string at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
      * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
@@ -1650,8 +1677,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
      * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
      * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
@@ -1666,8 +1693,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings {@link GeneralSettings#getDefaultString()}.
      * <p>
      * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
      * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
@@ -1682,8 +1709,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
      * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
@@ -1699,8 +1725,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns string at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns the provided default.
      * <p>
      * Natively, {@link String} instance is preferred. However, if there is an instance of {@link Number} or
      * {@link Boolean} (or their primitive variant) present instead, they are treated like if they were strings, by
@@ -1716,7 +1742,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link String}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link String}, or any other
      * compatible type. Please learn more at {@link #getStringSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -1729,7 +1755,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link String}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link String}, or any other
      * compatible type. Please learn more at {@link #getStringSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -1755,7 +1781,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
@@ -1771,7 +1797,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns char at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
@@ -1786,8 +1812,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultChar()}.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
@@ -1803,8 +1828,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultChar()}.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
@@ -1820,8 +1844,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
@@ -1837,8 +1860,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns char at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
@@ -1854,7 +1876,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Character}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Character}, or any other
      * compatible type. Please learn more at {@link #getCharSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -1867,7 +1889,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Character}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Character}, or any other
      * compatible type. Please learn more at {@link #getCharSafe(String)}.
      *
      * @param path the path to check the value at
@@ -1893,7 +1915,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
@@ -1908,7 +1930,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
@@ -1922,8 +1944,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below).
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -1938,8 +1959,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below).
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -1954,8 +1974,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
@@ -1970,8 +1989,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns integer at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
@@ -1986,7 +2004,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is an {@link Integer}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is an {@link Integer}, or any other
      * compatible type. Please learn more at {@link #getIntSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -1999,7 +2017,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is an {@link Integer}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is an {@link Integer}, or any other
      * compatible type. Please learn more at {@link #getIntSafe(String)}.
      *
      * @param path the path to check the value at
@@ -2025,7 +2043,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
-     * the given path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * the given path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
@@ -2041,7 +2059,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns big integer at the given path encapsulated in an instance of {@link Optional}. If nothing is present at
-     * the given path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * the given path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
@@ -2056,8 +2074,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
-     * the compatible types (see below), returns default value defined by root's general settings
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any
+     * compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below).
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2073,8 +2091,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
-     * the compatible types (see below), returns default value defined by root's general settings
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any
+     * compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below).
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2090,8 +2108,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
-     * the compatible types (see below), returns the provided default.
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any
+     * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
@@ -2107,8 +2125,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any of
-     * the compatible types (see below), returns the provided default.
+     * Returns big integer at the given path. If nothing is present at the given path, or is not an instance of any
+     * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link BigInteger#valueOf(long)}
@@ -2124,7 +2142,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link BigInteger}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link BigInteger}, or any other
      * compatible type. Please learn more at {@link #getBigIntSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -2137,7 +2155,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link BigInteger}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link BigInteger}, or any other
      * compatible type. Please learn more at {@link #getBigIntSafe(String)}.
      *
      * @param path the path to check the value at
@@ -2236,7 +2254,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Boolean} (or the
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Boolean} (or the
      * primitive variant).
      *
      * @param path the path to check the value at
@@ -2248,7 +2266,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Boolean} (or the
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Boolean} (or the
      * primitive variant).
      *
      * @param path the path to check the value at
@@ -2273,7 +2291,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
@@ -2288,7 +2306,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns double at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
@@ -2302,8 +2320,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below).
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2318,8 +2336,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below).
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2334,8 +2352,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns the provided default.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
@@ -2350,8 +2368,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns double at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns the provided default.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
@@ -2366,7 +2384,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Double}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Double}, or any other
      * compatible type. Please learn more at {@link #getDoubleSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -2379,7 +2397,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Double}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Double}, or any other
      * compatible type. Please learn more at {@link #getDoubleSafe(String)}.
      *
      * @param path the path to check the value at
@@ -2405,7 +2423,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
@@ -2420,7 +2438,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns float at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
@@ -2434,8 +2452,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below).
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2450,8 +2468,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below).
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2466,8 +2484,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
@@ -2482,8 +2499,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns float at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
@@ -2498,7 +2514,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Float}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Float}, or any other
      * compatible type. Please learn more at {@link #getFloatSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -2511,7 +2527,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Float}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Float}, or any other
      * compatible type. Please learn more at {@link #getFloatSafe(String)}.
      *
      * @param path the path to check the value at
@@ -2537,7 +2553,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
@@ -2552,7 +2568,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns byte at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
@@ -2566,8 +2582,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below).
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2582,8 +2597,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below).
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2598,8 +2613,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns the provided default.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
@@ -2613,8 +2628,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns byte at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns the provided default.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
@@ -2628,7 +2643,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Byte}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Byte}, or any other
      * compatible type. Please learn more at {@link #getByteSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -2641,7 +2656,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Byte}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Byte}, or any other
      * compatible type. Please learn more at {@link #getByteSafe(String)}.
      *
      * @param path the path to check the value at
@@ -2667,7 +2682,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
@@ -2682,7 +2697,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns long at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
@@ -2696,8 +2711,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below).
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2712,8 +2726,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below).
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2728,8 +2741,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
@@ -2743,8 +2755,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns long at the given path. If nothing is present at the given path, or is not an instance of any compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
@@ -2758,7 +2769,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Long}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Long}, or any other
      * compatible type. Please learn more at {@link #getLongSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -2771,7 +2782,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Long}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Long}, or any other
      * compatible type. Please learn more at {@link #getLongSafe(String)}.
      *
      * @param path the path to check the value at
@@ -2797,7 +2808,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
@@ -2812,7 +2823,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns short at the given path encapsulated in an instance of {@link Optional}. If nothing is present at the given
-     * path, or is not an instance of any of the compatible types (see below), returns an empty optional.
+     * path, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
@@ -2826,8 +2837,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below).
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2842,8 +2853,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns default value defined by root's general settings
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns default value defined by root's general settings
      * {@link GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below).
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2858,8 +2869,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns the provided default.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
@@ -2873,8 +2884,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any of the
-     * compatible types (see below), returns the provided default.
+     * Returns short at the given path. If nothing is present at the given path, or is not an instance of any compatible
+     * type (see below), returns the provided default.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
@@ -2888,7 +2899,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Short}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Short}, or any other
      * compatible type. Please learn more at {@link #getShortSafe(Path)}.
      *
      * @param path the path to check the value at
@@ -2901,7 +2912,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link Short}, or any other
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link Short}, or any other
      * compatible type. Please learn more at {@link #getShortSafe(String)}.
      *
      * @param path the path to check the value at
@@ -3000,7 +3011,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link List}.
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link List}.
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a list
@@ -3011,7 +3022,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given path exists and it is a {@link List}.
+     * Returns <code>true</code> if and only a value at the given path exists, and it is a {@link List}.
      *
      * @param path the path to check the value at
      * @return if the value at the given path exists and is a list

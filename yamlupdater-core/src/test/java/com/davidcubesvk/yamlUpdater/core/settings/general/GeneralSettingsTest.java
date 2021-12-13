@@ -1,10 +1,9 @@
 package com.davidcubesvk.yamlUpdater.core.settings.general;
 
-import com.davidcubesvk.yamlUpdater.core.serialization.Serializer;
+import com.davidcubesvk.yamlUpdater.core.serialization.BaseSerializer;
 import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
-import com.davidcubesvk.yamlUpdater.core.utils.supplier.SetSupplier;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -31,7 +30,7 @@ class GeneralSettingsTest {
 
     @Test
     void getSerializer() {
-        YamlSerializer serializer = new Serializer("!=");
+        YamlSerializer serializer = new BaseSerializer("!=");
         assertEquals(serializer, GeneralSettings.builder().setSerializer(serializer).build().getSerializer());
     }
 

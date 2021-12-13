@@ -139,7 +139,7 @@ public class Pattern {
          * ordered sequence will just <b>descend</b> one-by-one).
          * <p>
          * The constructor actually creates a string array representing this range (from the first to the last number),
-         * which if used irresponsibly, will occupy a lot of environment's memory (RAM). Therefore, there is a limit
+         * which, if used irresponsibly, will occupy a lot of environment's memory (RAM). Therefore, there is a limit
          * enforced - {@link #MAX_SEQUENCE_LENGTH}.
          * <p>
          * The fill-to parameter indicates <b>exactly</b> how much digits each number must have. If some number has

@@ -2,7 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.settings.general;
 
 import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.path.Path;
-import com.davidcubesvk.yamlUpdater.core.serialization.Serializer;
+import com.davidcubesvk.yamlUpdater.core.serialization.BaseSerializer;
 import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
@@ -14,7 +14,12 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * General settings; immutable object.
+ * General settings cover all options related to files.
+ * <p>
+ * To start using this library, it is recommended to take a look at the following methods:
+ * <ul>
+ *     <li>{@link Builder#setKeyMode(KeyMode)}</li>
+ * </ul>
  */
 @SuppressWarnings("unused")
 public class GeneralSettings {
@@ -57,7 +62,7 @@ public class GeneralSettings {
     /**
      * Default serializer.
      */
-    public static final YamlSerializer DEFAULT_SERIALIZER = Serializer.DEFAULT;
+    public static final YamlSerializer DEFAULT_SERIALIZER = BaseSerializer.DEFAULT;
     /**
      * Default object.
      */
@@ -345,7 +350,7 @@ public class GeneralSettings {
          * @return the builder
          * @see #setSeparator(char)
          */
-        public Builder setKeyMode(@NotNull GeneralSettings.KeyMode keyMode) {
+        public Builder setKeyMode(@NotNull KeyMode keyMode) {
             this.keyMode = keyMode;
             return this;
         }
@@ -354,8 +359,8 @@ public class GeneralSettings {
          * Sets path separator used to separate individual keys inside a string path. Functionality compatible with
          * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
          * <p>
-         * Assuming separator <code>'.'</code>, path <code>a.b</code> represents object at key <code>b</code> in section
-         * at key <code>a</code> in the root file (section).
+         * Assuming separator <code>'.'</code>, path <code>"a.b"</code> represents object at key <code>"b"</code> in section
+         * at key <code>"a"</code> in the root file (section).
          * <p>
          * <b>Default: </b>{@link #DEFAULT_SEPARATOR}
          *
@@ -437,7 +442,7 @@ public class GeneralSettings {
          * @param defaultChar default char
          * @return the builder
          */
-        public Builder setDefaultChar(Character defaultChar) {
+        public Builder setDefaultChar(@Nullable Character defaultChar) {
             this.defaultChar = defaultChar;
             return this;
         }

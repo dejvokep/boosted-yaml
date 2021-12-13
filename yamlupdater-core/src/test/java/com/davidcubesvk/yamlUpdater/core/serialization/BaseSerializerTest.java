@@ -7,12 +7,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SerializerTest {
+class BaseSerializerTest {
 
     @Test
     void register() {
         // Create serializer
-        Serializer serializer = new Serializer("!=");
+        BaseSerializer serializer = new BaseSerializer("!=");
         // Register
         assertTrue(serializer.register(CustomSerializable.class));
         assertTrue(serializer.register(CustomSerializable.class, "custom"));
@@ -31,7 +31,7 @@ class SerializerTest {
     @Test
     void deserialize() {
         // Create serializer
-        Serializer serializer = new Serializer("!=");
+        BaseSerializer serializer = new BaseSerializer("!=");
         // Register
         serializer.register(CustomSerializable.class);
         serializer.register(CustomSerializable.class, "custom");
@@ -49,7 +49,7 @@ class SerializerTest {
     @Test
     void serialize() {
         // Create serializer
-        Serializer serializer = new Serializer("!=");
+        BaseSerializer serializer = new BaseSerializer("!=");
         // Register
         serializer.register(CustomSerializable.class);
         // Try to serialize
@@ -65,12 +65,12 @@ class SerializerTest {
 
     @Test
     void getSerializableClass() {
-        assertEquals(Serializable.class, new Serializer("!=").getSerializableClass());
+        assertEquals(Serializable.class, new BaseSerializer("!=").getSerializableClass());
     }
 
     @Test
     void getClassIdentifierKey() {
-        assertEquals("!=", new Serializer("!=").getClassIdentifierKey());
+        assertEquals("!=", new BaseSerializer("!=").getClassIdentifierKey());
     }
 
     public static class IncorrectSerializable implements Serializable {

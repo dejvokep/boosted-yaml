@@ -1,12 +1,14 @@
 package com.davidcubesvk.yamlUpdater.core.path;
 
-import com.davidcubesvk.yamlUpdater.core.block.Section;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 
 import java.util.regex.Pattern;
 
 /**
  * Factory used to build paths from string paths in bulk.
+ * <p>
+ * As string paths can also be used to access data, you should <b>never</b> convert string paths using this class,
+ * except some situations where it is allowed.
  */
 public class PathFactory {
 
@@ -42,21 +44,19 @@ public class PathFactory {
     }
 
     /**
-     * Constructs the path array from the given string path, by splitting it by this factory's separator.
+     * Constructs a path from the given string path, by splitting it by the factory's separator.
      * <p>
-     * <b>Please note</b> that string paths can only contain string keys. Therefore, you will not be able to refer to
-     * <code>null</code> keys, or any other datatype (unless {@link GeneralSettings#getKeyMode()} is set to
-     * {@link GeneralSettings.KeyMode#STRING}). Please learn more at {@link Section#getBlockSafe(String)}.
+     * As string paths can also be used to access data, you should <b>never</b> convert string paths using this
+     * method, except some situations where it is allowed.
      * <p>
-     * <b>This method connects object array oriented paths with string paths, enabling usage of path objects while
-     * maintaining sustainability with Spigot/BungeeCord API. However, string path related methods should be used for
-     * that manner. Please learn more at {@link Section#getBlockSafe(String)}.</b>
+     * The given keys are traversed in order as they were specified. Assuming path <code>["x", "y"]</code>, processor
+     * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
+     * and then value at key <code>"y"</code> in <b>that</b> section.
      * <p>
      * <i>As paths are immutable objects, to save resources, it is recommended to create that certain path only once and
      * then reuse it.</i>
      *
-     * @param path the string path to split (in format <code>a.b</code> for separator <code>.</code> for example ->
-     *             <code>[a, b]</code>)
+     * @param path      the string path to split (in format <code>a.b</code> for factory separator <code>'.'</code> to create path <code>[a, b]</code>)
      * @return the immutable path
      */
     public Path create(String path) {

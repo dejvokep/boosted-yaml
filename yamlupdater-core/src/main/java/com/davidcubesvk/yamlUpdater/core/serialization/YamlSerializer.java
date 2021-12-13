@@ -45,7 +45,7 @@ public interface YamlSerializer {
      * Returns the class which is guaranteed to be implemented/extended by all classes (simply, be a <b>superclass</b>
      * to all of those classes) and it must be guaranteed that this serializer can serialize/deserialize all instances of those.
      * <p>
-     * For example, {@link Serializer} uses {@link Serializable} as this class. It can serialize/deserialize all objects
+     * For example, {@link BaseSerializer} uses {@link Serializable} as this class. It can serialize/deserialize all objects
      * of this type, because the interface has method for serialization built-in.
      *
      * @return the superclass of all classes that are guaranteed to be able to be serialized/deserialized using this serializer
