@@ -232,7 +232,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *
      * @return the parent section, or <code>null</code> if none
      */
-    @Nullable
     public Section getParent() {
         return parent;
     }
