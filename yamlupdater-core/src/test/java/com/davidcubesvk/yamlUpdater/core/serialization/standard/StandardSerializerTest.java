@@ -1,15 +1,13 @@
-package com.davidcubesvk.yamlUpdater.core.serialization;
+package com.davidcubesvk.yamlUpdater.core.serialization.standard;
 
-import com.davidcubesvk.yamlUpdater.core.serialization.standard.StandardSerializer;
-import com.davidcubesvk.yamlUpdater.core.serialization.standard.TypeAdapter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class StandardSerializerTest {
 
