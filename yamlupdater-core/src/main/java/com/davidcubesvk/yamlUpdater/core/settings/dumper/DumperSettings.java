@@ -23,16 +23,25 @@ import java.util.function.Supplier;
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class DumperSettings {
 
+    /**
+     * Represents supported encoding. Please learn more <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setUseUnicodeEncoding(boolean)">here</a>.
+     */
     public enum Encoding {
-        UNICODE(true), ASCII(false);
+        /**
+         * Unicode encoding.
+         */
+        UNICODE,
+        /**
+         * ASCII encoding.
+         */
+        ASCII;
 
-        private final boolean unicode;
-        Encoding(boolean unicode) {
-            this.unicode = unicode;
-        }
-
+        /**
+         * Returns <code>true</code> if the encoding represented is Unicode; <code>false</code> otherwise.
+         * @return if the represented encoding is Unicode
+         */
         boolean isUnicode() {
-            return unicode;
+            return this == Encoding.UNICODE;
         }
     }
 

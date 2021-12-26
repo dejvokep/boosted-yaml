@@ -2,11 +2,11 @@ package com.davidcubesvk.yamlUpdater.core.updater;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
-import com.davidcubesvk.yamlUpdater.core.block.Mapping;
-import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.engine.LibConstructor;
-import com.davidcubesvk.yamlUpdater.core.engine.LibRepresenter;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.Entry;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
+import com.davidcubesvk.yamlUpdater.core.engine.ExtendedConstructor;
+import com.davidcubesvk.yamlUpdater.core.engine.ExtendedRepresenter;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.MergeRule;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
@@ -72,14 +72,14 @@ public class Merger {
         Set<Object> userKeys = userSection.getKeys();
 
         //Loop through all default entries
-        for (Map.Entry<Object, Block<?>> entry : defSection.getValue().entrySet()) {
+        for (Map.Entry<Object, Block<?>> entry : defSection.getStoredValue().entrySet()) {
             //Key
             Object key = entry.getKey();
-            Path path = Path.from(key);
+            Route route = Route.from(key);
             //Delete
             userKeys.remove(key);
             //Blocks
-            Block<?> userBlock = userSection.getBlockSafe(path).orElse(null), defBlock = entry.getValue();
+            Block<?> userBlock = userSection.getBlockSafe(route).orElse(null), defBlock = entry.getValue();
             //If user block is present
             if (userBlock != null) {
                 //If are sections
@@ -92,12 +92,12 @@ public class Merger {
                 }
 
                 //Set preserved value
-                userSection.set(path, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
+                userSection.set(route, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
                 continue;
             }
 
             //Set cloned
-            userSection.set(path, cloneBlock(defBlock, userSection));
+            userSection.set(route, cloneBlock(defBlock, userSection));
         }
 
         //If copy all is set to true
@@ -106,14 +106,14 @@ public class Merger {
 
         //Loop through all default keys
         for (Object userKey : userKeys) {
-            //Path
-            Path path = Path.from(userKey);
+            //Route
+            Route route = Route.from(userKey);
             //If present
-            userSection.getBlockSafe(path).ifPresent(block -> {
+            userSection.getBlockSafe(route).ifPresent(block -> {
                 //If force copy disabled
                 if (!block.isKeep())
                     //Remove
-                    userSection.remove(path);
+                    userSection.remove(route);
             });
         }
     }
@@ -127,10 +127,11 @@ public class Merger {
      * @param newParent new parent section of the block to clone
      * @return the cloned block (with relatives set already)
      * @see #cloneSection(Section, Section)
-     * @see #cloneMapping(Mapping, Section)
+     * @see #cloneEntry(Entry, Section)
      */
-    private Block<?> cloneBlock(Block<?> block, Section newParent) {
-        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneMapping((Mapping) block, newParent);
+    @NotNull
+    private Block<?> cloneBlock(@NotNull Block<?> block, @NotNull Section newParent) {
+        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneEntry((Entry) block, newParent);
     }
 
     /**
@@ -142,23 +143,24 @@ public class Merger {
      * @param newParent new parent section of the section to clone
      * @return the cloned section (with relatives set already)
      */
-    private Section cloneSection(Section section, Section newParent) {
+    @NotNull
+    private Section cloneSection(@NotNull Section section, @NotNull Section newParent) {
         //Root
         YamlFile root = section.getRoot();
         //General settings
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
+        BaseRepresenter representer = new ExtendedRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
         //Create the constructor
-        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
+        ExtendedConstructor constructor = new ExtendedConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
         //Represent
         Node represented = representer.represent(section);
         //Construct
         constructor.constructSingleDocument(Optional.of(represented));
 
         //Create
-        section = new Section(newParent.getRoot(), newParent.isRoot() ? null : newParent.getParent(), section.getName(), section.getPath(), null, (MappingNode) constructor.getConstructed(represented), constructor);
+        section = new Section(newParent.getRoot(), newParent.isRoot() ? null : newParent.getParent(), section.getRoute(), null, (MappingNode) constructor.getConstructed(represented), constructor);
         //Clear
         constructor.clear();
         //Create
@@ -166,35 +168,36 @@ public class Merger {
     }
 
     /**
-     * Deep clones the given mapping.
+     * Deep clones the given entry.
      * <p>
-     * More formally, represents the value of the mapping into nodes and then, constructs them back into Java object.
+     * More formally, represents the value of the entry into nodes and then, constructs them back into a Java object.
      *
-     * @param mapping   the mapping to clone
-     * @param newParent new parent section of the mapping to clone
-     * @return the cloned mapping (with relatives set already)
+     * @param entry   the entry to clone
+     * @param newParent new parent section of the entry to clone
+     * @return the cloned entry (with relatives set already)
      */
-    private Mapping cloneMapping(Mapping mapping, Section newParent) {
+    @NotNull
+    private Entry cloneEntry(@NotNull Entry entry, @NotNull Section newParent) {
         //Root
         YamlFile root = newParent.getRoot();
         //General settings
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new LibRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
+        BaseRepresenter representer = new ExtendedRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
         //Create the constructor
-        LibConstructor constructor = new LibConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
+        ExtendedConstructor constructor = new ExtendedConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
         //Represent
-        Node represented = representer.represent(mapping.getValue());
+        Node represented = representer.represent(entry.getStoredValue());
         //Construct
         constructor.constructSingleDocument(Optional.of(represented));
 
         //Create
-        mapping = new Mapping(mapping, constructor.getConstructed(represented));
+        entry = new Entry(entry, constructor.getConstructed(represented));
         //Clear
         constructor.clear();
         //Return
-        return mapping;
+        return entry;
     }
 
     /**
@@ -207,7 +210,8 @@ public class Merger {
      * @param defBlockIsSection  if default block is a section
      * @return the preserved block
      */
-    private Block<?> getPreservedValue(Map<MergeRule, Boolean> rules, Block<?> userBlock, Supplier<Block<?>> defBlock, boolean userBlockIsSection, boolean defBlockIsSection) {
+    @NotNull
+    private Block<?> getPreservedValue(@NotNull Map<MergeRule, Boolean> rules, @NotNull Block<?> userBlock, @NotNull Supplier<Block<?>> defBlock, boolean userBlockIsSection, boolean defBlockIsSection) {
         return rules.get(MergeRule.getFor(userBlockIsSection, defBlockIsSection)) ? userBlock : defBlock.get();
     }
 

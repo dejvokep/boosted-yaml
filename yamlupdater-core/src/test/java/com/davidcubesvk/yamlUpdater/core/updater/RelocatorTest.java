@@ -1,11 +1,10 @@
 package com.davidcubesvk.yamlUpdater.core.updater;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
-import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
-import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
-import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
-import com.davidcubesvk.yamlUpdater.core.versioning.Version;
+import com.davidcubesvk.yamlUpdater.core.fvs.segment.Segment;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
+import com.davidcubesvk.yamlUpdater.core.fvs.Pattern;
+import com.davidcubesvk.yamlUpdater.core.fvs.Version;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -20,25 +19,25 @@ import static org.junit.jupiter.api.Assertions.fail;
 class RelocatorTest {
 
     // Pattern
-    private static final Pattern PATTERN = new Pattern(new Pattern.Part(1, 100), new Pattern.Part("."), new Pattern.Part(0, 10));
+    private static final Pattern PATTERN = new Pattern(Segment.range(1, Integer.MAX_VALUE), Segment.literal("."), Segment.range(0, 10));
     // Versions
     private static final Version VERSION_USER = PATTERN.getVersion("1.2"), VERSION_DEFAULT = PATTERN.getVersion("2.3");
     // Relocations
-    private static final Map<String, Map<Path, Path>> RELOCATIONS = new HashMap<String, Map<Path, Path>>(){{
-        put("1.0", new HashMap<Path, Path>(){{
-            put(Path.from("d"), Path.from("e"));
+    private static final Map<String, Map<Route, Route>> RELOCATIONS = new HashMap<String, Map<Route, Route>>(){{
+        put("1.0", new HashMap<Route, Route>(){{
+            put(Route.from("d"), Route.from("e"));
         }});
-        put("1.2", new HashMap<Path, Path>(){{
-            put(Path.from("x"), Path.from("f"));
+        put("1.2", new HashMap<Route, Route>(){{
+            put(Route.from("x"), Route.from("f"));
         }});
-        put("1.3", new HashMap<Path, Path>(){{
-            put(Path.from("x"), Path.from("g"));
-            put(Path.from("y"), Path.from("x"));
-            put(Path.from("j"), Path.from("k"));
+        put("1.3", new HashMap<Route, Route>(){{
+            put(Route.from("x"), Route.from("g"));
+            put(Route.from("y"), Route.from("x"));
+            put(Route.from("j"), Route.from("k"));
         }});
-        put("2.3", new HashMap<Path, Path>(){{
-            put(Path.from("g"), Path.from("h"));
-            put(Path.from("z"), Path.from("i"));
+        put("2.3", new HashMap<Route, Route>(){{
+            put(Route.from("g"), Route.from("h"));
+            put(Route.from("z"), Route.from("i"));
         }});
     }};
 

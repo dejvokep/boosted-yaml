@@ -86,7 +86,7 @@
         <!-- Annotations -->
         <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
+            <artifactId>annotations-java5</artifactId>
             <version>22.0.0</version>
         </dependency>
         <!-- JUnit -->

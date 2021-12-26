@@ -1,11 +1,12 @@
 package com.davidcubesvk.yamlUpdater.core.updater;
 
-import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
-import com.davidcubesvk.yamlUpdater.core.versioning.Version;
-import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
+import com.davidcubesvk.yamlUpdater.core.fvs.Version;
+import com.davidcubesvk.yamlUpdater.core.fvs.versioning.Versioning;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Map;
@@ -43,9 +44,9 @@ public class Updater {
      * @param userSection     the user section to update
      * @param defSection      section equivalent in the default file (to update against)
      * @param updaterSettings the updater settings
-     * @param generalSettings the general settings used to obtain the path separator, to split string-based relocations and force copy paths
+     * @param generalSettings the general settings used to obtain the route separator, to split string-based relocations and force copy routes
      */
-    public static void update(Section userSection, Section defSection, UpdaterSettings updaterSettings, GeneralSettings generalSettings) throws IOException {
+    public static void update(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Apply versioning stuff
         UPDATER.runVersionDependent(userSection, defSection, updaterSettings, generalSettings.getSeparator());
         //Merge
@@ -67,7 +68,7 @@ public class Updater {
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
      *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
      *     (see {@link Versioning#getOldest()}). If provided, marks all blocks that should be kept
-     *     (determined by the set of paths, see {@link UpdaterSettings#getKeep(char)}).</li>
+     *     (determined by the set of routes, see {@link UpdaterSettings#getKeep(char)}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
      *     <li>If version IDs equal, does not proceed as well.</li>
@@ -77,9 +78,9 @@ public class Updater {
      * @param userSection    the user section
      * @param defaultSection the default section equivalent
      * @param settings       updater settings to use
-     * @param separator      the path separator, used to split string-based relocations and force copy paths
+     * @param separator      the route separator, used to split string-based relocations and force copy routes
      */
-    private void runVersionDependent(Section userSection, Section defaultSection, UpdaterSettings settings, char separator) {
+    private void runVersionDependent(@NotNull Section userSection, @NotNull Section defaultSection, @NotNull UpdaterSettings settings, char separator) {
         //Versioning
         Versioning versioning = settings.getVersioning();
         //If the versioning is not set
@@ -111,14 +112,14 @@ public class Updater {
         if (compared == 0)
             return;
 
-        // Keep paths
-        Set<Path> keepPaths = settings.getKeep(separator).getOrDefault(user.asID(), null);
-        //If there are any keep paths
-        if (keepPaths != null)
-            //Go through all keep paths
-            for (Path path : keepPaths)
+        // Keep routes
+        Set<Route> keepRoutes = settings.getKeep(separator).getOrDefault(user.asID(), null);
+        //If there are any keep routes
+        if (keepRoutes != null)
+            //Go through all keep routes
+            for (Route route : keepRoutes)
                 //Set
-                userSection.getBlockSafe(path).ifPresent(block -> block.setKeep(true));
+                userSection.getBlockSafe(route).ifPresent(block -> block.setKeep(true));
 
         //Initialize relocator
         Relocator relocator = new Relocator(userSection, user, def);

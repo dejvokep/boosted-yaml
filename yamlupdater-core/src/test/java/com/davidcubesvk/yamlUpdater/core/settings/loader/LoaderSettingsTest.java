@@ -2,6 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.settings.loader;
 
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ class LoaderSettingsTest {
         assertTrue(LoaderSettings.builder().setDetailedErrors(true).build().buildEngineSettings(GeneralSettings.DEFAULT).getUseMarks());
         assertFalse(LoaderSettings.builder().setDetailedErrors(false).build().buildEngineSettings(GeneralSettings.DEFAULT).getUseMarks());
         assertTrue(LoaderSettings.builder().build().buildEngineSettings(GeneralSettings.builder().setDefaultList(new ListSupplier() {
+            @NotNull
             @Override
             public <T> List<T> supply(int size) {
                 return new LinkedList<>();

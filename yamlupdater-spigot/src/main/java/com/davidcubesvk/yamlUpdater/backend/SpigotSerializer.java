@@ -4,16 +4,29 @@ import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.*;
 
+/**
+ * Custom serializer which adds support for {@link ConfigurationSerialization}.
+ */
 public class SpigotSerializer implements YamlSerializer {
 
+    /**
+     * All supported abstract classes.
+     */
+    private static final Set<Class<?>> SUPPORTED_ABSTRACT_CLASSES = new HashSet<Class<?>>(){{
+        add(ConfigurationSerializable.class);
+    }};
+
     @Override
-    public Object deserialize(Map<Object, Object> map) {
+    @Nullable
+    public Object deserialize(@NotNull Map<Object, Object> map) {
         //If does not contain the key
-        if (!map.containsKey(getClassIdentifierKey()))
+        if (!map.containsKey(ConfigurationSerialization.SERIALIZED_TYPE_KEY))
             return null;
 
         //If is not a valid class
@@ -32,23 +45,27 @@ public class SpigotSerializer implements YamlSerializer {
     }
 
     @Override
-    public Map<Object, Object> serialize(Object object, MapSupplier supplier) {
+    @NotNull
+    public Map<Object, Object> serialize(@NotNull Object object, @NotNull MapSupplier supplier) {
         //Create a map
         Map<Object, Object> serialized = supplier.supply(1);
         //Add
         serialized.putAll(((ConfigurationSerializable) object).serialize());
-        serialized.computeIfAbsent(getClassIdentifierKey(), k -> object.getClass().getCanonicalName());
+        serialized.computeIfAbsent(ConfigurationSerialization.SERIALIZED_TYPE_KEY, k -> object.getClass().getCanonicalName());
         //Return
         return serialized;
     }
 
+    @NotNull
     @Override
-    public Class<?> getSerializableClass() {
-        return ConfigurationSerializable.class;
+    public Set<Class<?>> getSupportedClasses() {
+        return Collections.emptySet();
     }
 
+    @NotNull
     @Override
-    public Object getClassIdentifierKey() {
-        return ConfigurationSerialization.SERIALIZED_TYPE_KEY;
+    public Set<Class<?>> getSupportedAbstractClasses() {
+        return SUPPORTED_ABSTRACT_CLASSES;
     }
+
 }

@@ -1,6 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core.utils.conversion;
 
-import com.davidcubesvk.yamlUpdater.core.block.Section;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -60,7 +61,7 @@ public class NumericConversions {
      * @param clazz the class to check
      * @return if it's a numerical class
      */
-    public static boolean isNumber(Class<?> clazz) {
+    public static boolean isNumber(@NotNull Class<?> clazz) {
         return NUMERICAL_CLASSES.contains(clazz);
     }
 
@@ -75,7 +76,7 @@ public class NumericConversions {
      * @param target the target type
      * @return the converted number
      */
-    public static Object convertNumber(Object value, Class<?> target) {
+    public static Object convertNumber(@NotNull Object value, @NotNull Class<?> target) {
         // Convert to number
         Number number = (Number) value;
         // Primitive

@@ -1,13 +1,14 @@
 package com.davidcubesvk.yamlUpdater.core.settings.updater;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.fvs.segment.Segment;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
 import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
-import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
-import com.davidcubesvk.yamlUpdater.core.versioning.Version;
-import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.ManualVersioning;
+import com.davidcubesvk.yamlUpdater.core.fvs.Pattern;
+import com.davidcubesvk.yamlUpdater.core.fvs.Version;
+import com.davidcubesvk.yamlUpdater.core.fvs.versioning.ManualVersioning;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -41,15 +42,15 @@ class UpdaterSettingsTest {
     void getKeep() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .setKeep(new HashMap<String, Set<Path>>() {{
-                    put("1.2", new HashSet<Path>() {{
-                        add(Path.from("a"));
+                .setKeepRoutes(new HashMap<String, Set<Route>>() {{
+                    put("1.2", new HashSet<Route>() {{
+                        add(Route.from("a"));
                     }});
-                    put("1.3", new HashSet<Path>() {{
-                        add(Path.from("c"));
+                    put("1.3", new HashSet<Route>() {{
+                        add(Route.from("c"));
                     }});
                 }})
-                .setStrKeep(new HashMap<String, Set<String>>() {{
+                .setStringKeepRoutes(new HashMap<String, Set<String>>() {{
                     put("1.2", new HashSet<String>() {{
                         add("b");
                     }});
@@ -57,45 +58,45 @@ class UpdaterSettingsTest {
                         add("d");
                     }});
                 }})
-                .setKeep("1.5", new HashSet<Path>() {{
-                    add(Path.from("e"));
+                .setKeepRoutes("1.5", new HashSet<Route>() {{
+                    add(Route.from("e"));
                 }})
-                .setStrKeep("1.5", new HashSet<String>() {{
+                .setStringKeepRoutes("1.5", new HashSet<String>() {{
                     add("f");
                 }}).build();
         // Map
-        Map<String, Set<Path>> paths = settings.getKeep('.');
+        Map<String, Set<Route>> routes = settings.getKeep('.');
         // Assert
-        assertEquals(new HashSet<Path>() {{
-            add(Path.from("a"));
-            add(Path.from("b"));
-        }}, paths.get("1.2"));
-        assertEquals(new HashSet<Path>() {{
-            add(Path.from("c"));
-        }}, paths.get("1.3"));
-        assertEquals(new HashSet<Path>() {{
-            add(Path.from("d"));
-        }}, paths.get("1.4"));
-        assertEquals(new HashSet<Path>() {{
-            add(Path.from("e"));
-            add(Path.from("f"));
-        }}, paths.get("1.5"));
-        assertEquals(4, paths.keySet().size());
+        assertEquals(new HashSet<Route>() {{
+            add(Route.from("a"));
+            add(Route.from("b"));
+        }}, routes.get("1.2"));
+        assertEquals(new HashSet<Route>() {{
+            add(Route.from("c"));
+        }}, routes.get("1.3"));
+        assertEquals(new HashSet<Route>() {{
+            add(Route.from("d"));
+        }}, routes.get("1.4"));
+        assertEquals(new HashSet<Route>() {{
+            add(Route.from("e"));
+            add(Route.from("f"));
+        }}, routes.get("1.5"));
+        assertEquals(4, routes.keySet().size());
     }
 
     @Test
     void getRelocations() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .setRelocations(new HashMap<String, Map<Path, Path>>() {{
-                    put("1.2", new HashMap<Path, Path>() {{
-                        put(Path.from("a"), Path.from("g"));
+                .setRelocations(new HashMap<String, Map<Route, Route>>() {{
+                    put("1.2", new HashMap<Route, Route>() {{
+                        put(Route.from("a"), Route.from("g"));
                     }});
-                    put("1.3", new HashMap<Path, Path>() {{
-                        put(Path.from("c"), Path.from("i"));
+                    put("1.3", new HashMap<Route, Route>() {{
+                        put(Route.from("c"), Route.from("i"));
                     }});
                 }})
-                .setStrRelocations(new HashMap<String, Map<String, String>>() {{
+                .setStringRelocations(new HashMap<String, Map<String, String>>() {{
                     put("1.2", new HashMap<String, String>() {{
                         put("b", "h");
                     }});
@@ -103,28 +104,28 @@ class UpdaterSettingsTest {
                         put("d", "j");
                     }});
                 }})
-                .setRelocations("1.5", new HashMap<Path, Path>() {{
-                    put(Path.from("e"), Path.from("k"));
+                .setRelocations("1.5", new HashMap<Route, Route>() {{
+                    put(Route.from("e"), Route.from("k"));
                 }})
-                .setStrRelocations("1.5", new HashMap<String, String>() {{
+                .setStringRelocations("1.5", new HashMap<String, String>() {{
                     put("f", "l");
                 }}).build();
         // Map
-        Map<String, Map<Path, Path>> relocations = settings.getRelocations('.');
+        Map<String, Map<Route, Route>> relocations = settings.getRelocations('.');
         // Assert
-        assertEquals(new HashMap<Path, Path>() {{
-            put(Path.from("a"), Path.from("g"));
-            put(Path.from("b"), Path.from("h"));
+        assertEquals(new HashMap<Route, Route>() {{
+            put(Route.from("a"), Route.from("g"));
+            put(Route.from("b"), Route.from("h"));
         }}, relocations.get("1.2"));
-        assertEquals(new HashMap<Path, Path>() {{
-            put(Path.from("c"), Path.from("i"));
+        assertEquals(new HashMap<Route, Route>() {{
+            put(Route.from("c"), Route.from("i"));
         }}, relocations.get("1.3"));
-        assertEquals(new HashMap<Path, Path>() {{
-            put(Path.from("d"), Path.from("j"));
+        assertEquals(new HashMap<Route, Route>() {{
+            put(Route.from("d"), Route.from("j"));
         }}, relocations.get("1.4"));
-        assertEquals(new HashMap<Path, Path>() {{
-            put(Path.from("e"), Path.from("k"));
-            put(Path.from("f"), Path.from("l"));
+        assertEquals(new HashMap<Route, Route>() {{
+            put(Route.from("e"), Route.from("k"));
+            put(Route.from("f"), Route.from("l"));
         }}, relocations.get("1.5"));
         assertEquals(4, relocations.keySet().size());
     }
@@ -133,7 +134,7 @@ class UpdaterSettingsTest {
     void getVersioning() {
         try {
             // Pattern
-            Pattern pattern = new Pattern(new Pattern.Part(1, 100), new Pattern.Part("."), new Pattern.Part(0, 10));
+            Pattern pattern = new Pattern(Segment.range(1, 100), Segment.literal("."), Segment.range(0, 10));
             // File
             YamlFile file = YamlFile.create(
                     new ByteArrayInputStream("a: 1.2".getBytes(StandardCharsets.UTF_8)), new ByteArrayInputStream("a: 1.3".getBytes(StandardCharsets.UTF_8)),
@@ -143,7 +144,7 @@ class UpdaterSettingsTest {
             // Assert
             assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getUserSectionVersion(file));
             assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getUserSectionVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Path.from("a")).build().getVersioning().getUserSectionVersion(file));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Route.from("a")).build().getVersioning().getUserSectionVersion(file));
             assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getUserSectionVersion(file));
         } catch (
                 IOException ex) {

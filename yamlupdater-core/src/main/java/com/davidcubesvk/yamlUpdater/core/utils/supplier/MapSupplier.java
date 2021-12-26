@@ -1,5 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core.utils.supplier;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Map;
 
 /**
@@ -15,6 +17,7 @@ public interface MapSupplier {
      * @param <V>  value type
      * @return the map of the given size
      */
+    @NotNull
     <K, V> Map<K, V> supply(int size);
 
 }

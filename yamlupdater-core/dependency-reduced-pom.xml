@@ -9,6 +9,12 @@
   <artifactId>yamlupdater-core</artifactId>
   <description>A professional updater for YAML configuration files - core module.</description>
   <build>
+    <testSourceDirectory>src/test/java</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>

@@ -1,12 +1,13 @@
 package com.davidcubesvk.yamlUpdater.core.updater;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.fvs.segment.Segment;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
 import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
-import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
+import com.davidcubesvk.yamlUpdater.core.fvs.Pattern;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -20,15 +21,15 @@ import static org.junit.jupiter.api.Assertions.*;
 class UpdaterTest {
 
     // Pattern
-    private static final Pattern PATTERN = new Pattern(new Pattern.Part(1, 100), new Pattern.Part("."), new Pattern.Part(0, 10));
+    private static final Pattern PATTERN = new Pattern(Segment.range(1, Integer.MAX_VALUE), Segment.literal("."), Segment.range(0, 10));
     // Settings
-    private static final UpdaterSettings UPDATER_SETTINGS = UpdaterSettings.builder().setRelocations(new HashMap<String, Map<Path, Path>>(){{
-        put("1.3", new HashMap<Path, Path>(){{
-            put(Path.from("z", "a"), Path.from("r"));
+    private static final UpdaterSettings UPDATER_SETTINGS = UpdaterSettings.builder().setRelocations(new HashMap<String, Map<Route, Route>>(){{
+        put("1.3", new HashMap<Route, Route>(){{
+            put(Route.from("z", "a"), Route.from("r"));
         }});
-        put("2.3", new HashMap<Path, Path>(){{
-            put(Path.from("o"), Path.from("m"));
-            put(Path.from("z"), Path.from("s"));
+        put("2.3", new HashMap<Route, Route>(){{
+            put(Route.from("o"), Route.from("m"));
+            put(Route.from("z"), Route.from("s"));
         }});
     }}).setVersioning(PATTERN, "a").build();
 

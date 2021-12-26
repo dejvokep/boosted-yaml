@@ -6,7 +6,7 @@ package com.davidcubesvk.yamlUpdater.core.settings.updater;
 public enum MergeRule {
 
     /**
-     * Represents a situation where block at a certain path in:
+     * Represents a situation where block at a certain route in:
      * <ul>
      *     <li>user file is a section</li>
      *     <li>default file is a mapping</li>
@@ -16,7 +16,7 @@ public enum MergeRule {
     SECTION_AT_MAPPING,
 
     /**
-     * Represents a situation where block at a certain path in:
+     * Represents a situation where block at a certain route in:
      * <ul>
      *     <li>user file is a mapping</li>
      *     <li>default file is a section</li>
@@ -26,7 +26,7 @@ public enum MergeRule {
     MAPPING_AT_SECTION,
 
     /**
-     * Represents a situation where block at a certain path is a mapping in both files.
+     * Represents a situation where block at a certain route is a mapping in both files.
      * <p>
      * This situation is, during merging, also referred to as <i>mapping at mapping</i>.
      */

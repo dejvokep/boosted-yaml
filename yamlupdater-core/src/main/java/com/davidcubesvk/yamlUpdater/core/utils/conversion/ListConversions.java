@@ -1,7 +1,8 @@
 package com.davidcubesvk.yamlUpdater.core.utils.conversion;
 
-import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -25,12 +26,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getStringSafe(Path)}.
+     * method {@link Section#getStringSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of strings
      */
-    public static Optional<List<String>> toStringList(Optional<List<?>> value) {
+    public static Optional<List<String>> toStringList(@NotNull Optional<List<?>> value) {
         return construct(value, o -> Optional.ofNullable(o instanceof String || o instanceof Number || o instanceof Boolean ? o.toString() : null));
     }
 
@@ -40,12 +41,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getIntSafe(Path)}.
+     * method {@link Section#getIntSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of integers
      */
-    public static Optional<List<Integer>> toIntList(Optional<List<?>> value) {
+    public static Optional<List<Integer>> toIntList(@NotNull Optional<List<?>> value) {
         return construct(value, NumericConversions::toInt);
     }
 
@@ -55,12 +56,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getBigIntSafe(Path)}.
+     * method {@link Section#getBigIntSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of big integers
      */
-    public static Optional<List<BigInteger>> toBigIntList(Optional<List<?>> value) {
+    public static Optional<List<BigInteger>> toBigIntList(@NotNull Optional<List<?>> value) {
         return construct(value, NumericConversions::toBigInt);
     }
 
@@ -70,12 +71,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getByteSafe(Path)}.
+     * method {@link Section#getByteSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of bytes
      */
-    public static Optional<List<Byte>> toByteList(Optional<List<?>> value) {
+    public static Optional<List<Byte>> toByteList(@NotNull Optional<List<?>> value) {
         return construct(value, NumericConversions::toByte);
     }
 
@@ -85,12 +86,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getLongSafe(Path)}.
+     * method {@link Section#getLongSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of longs
      */
-    public static Optional<List<Long>> toLongList(Optional<List<?>> value) {
+    public static Optional<List<Long>> toLongList(@NotNull Optional<List<?>> value) {
         return construct(value, NumericConversions::toLong);
     }
 
@@ -100,12 +101,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getDoubleSafe(Path)}.
+     * method {@link Section#getDoubleSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of doubles
      */
-    public static Optional<List<Double>> toDoubleList(Optional<List<?>> value) {
+    public static Optional<List<Double>> toDoubleList(@NotNull Optional<List<?>> value) {
         return construct(value, NumericConversions::toDouble);
     }
 
@@ -115,12 +116,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getFloatSafe(Path)}.
+     * method {@link Section#getFloatSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of floats
      */
-    public static Optional<List<Float>> toFloatList(Optional<List<?>> value) {
+    public static Optional<List<Float>> toFloatList(@NotNull Optional<List<?>> value) {
         return construct(value, NumericConversions::toFloat);
     }
 
@@ -130,12 +131,12 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getShortSafe(Path)}.
+     * method {@link Section#getShortSafe(Route)}.
      *
      * @param value the list to construct
      * @return list of shorts
      */
-    public static Optional<List<Short>> toShortList(Optional<List<?>> value) {
+    public static Optional<List<Short>> toShortList(@NotNull Optional<List<?>> value) {
         return construct(value, NumericConversions::toShort);
     }
 
@@ -149,7 +150,7 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of maps
      */
-    public static Optional<List<Map<?, ?>>> toMapList(Optional<List<?>> value) {
+    public static Optional<List<Map<?, ?>>> toMapList(@NotNull Optional<List<?>> value) {
         return construct(value, o -> o instanceof Map ? Optional.of((Map<?, ?>) o) : Optional.empty());
     }
 
@@ -163,7 +164,7 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of the target type
      */
-    private static <T> Optional<List<T>> construct(Optional<List<?>> value, Function<Object, Optional<T>> mapper) {
+    private static <T> Optional<List<T>> construct(@NotNull Optional<List<?>> value, @NotNull Function<Object, Optional<T>> mapper) {
         //If not present
         if (!value.isPresent())
             return Optional.empty();

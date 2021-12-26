@@ -1,13 +1,13 @@
 package com.davidcubesvk.yamlUpdater.core.settings.updater;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
-import com.davidcubesvk.yamlUpdater.core.path.PathFactory;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
+import com.davidcubesvk.yamlUpdater.core.route.RouteFactory;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
-import com.davidcubesvk.yamlUpdater.core.versioning.Pattern;
-import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.AutomaticVersioning;
-import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.ManualVersioning;
-import com.davidcubesvk.yamlUpdater.core.versioning.wrapper.Versioning;
+import com.davidcubesvk.yamlUpdater.core.fvs.Pattern;
+import com.davidcubesvk.yamlUpdater.core.fvs.versioning.AutomaticVersioning;
+import com.davidcubesvk.yamlUpdater.core.fvs.versioning.ManualVersioning;
+import com.davidcubesvk.yamlUpdater.core.fvs.versioning.Versioning;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,11 +66,11 @@ public class UpdaterSettings {
     private final boolean keepAll;
     //Merge rules
     private final Map<MergeRule, Boolean> mergeRules;
-    //Paths to keep
-    private final Map<String, Set<Path>> keep;
+    //Routes to keep
+    private final Map<String, Set<Route>> keep;
     private final Map<String, Set<String>> stringKeep;
     //Relocations
-    private final Map<String, Map<Path, Path>> relocations;
+    private final Map<String, Map<Route, Route>> relocations;
     private final Map<String, Map<String, String>> stringRelocations;
     //Versioning
     private final Versioning versioning;
@@ -105,32 +105,32 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns which blocks (represented by their paths) to keep in the user file (will not be deleted); if updating
-     * from that certain version ID (if the user's file has that version ID). Merges the string-based paths with path
+     * Returns which blocks (represented by their routes) to keep in the user file (will not be deleted); if updating
+     * from that certain version ID (if the user's file has that version ID). Merges the string-based routes with route
      * objects.
      * <p>
      * Note that this applies to blocks which were not merged (e.g. they don't have equivalent block in the defaults).
      * <p>
-     * The given map contains version ID (in string format) as the key, with corresponding set of paths to keep
+     * The given map contains version ID (in string format) as the key, with corresponding set of routes to keep
      * as value. It, naturally, is not required and not guaranteed, that all version IDs between version ID of the user
-     * and default file, must have their paths specified.
+     * and default file, must have their routes specified.
      *
-     * @param separator separator to split string based paths by
-     * @return paths representing blocks to keep, per version ID
+     * @param separator separator to split string based routes by
+     * @return routes representing blocks to keep, per version ID
      */
-    public Map<String, Set<Path>> getKeep(char separator) {
+    public Map<String, Set<Route>> getKeep(char separator) {
         //If string relocations are defined
         if (stringKeep.size() > 0) {
             //Create factory
-            PathFactory factory = new PathFactory(separator);
+            RouteFactory factory = new RouteFactory(separator);
 
             //All entries
             for (Map.Entry<String, Set<String>> entry : stringKeep.entrySet()) {
                 //The set
-                Set<Path> paths = keep.computeIfAbsent(entry.getKey(), (key) -> new HashSet<>());
+                Set<Route> routes = keep.computeIfAbsent(entry.getKey(), (key) -> new HashSet<>());
                 //Add all
-                for (String path : entry.getValue())
-                    paths.add(factory.create(path));
+                for (String route : entry.getValue())
+                    routes.add(factory.create(route));
             }
         }
 
@@ -139,26 +139,26 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns relocations (in <code>from path = to path</code> format) per version ID string. Merges the string-based
+     * Returns relocations (in <code>from route = to route</code> format) per version ID string. Merges the string-based
      * relocations.
      *
-     * @param separator separator to split string based relocation paths by
+     * @param separator separator to split string based relocation routes by
      * @return the relocations
      */
-    public Map<String, Map<Path, Path>> getRelocations(char separator) {
+    public Map<String, Map<Route, Route>> getRelocations(char separator) {
         //If string relocations are defined
         if (stringRelocations.size() > 0) {
             //Create factory
-            PathFactory factory = new PathFactory(separator);
+            RouteFactory factory = new RouteFactory(separator);
 
             //All entries
             for (Map.Entry<String, Map<String, String>> entry : stringRelocations.entrySet()) {
                 //The map
-                Map<Path, Path> relocations = this.relocations.computeIfAbsent(entry.getKey(), (key) -> new HashMap<>());
+                Map<Route, Route> relocations = this.relocations.computeIfAbsent(entry.getKey(), (key) -> new HashMap<>());
                 //Add all
                 for (Map.Entry<String, String> relocation : entry.getValue().entrySet()) {
-                    // From path
-                    Path from = factory.create(relocation.getKey());
+                    // From route
+                    Route from = factory.create(relocation.getKey());
                     // If not already present
                     if (!relocations.containsKey(from))
                         relocations.put(from, factory.create(relocation.getValue()));
@@ -233,11 +233,11 @@ public class UpdaterSettings {
         private boolean keepAll = DEFAULT_KEEP_ALL;
         //Merge rules
         private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
-        //Paths to keep
-        private final Map<String, Set<Path>> keep = new HashMap<>();
+        //Routes to keep
+        private final Map<String, Set<Route>> keep = new HashMap<>();
         private final Map<String, Set<String>> stringKeep = new HashMap<>();
         //Relocations
-        private final Map<String, Map<Path, Path>> relocations = new HashMap<>();
+        private final Map<String, Map<Route, Route>> relocations = new HashMap<>();
         private final Map<String, Map<String, String>> stringRelocations = new HashMap<>();
         //Versioning
         private Versioning versioning = DEFAULT_VERSIONING;
@@ -276,7 +276,7 @@ public class UpdaterSettings {
          * That means, if no versioning is supplied, if the version ID of the user file was not found (automatic FVS) or
          * not supplied (manual FVS), or the ID of the user file is not parsable by the given pattern, this method is not effective.
          * <p>
-         * If enabled and the updater detects downgrading, the updater will skip keep paths and relocations, proceeding directly to merging. Throws an error otherwise (if disabled).
+         * If enabled and the updater detects downgrading, the updater will skip keep routes and relocations, proceeding directly to merging. Throws an error otherwise (if disabled).
          * <p>
          * If disabled, throws an error if downgrading. If configured like so, you may also want to disable
          * {@link LoaderSettings.Builder#setAutoUpdate(boolean)} (if an error is thrown, you won't be able to initialize the file - update manually).
@@ -338,121 +338,121 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets which blocks (represented by their paths) to keep in the user file (will not be deleted); if updating
+         * Sets which blocks (represented by their routes) to keep in the user file (will not be deleted); if updating
          * from that certain version ID (if the user's file has that version ID). You can learn more at
-         * {@link #setKeep(String, Set)} or {wiki}. If there already are paths defined for version ID, which is also
+         * {@link #setKeepRoutes(String, Set)} or {wiki}. If there already are routes defined for version ID, which is also
          * present in the given map, they are overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the defaults).
          * <p>
-         * The given map should contain version ID (in string format) as the key, with corresponding set of paths to keep
+         * The given map should contain version ID (in string format) as the key, with corresponding set of routes to keep
          * as value. It, naturally, is not required and does not need to be guaranteed, that all version IDs between
-         * version ID of the user and default file, must have their paths specified.
+         * version ID of the user and default file, must have their routes specified.
          * <p>
          * <b>Default: </b><i>none</i>
          *
-         * @param paths paths to set, per version ID
+         * @param routes routes to set, per version ID
          * @return the builder
-         * @see #setKeep(String, Set)
+         * @see #setKeepRoutes(String, Set)
          */
-        public Builder setKeep(@NotNull Map<String, Set<Path>> paths) {
-            this.keep.putAll(paths);
+        public Builder setKeepRoutes(@NotNull Map<String, Set<Route>> routes) {
+            this.keep.putAll(routes);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their paths) to keep in the user file (will not be deleted); if user file
-         * that's being updated has the given version ID. If there already are paths defined for the given ID, they are
+         * Sets which blocks (represented by their routes) to keep in the user file (will not be deleted); if user file
+         * that's being updated has the given version ID. If there already are routes defined for the given ID, they are
          * overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the
          * defaults). For examples and in-depth explanation, please visit {wiki}.
          * <p>
          * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of
-         * the user and default file, must have their paths specified.
+         * the user and default file, must have their routes specified.
          * <p>
          * <b>Default: </b><i>none</i>
          *
-         * @param versionId the version ID string to set paths for
-         * @param paths     the set of paths representing blocks to keep
+         * @param versionId the version ID string to set routes for
+         * @param routes     the set of routes representing blocks to keep
          * @return the builder
          */
-        public Builder setKeep(@NotNull String versionId, @NotNull Set<Path> paths) {
-            this.keep.put(versionId, paths);
+        public Builder setKeepRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
+            this.keep.put(versionId, routes);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their <i>string</i> paths) to keep in the user file (will not be deleted); if updating
+         * Sets which blocks (represented by their <i>string</i> routes) to keep in the user file (will not be deleted); if updating
          * from that certain version ID (if the user's file has that version ID). You can learn more at
-         * {@link #setStrKeep(String, Set)} or {wiki}. If there already are paths defined for version ID, which is also
+         * {@link #setStringKeepRoutes(String, Set)} or {wiki}. If there already are routes defined for version ID, which is also
          * present in the given map, they are overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the defaults).
          * <p>
-         * The given map should contain version ID (in string format) as the key, with corresponding set of paths to keep
+         * The given map should contain version ID (in string format) as the key, with corresponding set of routes to keep
          * as value. It, naturally, is not required and does not need to be guaranteed, that all version IDs between
-         * version ID of the user and default file, must have their paths specified.
+         * version ID of the user and default file, must have their routes specified.
          * <p>
-         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrKeep(String, Set)} method are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setKeep(Map)}) and will not overwrite each other.
+         * <b>Please note</b> that, as the documentation above suggests, string routes supplied via this and
+         * {@link #setStringKeepRoutes(String, Set)} method are cached differently from routes supplied via
+         * {@link Route}-based methods (e.g. {@link #setKeepRoutes(Map)}) and will not overwrite each other.
          * <p>
-         * String path-based keep paths are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * String route-based keep routes are stored till the updating process, where they are converted to
+         * {@link Route}-based ones and merged with the ones given via other methods. <b>{@link Route}-based relocations
          * have higher priority.</b>
          * <p>
          * <b>Default: </b><i>none</i>
          *
-         * @param paths <i>string</i> paths to set, per version ID
+         * @param routes <i>string</i> routes to set, per version ID
          * @return the builder
-         * @see #setStrKeep(String, Set)
+         * @see #setStringKeepRoutes(String, Set)
          */
-        public Builder setStrKeep(@NotNull Map<String, Set<String>> paths) {
-            this.stringKeep.putAll(paths);
+        public Builder setStringKeepRoutes(@NotNull Map<String, Set<String>> routes) {
+            this.stringKeep.putAll(routes);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their <i>string</i> paths) to keep in the user file (will not be deleted); if user file
-         * that's being updated has the given version ID. If there already are paths defined for the given ID, they are
+         * Sets which blocks (represented by their <i>string</i> routes) to keep in the user file (will not be deleted); if user file
+         * that's being updated has the given version ID. If there already are routes defined for the given ID, they are
          * overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the
          * defaults). For examples and in-depth explanation, please visit {wiki}.
          * <p>
          * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of
-         * the user and default file, must have their paths specified.
+         * the user and default file, must have their routes specified.
          * <p>
-         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrKeep(Map)} method are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setKeep(Map)}) and will not overwrite each other.
+         * <b>Please note</b> that, as the documentation above suggests, string routes supplied via this and
+         * {@link #setStringKeepRoutes(Map)} method are cached differently from routes supplied via
+         * {@link Route}-based methods (e.g. {@link #setKeepRoutes(Map)}) and will not overwrite each other.
          * <p>
-         * String path-based keep paths are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * String route-based keep routes are stored till the updating process, where they are converted to
+         * {@link Route}-based ones and merged with the ones given via other methods. <b>{@link Route}-based relocations
          * have higher priority.</b>
          * <p>
          * <b>Default: </b><i>none</i>
          *
-         * @param versionId the version ID string to set paths for
-         * @param paths     the set of <i>string</i> paths representing blocks to keep
+         * @param versionId the version ID string to set routes for
+         * @param routes     the set of <i>string</i> routes representing blocks to keep
          * @return the builder
          */
-        public Builder setStrKeep(@NotNull String versionId, @NotNull Set<String> paths) {
-            this.stringKeep.put(versionId, paths);
+        public Builder setStringKeepRoutes(@NotNull String versionId, @NotNull Set<String> routes) {
+            this.stringKeep.put(versionId, routes);
             return this;
         }
 
         /**
-         * Sets relocations (in <code>from path = to path</code> format) per version ID string. You can learn more at
+         * Sets relocations (in <code>from route = to route</code> format) per version ID string. You can learn more at
          * {@link #setRelocations(String, Map)} or {wiki}. If there already are relocations defined for version ID which
          * is also present in the given map, they are overwritten.
          *
          * @param relocations the relocations to add
          * @return the builder
-         * @see #setStrRelocations(String, Map)
+         * @see #setStringRelocations(String, Map)
          */
-        public Builder setRelocations(@NotNull Map<String, Map<Path, Path>> relocations) {
+        public Builder setRelocations(@NotNull Map<String, Map<Route, Route>> relocations) {
             this.relocations.putAll(relocations);
             return this;
         }
@@ -462,63 +462,63 @@ public class UpdaterSettings {
          * they are overwritten.
          * <p>
          * The given version ID represents version, at which the relocations were made - at which they took effect. That
-         * means, if certain setting was at path <code>a</code> in config with version ID <code>2</code>, but you
-         * decided you want to move that setting to path <code>b</code> (and then released with version <code>3</code>
+         * means, if certain setting was at route <code>a</code> in config with version ID <code>2</code>, but you
+         * decided you want to move that setting to route <code>b</code> (and then released with version <code>3</code>
          * or whatever), the relocation is considered to be made at version ID <code>2</code>.
          *
          * @param versionId   the version ID to set relocations for
          * @param relocations relocations to set
          * @return the builder
          */
-        public Builder setRelocations(@NotNull String versionId, @NotNull Map<Path, Path> relocations) {
+        public Builder setRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
             this.relocations.put(versionId, relocations);
             return this;
         }
 
         /**
-         * Sets relocations (in <code>from path = to path</code> format) per version ID. You can learn more at
-         * {@link #setStrRelocations(String, Map)} or {wiki}. If there already are string-based relocations defined for
+         * Sets relocations (in <code>from route = to route</code> format) per version ID. You can learn more at
+         * {@link #setStringRelocations(String, Map)} or {wiki}. If there already are string-based relocations defined for
          * version ID which is also present in the given map, they are overwritten.
          * <p>
-         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrRelocations(String, Map)} method are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
+         * <b>Please note</b> that, as the documentation above suggests, string routes supplied via this and
+         * {@link #setStringRelocations(String, Map)} method are cached differently from routes supplied via
+         * {@link Route}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
          * <p>
-         * String path-based relocations are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * String route-based relocations are stored till the updating process, where they are converted to
+         * {@link Route}-based ones and merged with the ones given via other methods. <b>{@link Route}-based relocations
          * have higher priority.</b>
          *
          * @param relocations the relocations to add
          * @return the builder
-         * @see #setStrRelocations(String, Map)
+         * @see #setStringRelocations(String, Map)
          */
-        public Builder setStrRelocations(@NotNull Map<String, Map<String, String>> relocations) {
+        public Builder setStringRelocations(@NotNull Map<String, Map<String, String>> relocations) {
             this.stringRelocations.putAll(relocations);
             return this;
         }
 
         /**
-         * Sets relocations (in <code>from path = to path</code> format) per version ID. If there already are
+         * Sets relocations (in <code>from route = to route</code> format) per version ID. If there already are
          * string-based relocations defined for version ID which is also present in the given map, they are overwritten.
          * <p>
          * The given version ID represents version, at which the relocations were made - at which they took effect. That
-         * means, if certain setting was at path <code>a</code> in config with version ID <code>2</code>, but you
-         * decided you want to move that setting to path <code>b</code> (and then released with version <code>3</code>
+         * means, if certain setting was at route <code>a</code> in config with version ID <code>2</code>, but you
+         * decided you want to move that setting to route <code>b</code> (and then released with version <code>3</code>
          * or whatever), the relocation is considered to be made at version ID <code>2</code>.
          * <p>
-         * <b>Please note</b> that, as the documentation above suggests, string paths supplied via this and
-         * {@link #setStrRelocations(Map)} method are cached differently from paths supplied via
-         * {@link Path}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
+         * <b>Please note</b> that, as the documentation above suggests, string routes supplied via this and
+         * {@link #setStringRelocations(Map)} method are cached differently from routes supplied via
+         * {@link Route}-based methods (e.g. {@link #setRelocations(Map)}) and will not overwrite each other.
          * <p>
-         * String path-based relocations are stored till the updating process, where they are converted to
-         * {@link Path}-based ones and merged with the ones given via other methods. <b>{@link Path}-based relocations
+         * String route-based relocations are stored till the updating process, where they are converted to
+         * {@link Route}-based ones and merged with the ones given via other methods. <b>{@link Route}-based relocations
          * have higher priority.</b>
          *
          * @param versionId   the version ID to set relocations for
          * @param relocations relocations to set
          * @return the builder
          */
-        public Builder setStrRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
+        public Builder setStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
             this.stringRelocations.put(versionId, relocations);
             return this;
         }
@@ -531,7 +531,7 @@ public class UpdaterSettings {
          * @param versioning the versioning
          * @return the builder
          * @see #setVersioning(Pattern, String, String)
-         * @see #setVersioning(Pattern, Path)
+         * @see #setVersioning(Pattern, Route)
          */
         public Builder setVersioning(@NotNull Versioning versioning) {
             this.versioning = versioning;
@@ -542,7 +542,7 @@ public class UpdaterSettings {
          * Sets versioning information manually. The given string version IDs must follow the given pattern.
          * <p>
          * If the user file version ID is <code>null</code> (e.g. user file was created before your plugin started using
-         * this library/updater), keep paths are not effective, and it's version will be treated like the oldest
+         * this library/updater), keep routes are not effective, and it's version will be treated like the oldest
          * one specified by the given pattern (which effectively means all relocations given will be applied to it).
          * <p>
          * If any of the version IDs do not follow the given pattern (cannot be parsed), an
@@ -564,37 +564,37 @@ public class UpdaterSettings {
         /**
          * Sets versioning information to be obtained automatically (directly from the user and default file).
          * <p>
-         * It must be guaranteed that version ID of the default file is present at the path and is valid (following the
+         * It must be guaranteed that version ID of the default file is present at the route and is valid (following the
          * pattern), an {@link IllegalArgumentException} will be thrown during the updating process otherwise. If no
-         * version ID is found in the user file at the path, or is invalid, the updater will treat the user file version
+         * version ID is found in the user file at the route, or is invalid, the updater will treat the user file version
          * ID as the oldest specified by the given pattern.
          * <p>
          * Please read the documentation of {@link AutomaticVersioning}.
          *
          * @param pattern the pattern
-         * @param path    the path to version IDs (of both files) in both files
+         * @param route    the route to version IDs (of both files) in both files
          * @return the builder
          */
-        public Builder setVersioning(@NotNull Pattern pattern, @NotNull Path path) {
-            return setVersioning(new AutomaticVersioning(pattern, path));
+        public Builder setVersioning(@NotNull Pattern pattern, @NotNull Route route) {
+            return setVersioning(new AutomaticVersioning(pattern, route));
         }
 
         /**
          * Sets versioning information to be obtained automatically (directly from the user and default file).
          * <p>
-         * It must be guaranteed that version ID of the default file is present at the path and is valid (following the
+         * It must be guaranteed that version ID of the default file is present at the route and is valid (following the
          * pattern), an {@link IllegalArgumentException} will be thrown during the updating process otherwise. If no
-         * version ID is found in the user file at the path, or is invalid, the updater will treat the user file version
+         * version ID is found in the user file at the route, or is invalid, the updater will treat the user file version
          * ID as the oldest specified by the given pattern.
          * <p>
          * Please read the documentation of {@link AutomaticVersioning}.
          *
          * @param pattern the pattern
-         * @param path    the path to version IDs (of both files) in both files
+         * @param route    the route to version IDs (of both files) in both files
          * @return the builder
          */
-        public Builder setVersioning(@NotNull Pattern pattern, @NotNull String path) {
-            return setVersioning(new AutomaticVersioning(pattern, path));
+        public Builder setVersioning(@NotNull Pattern pattern, @NotNull String route) {
+            return setVersioning(new AutomaticVersioning(pattern, route));
         }
 
         /**

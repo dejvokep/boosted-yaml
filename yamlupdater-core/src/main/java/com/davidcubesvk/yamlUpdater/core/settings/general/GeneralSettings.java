@@ -1,8 +1,8 @@
 package com.davidcubesvk.yamlUpdater.core.settings.general;
 
-import com.davidcubesvk.yamlUpdater.core.block.Section;
-import com.davidcubesvk.yamlUpdater.core.path.Path;
-import com.davidcubesvk.yamlUpdater.core.serialization.BaseSerializer;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
+import com.davidcubesvk.yamlUpdater.core.route.Route;
+import com.davidcubesvk.yamlUpdater.core.serialization.standard.StandardSerializer;
 import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
@@ -27,13 +27,13 @@ public class GeneralSettings {
     /**
      * Key mode for sections to use, specifies how the loaded/supplied keys should be treated and how to convert them.
      * <p>
-     * It highly recommended to read {@link Section#getBlockSafe(Path)} and {@link Section#getBlockSafe(String)} documentation.
+     * It highly recommended to read {@link Section#getBlockSafe(Route)} and {@link Section#getBlockSafe(String)} documentation.
      */
     public enum KeyMode {
 
         /**
-         * Converts all section keys to strings when loading. If any of the keys in {@link Path} objects used in
-         * get/set/remove... methods is not a string, convert it to one (internally, will not modify the paths). Paths
+         * Converts all section keys to strings when loading. If any of the keys in {@link Route} objects used in
+         * get/set/remove... methods is not a string, convert it to one (internally, will not modify the routes). Routes
          * with non-string keys will be rendered useless, as the sections contain string keys only.
          * <p>
          * <b>This key mode ensures compatibility with Spigot/BungeeCord APIs.</b>
@@ -41,14 +41,14 @@ public class GeneralSettings {
         STRING,
 
         /**
-         * Does not convert any keys - leaves them as loaded/supplied using methods. If string paths are used, they will
-         * only be able to refer to values whose path is constructed only from {@link String} keys.
+         * Does not convert any keys - leaves them as loaded/supplied using methods. If string routes are used, they will
+         * only be able to refer to values whose route is constructed only from {@link String} keys.
          */
         OBJECT
     }
 
     /**
-     * The default string path separator.
+     * The default string route separator.
      */
     public static final char DEFAULT_SEPARATOR = '.';
     /**
@@ -62,7 +62,7 @@ public class GeneralSettings {
     /**
      * Default serializer.
      */
-    public static final YamlSerializer DEFAULT_SERIALIZER = BaseSerializer.DEFAULT;
+    public static final YamlSerializer DEFAULT_SERIALIZER = StandardSerializer.DEFAULT;
     /**
      * Default object.
      */
@@ -103,9 +103,9 @@ public class GeneralSettings {
 
     //key mode
     private final KeyMode keyMode;
-    //Path separator
+    //Route separator
     private final char separator;
-    //Escaped path separator
+    //Escaped route separator
     private final String escapedSeparator;
     //Serializer
     private final YamlSerializer serializer;
@@ -157,10 +157,10 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns path separator to use to separate individual keys inside a string path. Functionality compatible with
+     * Returns route separator to use to separate individual keys inside a string route. Functionality compatible with
      * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
      * <p>
-     * Assuming separator <code>'.'</code>, path <code>a.b</code> represents object at key <code>b</code> in section
+     * Assuming separator <code>'.'</code>, route <code>a.b</code> represents object at key <code>b</code> in section
      * at key <code>a</code> in the root file (section).
      *
      * @return the separator to use
@@ -172,9 +172,9 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns escaped path separator.
+     * Returns escaped route separator.
      *
-     * @return the escaped path separator
+     * @return the escaped route separator
      * @see #getSeparator()
      */
     public String getEscapedSeparator() {
@@ -314,7 +314,7 @@ public class GeneralSettings {
     public static class Builder {
         //key mode
         private KeyMode keyMode = DEFAULT_KEY_MODE;
-        //Path separator
+        //Route separator
         private char separator = DEFAULT_SEPARATOR;
         //Serializer
         private YamlSerializer serializer = DEFAULT_SERIALIZER;
@@ -356,10 +356,10 @@ public class GeneralSettings {
         }
 
         /**
-         * Sets path separator used to separate individual keys inside a string path. Functionality compatible with
+         * Sets route separator used to separate individual keys inside a string route. Functionality compatible with
          * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
          * <p>
-         * Assuming separator <code>'.'</code>, path <code>"a.b"</code> represents object at key <code>"b"</code> in section
+         * Assuming separator <code>'.'</code>, route <code>"a.b"</code> represents object at key <code>"b"</code> in section
          * at key <code>"a"</code> in the root file (section).
          * <p>
          * <b>Default: </b>{@link #DEFAULT_SEPARATOR}

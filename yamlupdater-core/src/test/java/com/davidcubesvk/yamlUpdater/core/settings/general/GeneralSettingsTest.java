@@ -1,9 +1,10 @@
 package com.davidcubesvk.yamlUpdater.core.settings.general;
 
-import com.davidcubesvk.yamlUpdater.core.serialization.BaseSerializer;
+import com.davidcubesvk.yamlUpdater.core.serialization.standard.StandardSerializer;
 import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.ListSupplier;
 import com.davidcubesvk.yamlUpdater.core.utils.supplier.MapSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -30,7 +31,7 @@ class GeneralSettingsTest {
 
     @Test
     void getSerializer() {
-        YamlSerializer serializer = new BaseSerializer("!=");
+        YamlSerializer serializer = new StandardSerializer("!=");
         assertEquals(serializer, GeneralSettings.builder().setSerializer(serializer).build().getSerializer());
     }
 
@@ -65,6 +66,7 @@ class GeneralSettingsTest {
     void getDefaultList() {
         // Build
         GeneralSettings settings = GeneralSettings.builder().setDefaultList(new ListSupplier() {
+            @NotNull
             @Override
             public <T> List<T> supply(int size) {
                 return new LinkedList<>();
