@@ -1,6 +1,7 @@
 package com.davidcubesvk.yamlUpdater.core.fvs.versioning;
 
 import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
+import com.davidcubesvk.yamlUpdater.core.fvs.Pattern;
 import com.davidcubesvk.yamlUpdater.core.fvs.Version;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +36,12 @@ public interface Versioning {
     Version getDefSectionVersion(@NotNull Section section);
 
     /**
-     * Returns the oldest version specified by the underlying pattern.
+     * Returns the first version specified by the used pattern.
      *
-     * @return the oldest version
+     * @return the first version
+     * @see Pattern#getFirstVersion()
      */
-    Version getOldest();
+    Version getFirstVersion();
 
     /**
      * Sets version ID of the default section into the updated section content. Called only after successful update.

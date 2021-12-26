@@ -40,7 +40,7 @@ public class ManualVersioning implements Versioning {
     }
 
     @Override
-    public Version getOldest() {
-        return defSectionVersion.getPattern().getOldestVersion();
+    public Version getFirstVersion() {
+        return defSectionVersion.getPattern().getFirstVersion();
     }
 }

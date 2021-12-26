@@ -54,8 +54,8 @@ public class AutomaticVersioning implements Versioning {
     }
 
     @Override
-    public Version getOldest() {
-        return pattern.getOldestVersion();
+    public Version getFirstVersion() {
+        return pattern.getFirstVersion();
     }
 
     @Override

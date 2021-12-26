@@ -34,7 +34,7 @@ public interface YamlSerializer {
      * The given object is guaranteed to be:
      * <ol>
      *     <li>of type contained within {@link #getSupportedClasses()},</li>
-     *     <li>a sub-class of any of {@link #getSupportedAbstractClasses()}.</li>
+     *     <li>a sub-class of any of {@link #getSupportedParentClasses()}.</li>
      * </ol>
      * Map supplier is provided to supply default map as configured in {@link GeneralSettings#getDefaultMapSupplier()}.
      * Serializers should not use their own map implementations, they should return the map provided by the supplier.
@@ -49,7 +49,7 @@ public interface YamlSerializer {
     <T> Map<Object, Object> serialize(@NotNull T object, @NotNull MapSupplier supplier);
 
     /**
-     * Returns a set of all classes this serializer supports and can (de-)serialize.
+     * Returns a set of all explicitly defined classes this serializer supports and can (de-)serialize.
      * <p>
      * The returned set cannot be <code>null</code> as indicated by the annotation.
      *
@@ -59,13 +59,14 @@ public interface YamlSerializer {
     Set<Class<?>> getSupportedClasses();
 
     /**
-     * Returns a set of all abstract classes (or interfaces) this serializer supports and can (de-)serialize.
+     * Returns a set of all parent classes (classes, interfaces...) instances of which this serializer supports and can
+     * (de-)serialize.
      * <p>
      * The returned set cannot be <code>null</code> as indicated by the annotation.
      *
-     * @return the set of supported classes
+     * @return the set of supported parent classes
      */
     @NotNull
-    Set<Class<?>> getSupportedAbstractClasses();
+    Set<Class<?>> getSupportedParentClasses();
 
 }

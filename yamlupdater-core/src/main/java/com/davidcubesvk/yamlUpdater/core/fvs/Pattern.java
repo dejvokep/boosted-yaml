@@ -77,13 +77,13 @@ public class Pattern {
     }
 
     /**
-     * Builds and returns the oldest version specified by this pattern.
+     * Builds and returns the first version specified by this pattern.
      * <p>
      * More formally, returns version represented by all cursors set to the lowest index - <code>0</code>.
      *
-     * @return the oldest version
+     * @return the first version
      */
-    public Version getOldestVersion() {
+    public Version getFirstVersion() {
         return new Version(null, this, new int[segments.length]);
     }
 

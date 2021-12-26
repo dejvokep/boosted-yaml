@@ -1,9 +1,8 @@
-package com.davidcubesvk.yamlUpdater.core.fvs.wrapper;
+package com.davidcubesvk.yamlUpdater.core.fvs.versioning;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.fvs.Pattern;
 import com.davidcubesvk.yamlUpdater.core.fvs.segment.Segment;
-import com.davidcubesvk.yamlUpdater.core.fvs.versioning.ManualVersioning;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -31,7 +30,7 @@ class ManualVersioningTest {
 
     @Test
     void getOldest() {
-        assertEquals(PATTERN.getOldestVersion(), VERSIONING.getOldest());
+        assertEquals(PATTERN.getFirstVersion(), VERSIONING.getFirstVersion());
     }
 
     private YamlFile createFile() throws IOException {

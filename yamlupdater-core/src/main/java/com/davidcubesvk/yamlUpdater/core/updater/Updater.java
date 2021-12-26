@@ -67,7 +67,7 @@ public class Updater {
      *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
      *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
-     *     (see {@link Versioning#getOldest()}). If provided, marks all blocks that should be kept
+     *     (see {@link Versioning#getFirstVersion()}). If provided, marks all blocks that should be kept
      *     (determined by the set of routes, see {@link UpdaterSettings#getKeep(char)}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
@@ -94,7 +94,7 @@ public class Updater {
         //If user ID is null
         if (user == null)
             //Set to the oldest (to go through all relocations supplied)
-            user = versioning.getOldest();
+            user = versioning.getFirstVersion();
 
         //Compare
         int compared = user.compareTo(def);

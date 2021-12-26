@@ -1,8 +1,7 @@
-package com.davidcubesvk.yamlUpdater.core.fvs.wrapper;
+package com.davidcubesvk.yamlUpdater.core.fvs.versioning;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.fvs.segment.Segment;
-import com.davidcubesvk.yamlUpdater.core.fvs.versioning.AutomaticVersioning;
 import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
@@ -24,40 +23,28 @@ class AutomaticVersioningTest {
     private static final AutomaticVersioning VERSIONING = new AutomaticVersioning(PATTERN, "x");
 
     @Test
-    void getDefSectionVersion() {
-        try {
-            assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefSectionVersion(createFile().getDefaults()));
-        } catch (IOException ex) {
-            fail(ex);
-        }
+    void getDefSectionVersion() throws IOException {
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefSectionVersion(createFile().getDefaults()));
     }
 
     @Test
-    void getUserSectionVersion() {
-        try {
-            assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getUserSectionVersion(createFile()));
-        } catch (IOException ex) {
-            fail(ex);
-        }
+    void getUserSectionVersion() throws IOException {
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getUserSectionVersion(createFile()));
     }
 
     @Test
     void getOldest() {
-        assertEquals(PATTERN.getOldestVersion(), VERSIONING.getOldest());
+        assertEquals(PATTERN.getFirstVersion(), VERSIONING.getFirstVersion());
     }
 
     @Test
-    void updateVersionID() {
-        try {
-            // Recreate file
-            YamlFile userFile = YamlFile.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
-            // Update
-            VERSIONING.updateVersionID(userFile, createFile().getDefaults());
-            // Assert
-            assertEquals("1.4", userFile.getString("x"));
-        } catch (IOException ex) {
-            fail(ex);
-        }
+    void updateVersionID() throws IOException {
+        // Recreate file
+        YamlFile userFile = YamlFile.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
+        // Update
+        VERSIONING.updateVersionID(userFile, createFile().getDefaults());
+        // Assert
+        assertEquals("1.4", userFile.getString("x"));
     }
 
     private YamlFile createFile() throws IOException {

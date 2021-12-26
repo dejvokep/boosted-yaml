@@ -111,7 +111,7 @@ public class StandardSerializer implements YamlSerializer {
 
     @NotNull
     @Override
-    public Set<Class<?>> getSupportedAbstractClasses() {
+    public Set<Class<?>> getSupportedParentClasses() {
         return Collections.emptySet();
     }
 }

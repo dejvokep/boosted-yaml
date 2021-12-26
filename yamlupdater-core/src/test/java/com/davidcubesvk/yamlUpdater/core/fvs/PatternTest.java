@@ -33,7 +33,7 @@ class PatternTest {
     }
 
     @Test
-    void getOldestVersion() {
-        assertEquals(PATTERN.getVersion("1.0"), PATTERN.getOldestVersion());
+    void getFirstVersion() {
+        assertEquals(PATTERN.getVersion("1.0"), PATTERN.getFirstVersion());
     }
 }

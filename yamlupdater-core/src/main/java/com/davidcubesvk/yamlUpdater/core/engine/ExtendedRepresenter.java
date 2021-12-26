@@ -44,6 +44,8 @@ public class ExtendedRepresenter extends StandardRepresenter {
         //Add all types
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedClasses())
             super.representers.put(clazz, representSerializable);
+        for (Class<?> clazz : generalSettings.getSerializer().getSupportedParentClasses())
+            super.parentClassRepresenters.put(clazz, representSerializable);
     }
 
     /**
