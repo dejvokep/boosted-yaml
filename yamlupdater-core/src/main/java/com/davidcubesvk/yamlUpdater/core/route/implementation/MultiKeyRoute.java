@@ -16,31 +16,40 @@ public class MultiKeyRoute implements Route {
     private final Object[] route;
 
     /**
-     * Constructs route from the given array of keys/key arguments, enabling usage of wide-range data types as keys. The given keys
-     * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * Constructs route from the given array of keys/key arguments, enabling usage of wide-range data types as keys. The
+     * given keys <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * <p>
+     * The given array cannot contain <code>null</code> keys.
      * <p>
      * Empty array is considered illegal and will throw an {@link IllegalArgumentException}. Call with <code>null</code>
-     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) is will throw a {@link NullPointerException}.
+     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) is will throw a {@link
+     * NullPointerException}.
      * <p>
-     * The given keys are traversed in order as they were specified. Assuming route <code>["x", 1]</code>, processor
-     * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
-     * and then value at key <code>1</code> in <b>that</b> section.
+     * The given keys are traversed in order as they were specified - just like folders: assuming route <code>["x",
+     * 1]</code>, processor attempts to get section at key <code>"x"</code> in the section from which the
+     * getter/setter... method was called; and then value at key <code>1</code> in <b>that</b> section.
      * <p>
-     * If varargs format is used and there is only one argument, it will automatically be interpreted as call to
-     * {@link #from(Object)}, saving time and memory consumption.
+     * If varargs format is used and there is only one argument, it will automatically be interpreted as call to {@link
+     * #from(Object)}, saving time and memory consumption.
      * <p>
      * <b>If passing an array as the only key, do not forget to cast it to {@link Object}, otherwise it will be
-     * interpreted as multi-key route according to the array's contents. Alternatively, to avoid confusion, use {@link #fromSingleKey(Object)}</b>
+     * interpreted as multi-key route according to the array's contents. Alternatively, to avoid confusion, use {@link
+     * #fromSingleKey(Object)}</b>
      * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once and
-     * then reuse them.</i>
+     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
+     * and then reuse them.</i>
      *
      * @param route the route array
      */
     public MultiKeyRoute(@NotNull Object... route) {
+        //Validate
+        Objects.requireNonNull(route, "Route array cannot be null!");
         //If empty
         if (route.length == 0)
             throw new IllegalArgumentException("Empty routes are not allowed!");
+        //Validate
+        for (Object key : route)
+            Objects.requireNonNull(key, "Route cannot contain null keys!");
 
         //Set
         this.route = route;
@@ -53,7 +62,7 @@ public class MultiKeyRoute implements Route {
         StringBuilder builder = new StringBuilder();
         //For each
         for (int i = 0; i < length(); i++)
-            builder.append(get(i)).append(i+1 < length() ? separator : "");
+            builder.append(get(i)).append(i + 1 < length() ? separator : "");
         //Return
         return builder.toString();
     }
@@ -72,6 +81,8 @@ public class MultiKeyRoute implements Route {
     @Override
     @NotNull
     public Route add(@NotNull Object key) {
+        //Validate
+        Objects.requireNonNull(key, "Route cannot contain null keys!");
         //New route
         Object[] route = Arrays.copyOf(this.route, this.route.length + 1);
         //Set

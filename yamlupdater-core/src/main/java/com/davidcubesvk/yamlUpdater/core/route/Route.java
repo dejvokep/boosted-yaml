@@ -7,6 +7,7 @@ import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -20,6 +21,8 @@ public interface Route {
      * Constructs route from the given array of keys/key arguments, enabling usage of wide-range data types as keys. The
      * given keys
      * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * <p>
+     * The given array cannot contain <code>null</code> keys.
      * <p>
      * Empty array is considered illegal and will throw an {@link IllegalArgumentException}. Call with <code>null</code>
      * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) is will throw a {@link
@@ -36,7 +39,8 @@ public interface Route {
      * interpreted as multi-key route according to the array's contents. Alternatively, to avoid confusion, use {@link
      * #fromSingleKey(Object)}.</b>
      * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once and
+     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
+     * and
      * then reuse them.</i>
      *
      * @param route the route array
@@ -44,7 +48,9 @@ public interface Route {
      */
     @NotNull
     static Route from(@NotNull Object... route) {
-        //If empty
+        // Validate
+        Objects.requireNonNull(route, "Route array cannot be null!");
+        // If empty
         if (route.length == 0)
             throw new IllegalArgumentException("Empty routes are not allowed!");
         // Create
@@ -55,9 +61,12 @@ public interface Route {
      * Constructs route from the given single key, enabling usage of wide-range data types as keys. The given key
      * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
      * <p>
+     * The given key cannot be <code>null</code>.
+     * <p>
      * Alternatively, to avoid confusion, use {@link #fromSingleKey(Object)}.
      * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once and
+     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
+     * and
      * then reuse them.</i>
      *
      * @param key the single element in the returned route
@@ -73,9 +82,12 @@ public interface Route {
      * Constructs route from the given single key, enabling usage of wide-range data types as keys. The given key
      * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
      * <p>
+     * The given key cannot be <code>null</code>.
+     * <p>
      * This method is an alias of {@link #from(Object)}.
      * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once and
+     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
+     * and
      * then reuse them.</i>
      *
      * @param key the single element in the returned route
@@ -91,8 +103,8 @@ public interface Route {
      * <p>
      * To split using a custom separator, please use {@link #fromString(String, char)}.
      * <p>
-     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this method,
-     * except some situations where it is allowed.
+     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this
+     * method, except some situations where it is allowed.
      * <p>
      * The given keys are traversed in order as they were specified. Assuming route <code>["x", "y"]</code>, processor
      * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
@@ -101,8 +113,9 @@ public interface Route {
      * <i>As routes are immutable objects, to save resources, it is recommended to create that certain route only once
      * and then reuse it.</i>
      *
-     * @param route the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to create route
-     *             <code>[a, b]</code>)
+     * @param route the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to create
+     *              route
+     *              <code>[a, b]</code>)
      * @return the immutable route
      */
     @NotNull
@@ -116,8 +129,8 @@ public interface Route {
      * Specifying the same separator again and again might sometimes violate the DRY principle - if that's the case, use
      * {@link RouteFactory} instead.
      * <p>
-     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this method,
-     * except some situations where it is allowed.
+     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this
+     * method, except some situations where it is allowed.
      * <p>
      * The given keys are traversed in order as they were specified. Assuming route <code>["x", "y"]</code>, processor
      * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
@@ -126,7 +139,7 @@ public interface Route {
      * <i>As routes are immutable objects, to save resources, it is recommended to create that certain route only once
      * and then reuse it.</i>
      *
-     * @param route      the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to create
+     * @param route     the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to create
      *                  route <code>[a, b]</code>)
      * @param separator separator to split the route by
      * @return the immutable route
@@ -141,8 +154,8 @@ public interface Route {
      * <p>
      * This is an alias, use {@link RouteFactory} instead.
      * <p>
-     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this method,
-     * except some situations where it is allowed.
+     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this
+     * method, except some situations where it is allowed.
      * <p>
      * The given keys are traversed in order as they were specified. Assuming route <code>["x", "y"]</code>, processor
      * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
@@ -151,8 +164,8 @@ public interface Route {
      * <i>As routes are immutable objects, to save resources, it is recommended to create that certain route only once
      * and then reuse it.</i>
      *
-     * @param route        the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to create
-     *                    route <code>[a, b]</code>)
+     * @param route        the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to
+     *                     create route <code>[a, b]</code>)
      * @param routeFactory supplies the separator to split the route by
      * @return the immutable route
      */
@@ -162,8 +175,10 @@ public interface Route {
     }
 
     /**
-     * Performs the same operation on the given route as {@link Route#add(Object)} (and returns the result); if the given
-     * route is <code>null</code>, creates and returns a single-key route containing only the given key.
+     * Performs the same operation on the given route as {@link Route#add(Object)} (and returns the result); if the
+     * given route is <code>null</code>, creates and returns a single-key route containing only the given key.
+     * <p>
+     * The given key cannot be <code>null</code>.
      * <p>
      * The given keys <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
      *
@@ -207,6 +222,8 @@ public interface Route {
     /**
      * Creates a new route, copies this route's backing array, adds the given key at the end and returns the new route
      * created from the new array.
+     * <p>
+     * The given key cannot be <code>null</code>, <b>it is required to verify that</b>.
      * <p>
      * <b>It is in the caller's best interest to never modify the objects given (and their contents), as it might cause
      * several issues (inequalities between routes...).</b>

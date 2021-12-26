@@ -18,12 +18,17 @@ public class SingleKeyRoute implements Route {
      * Constructs route from the given single key, enabling usage of wide-range data types as keys. The given key
      * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
      * <p>
+     * The given key cannot be <code>null</code>.
+     * <p>
      * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once and
      * then reuse them.</i>
      *
      * @param key the single element in the route
      */
     public SingleKeyRoute(@NotNull Object key) {
+        //Validate
+        Objects.requireNonNull(key, "Route cannot contain null keys!");
+        //Set
         this.key = key;
     }
 
@@ -56,6 +61,9 @@ public class SingleKeyRoute implements Route {
     @Override
     @NotNull
     public Route add(@NotNull Object key) {
+        //Validate
+        Objects.requireNonNull(key, "Route cannot contain null keys!");
+        //Return
         return Route.from(this.key, key);
     }
 
