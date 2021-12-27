@@ -25,6 +25,7 @@ import org.snakeyaml.engine.v2.scanner.StreamReader;
 import org.snakeyaml.engine.v2.serializer.Serializer;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -77,7 +78,7 @@ public class YamlFile extends Section {
         this(userFile, new YamlFile(new BufferedInputStream(defaultFile), generalSettings, loaderSettings), generalSettings, loaderSettings, dumperSettings, updaterSettings);
     }
 
-    public YamlFile(InputStream inputStream, GeneralSettings generalSettings, LoaderSettings loaderSettings) throws IOException {
+    private YamlFile(InputStream inputStream, GeneralSettings generalSettings, LoaderSettings loaderSettings) throws IOException {
         this(inputStream, null, generalSettings, loaderSettings, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
     }
 
@@ -207,13 +208,27 @@ public class YamlFile extends Section {
         return update(updaterSettings);
     }
 
-    public boolean update(UpdaterSettings updaterSettings) throws IOException {
-        //Check
-        Objects.requireNonNull(updaterSettings);
+    public boolean update(@NotNull UpdaterSettings updaterSettings) throws IOException {
         //If there are no defaults
         if (defaults == null)
             return false;
+        //Update
+        return update(updaterSettings, getDefaults());
+    }
 
+    public boolean update(@NotNull UpdaterSettings updaterSettings, @NotNull InputStream defaults) throws IOException {
+        //Validate
+        Objects.requireNonNull(updaterSettings);
+        Objects.requireNonNull(defaults);
+        //Update
+        Updater.update(this, YamlFile.create(defaults, generalSettings, loaderSettings, dumperSettings, this.updaterSettings), updaterSettings, generalSettings);
+        return true;
+    }
+
+    public boolean update(@NotNull UpdaterSettings updaterSettings, @NotNull YamlFile defaults) throws IOException {
+        //Validate
+        Objects.requireNonNull(updaterSettings);
+        Objects.requireNonNull(defaults);
         //Update
         Updater.update(this, defaults, updaterSettings, generalSettings);
         return true;
@@ -297,6 +312,10 @@ public class YamlFile extends Section {
         }
     }
 
+    public void save(@NotNull OutputStream stream, Charset charset) throws IOException {
+        stream.write(dump().getBytes(charset));
+    }
+
     /**
      * Saves the contents to the given stream using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
@@ -304,7 +323,6 @@ public class YamlFile extends Section {
      * @throws IOException if an IO error occurred
      */
     public void save(@NotNull OutputStreamWriter writer) throws IOException {
-        //Write
         writer.write(dump());
     }
 

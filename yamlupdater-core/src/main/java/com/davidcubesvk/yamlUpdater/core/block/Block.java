@@ -11,6 +11,7 @@ import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
 import org.snakeyaml.engine.v2.nodes.SequenceNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -116,9 +117,16 @@ public class Block<T> {
     private void collectComments(@NotNull org.snakeyaml.engine.v2.nodes.Node node, boolean initial) {
         // Add
         if (!initial) {
-            beforeKeyComments.addAll(node.getBlockComments());
-            beforeKeyComments.addAll(node.getInLineComments());
-            beforeKeyComments.addAll(node.getEndComments());
+            if (node.getBlockComments() != null)
+                beforeKeyComments.addAll(node.getBlockComments());
+            if (node.getInLineComments() != null)
+                beforeKeyComments.addAll(node.getInLineComments());
+            if (node.getEndComments() != null)
+                beforeKeyComments.addAll(node.getEndComments());
+        } else {
+            // Ensure not null
+            if (beforeKeyComments == null)
+                beforeKeyComments = new ArrayList<>(0);
         }
 
         // If is a sequence node

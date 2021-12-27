@@ -146,15 +146,15 @@ public class RangeSegment implements Segment {
 
 
     @Override
-    public int parse(String versionId, int start) {
+    public int parse(String versionId, int index) {
         //If filling
         if (fill > 0) {
             //If cannot parse
-            if (fill > versionId.length() - start)
+            if (fill > versionId.length() - index)
                 return -1;
 
             //Return
-            return getRangeIndex(Integer.parseInt(versionId.substring(start, fill)));
+            return getRangeIndex(Integer.parseInt(versionId.substring(index, fill)));
         }
 
         //Current integer value
@@ -162,12 +162,12 @@ public class RangeSegment implements Segment {
         //Index of the currently processed char
         for (int i = 0; i < maxStringLength; i++) {
             //If out of bounds
-            if (i >= versionId.length() - start)
+            if (i >= versionId.length() - index)
                 return -1;
             //Shift to the left
             value *= 10;
             //Parse digit
-            int digit = Character.digit(versionId.charAt(start + i), 10);
+            int digit = Character.digit(versionId.charAt(index + i), 10);
             //If invalid
             if (digit == -1)
                 return -1;
@@ -179,10 +179,10 @@ public class RangeSegment implements Segment {
                 continue;
 
             //Parse index
-            int index = getRangeIndex(value);
+            int rangeIndex = getRangeIndex(value);
             //If parsed successfully
-            if (index != -1)
-                return index;
+            if (rangeIndex != -1)
+                return rangeIndex;
         }
 
         //Cannot parse
@@ -198,8 +198,11 @@ public class RangeSegment implements Segment {
      * @return amount of digits the number has
      */
     private int countDigits(int value) {
+        //If zero
+        if (value == 0)
+            return 1;
         //Digits
-        int digits = 1;
+        int digits = 0;
         //Iterate while more than 0
         for (; value > 0; digits++)
             value /= 10;

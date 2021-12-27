@@ -94,7 +94,7 @@ public class LoaderSettings {
      * @return the new builder
      */
     public static Builder builder() {
-        return new Builder(LoadSettings.builder());
+        return new Builder();
     }
 
     /**

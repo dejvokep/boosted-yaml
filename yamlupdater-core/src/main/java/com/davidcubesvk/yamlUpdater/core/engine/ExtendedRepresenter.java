@@ -1,5 +1,6 @@
 package com.davidcubesvk.yamlUpdater.core.engine;
 
+import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.block.Comments;
 import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
@@ -37,10 +38,11 @@ public class ExtendedRepresenter extends StandardRepresenter {
         //Set
         this.generalSettings = generalSettings;
 
+        //Representers
+        RepresentToNode representSection = new RepresentSection(), representSerializable = new RepresentSerializable();
         //Add representers
-        super.representers.put(Section.class, new RepresentSection());
-        //Serializable
-        RepresentToNode representSerializable = new RepresentSerializable();
+        super.representers.put(Section.class, representSection);
+        super.representers.put(YamlFile.class, representSection);
         //Add all types
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedClasses())
             super.representers.put(clazz, representSerializable);

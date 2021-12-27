@@ -100,7 +100,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Sets the root file, parent section, name and route to <code>null</code>.
      * <p>
      * <b>This constructor is only used by {@link YamlFile the extending class}, where nodes are unknown at the time of
-     * initialization. It is needed to call {@link #init(YamlFile, Node, MappingNode, ExtendedConstructor)} afterwards.</b>
+     * initialization. It is needed to call {@link #init(YamlFile, Node, MappingNode, ExtendedConstructor)}
+     * afterwards.</b>
      *
      * @param defaultMap the content map
      * @see Block#Block(Object) superclass constructor used
@@ -344,11 +345,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     private void adapt(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route) {
         //Delete from the previous parent
-        if (parent != null)
-            parent.remove(route);
+        if (this.parent != null && this.parent.getStoredValue().get(name) == this)
+            this.parent.removeInternal(this.parent, name);
+
+        //Set
+        this.name = route.get(route.length() - 1);
         //Set
         this.parent = parent;
-        this.name = route.get(route.length() - 1);
         //Adapt
         adapt(root, route);
     }
@@ -864,7 +867,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
-     * when the value is an instance of {@link Block}.
+     * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
+     * <p>
+     * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
+     * considered illegal and will result in an {@link IllegalArgumentException}.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -900,7 +906,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * As the value to set, you can give instances of <b>anything</b>, with the following warnings:
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
-     *     <li>{@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
+     *     <li><b>non-root</b> {@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
      *     <li>{@link Entry}: the given mapping entry will be <i>pasted</i> here (including comments),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
@@ -908,7 +914,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
-     * when the value is an instance of {@link Block}.
+     * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
+     * <p>
+     * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
+     * considered illegal and will result in an {@link IllegalArgumentException}.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -951,8 +960,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
         if (value instanceof Section) {
             //Cast
             Section section = (Section) value;
+            //If is the root
+            if (section.isRoot())
+                throw new IllegalArgumentException("Cannot set a root section as the value!");
             //Set
             getStoredValue().put(key, section);
+
             //Adapt
             section.adapt(root, this, getSubRoute(key));
             return;

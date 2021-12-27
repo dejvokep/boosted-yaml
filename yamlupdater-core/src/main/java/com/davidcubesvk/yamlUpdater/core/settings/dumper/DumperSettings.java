@@ -80,7 +80,7 @@ public class DumperSettings {
      * @return the new builder
      */
     public static Builder builder() {
-        return new Builder(DumpSettings.builder());
+        return new Builder();
     }
 
     /**

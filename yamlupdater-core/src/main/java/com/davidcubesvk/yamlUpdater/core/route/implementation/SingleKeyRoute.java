@@ -80,4 +80,11 @@ public class SingleKeyRoute implements Route {
     public int hashCode() {
         return Objects.hash(key);
     }
+
+    @Override
+    public String toString() {
+        return "SingleKeyRoute{" +
+                "key=" + key +
+                '}';
+    }
 }

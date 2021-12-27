@@ -3,8 +3,10 @@ package com.davidcubesvk.yamlUpdater.core.block.implementation;
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
 import com.davidcubesvk.yamlUpdater.core.route.Route;
+import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
+import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -378,6 +380,6 @@ class SectionTest {
     }
 
     private YamlFile createFile(GeneralSettings settings) throws IOException {
-        return new YamlFile(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false".getBytes(StandardCharsets.UTF_8)), settings, LoaderSettings.DEFAULT);
+        return YamlFile.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false".getBytes(StandardCharsets.UTF_8)), settings, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
     }
 }

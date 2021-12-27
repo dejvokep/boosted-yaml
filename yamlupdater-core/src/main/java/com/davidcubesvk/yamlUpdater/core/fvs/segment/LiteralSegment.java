@@ -18,13 +18,13 @@ public class LiteralSegment implements Segment {
     }
 
     @Override
-    public int parse(String versionId, int start) {
+    public int parse(String versionId, int index) {
         //Go through all indexes
-        for (int index = 0; index < elements.length; index++) {
+        for (int i = 0; i < elements.length; i++) {
             //If the same
-            if (versionId.startsWith(elements[index], start))
+            if (versionId.startsWith(elements[i], index))
                 //Set
-                return index;
+                return i;
         }
 
         //Cannot parse

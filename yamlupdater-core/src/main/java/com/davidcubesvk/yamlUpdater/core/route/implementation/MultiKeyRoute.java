@@ -113,4 +113,10 @@ public class MultiKeyRoute implements Route {
         return length() > 1 ? Arrays.hashCode(route) : Objects.hashCode(route[0]);
     }
 
+    @Override
+    public String toString() {
+        return "MultiKeyRoute{" +
+                "route=" + Arrays.toString(route) +
+                '}';
+    }
 }

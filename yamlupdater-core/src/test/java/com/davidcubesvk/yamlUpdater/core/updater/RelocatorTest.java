@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -21,7 +22,7 @@ class RelocatorTest {
     // Pattern
     private static final Pattern PATTERN = new Pattern(Segment.range(1, Integer.MAX_VALUE), Segment.literal("."), Segment.range(0, 10));
     // Versions
-    private static final Version VERSION_USER = PATTERN.getVersion("1.2"), VERSION_DEFAULT = PATTERN.getVersion("2.3");
+    private static final Version VERSION_USER = Objects.requireNonNull(PATTERN.getVersion("1.2")), VERSION_DEFAULT = Objects.requireNonNull(PATTERN.getVersion("2.3"));
     // Relocations
     private static final Map<String, Map<Route, Route>> RELOCATIONS = new HashMap<String, Map<Route, Route>>(){{
         put("1.0", new HashMap<Route, Route>(){{

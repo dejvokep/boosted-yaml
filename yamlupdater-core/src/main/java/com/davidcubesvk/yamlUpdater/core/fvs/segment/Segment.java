@@ -111,10 +111,10 @@ public interface Segment {
      * ID is malformed, or if the individual parts overlapping each other.
      *
      * @param versionId the version ID to parse
-     * @param start     the index in the ID from which to parse
+     * @param index     the index in the ID from which to parse
      * @return index of the first matched element at the start of the version ID
      */
-    int parse(String versionId, int start);
+    int parse(String versionId, int index);
 
     /**
      * Returns i-th element in the segment's definition (1st element being represented by <code>0</code>).
