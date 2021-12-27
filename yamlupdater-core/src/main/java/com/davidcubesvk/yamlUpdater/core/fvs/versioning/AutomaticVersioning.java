@@ -80,7 +80,7 @@ public class AutomaticVersioning implements Versioning {
      */
     @SuppressWarnings("ConstantConditions")
     private Version getId(Section section) throws IllegalArgumentException {
-        return (route != null ? section.getStringSafe(route) : section.getStringSafe(strRoute)).map(pattern::getVersion).orElse(null);
+        return (route != null ? section.getOptionalString(route) : section.getOptionalString(strRoute)).map(pattern::getVersion).orElse(null);
     }
 
 }

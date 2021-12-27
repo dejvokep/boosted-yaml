@@ -297,11 +297,11 @@ class SectionTest {
         // Create file
         YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
         // Assert
-        assertEquals(file.getStoredValue().get("x"), file.getBlockSafe("x").orElse(null));
-        assertEquals(file.getStoredValue().get("y"), file.getBlockSafe("y").orElse(null));
-        assertEquals(file.getSection("y").getStoredValue().get("a"), file.getBlockSafe("y.a").orElse(null));
-        assertEquals(file.getStoredValue().get(7), file.getBlockSafe(Route.from(7)).orElse(null));
-        assertFalse(file.getBlockSafe("z").isPresent());
+        assertEquals(file.getStoredValue().get("x"), file.getOptionalBlock("x").orElse(null));
+        assertEquals(file.getStoredValue().get("y"), file.getOptionalBlock("y").orElse(null));
+        assertEquals(file.getSection("y").getStoredValue().get("a"), file.getOptionalBlock("y.a").orElse(null));
+        assertEquals(file.getStoredValue().get(7), file.getOptionalBlock(Route.from(7)).orElse(null));
+        assertFalse(file.getOptionalBlock("z").isPresent());
     }
 
     @Test
@@ -318,11 +318,11 @@ class SectionTest {
         // Create file
         YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
         // Assert
-        assertEquals(5, file.getSafe("x").orElse(null));
-        assertEquals(file.getStoredValue().get("y"), file.getSafe("y").orElse(null));
-        assertEquals(true, file.getSafe("y.a").orElse(null));
-        assertEquals(false, file.getSafe(Route.from(7)).orElse(null));
-        assertFalse(file.getSafe("z").isPresent());
+        assertEquals(5, file.getOptional("x").orElse(null));
+        assertEquals(file.getStoredValue().get("y"), file.getOptional("y").orElse(null));
+        assertEquals(true, file.getOptional("y.a").orElse(null));
+        assertEquals(false, file.getOptional(Route.from(7)).orElse(null));
+        assertFalse(file.getOptional("z").isPresent());
     }
 
     @Test
@@ -343,12 +343,12 @@ class SectionTest {
         // Create file
         YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
         // Assert
-        assertEquals(5D, file.getAsSafe("x", double.class).orElse(null));
-        assertEquals(file.getStoredValue().get("y"), file.getAsSafe("y", Section.class).orElse(null));
-        assertEquals(true, file.getAsSafe("y.a", boolean.class).orElse(null));
-        assertEquals(false, file.getAsSafe(Route.from(7), boolean.class).orElse(null));
-        assertFalse(file.getAsSafe(Route.from("a", "c"), int.class).isPresent());
-        assertFalse(file.getAsSafe("z", double.class).isPresent());
+        assertEquals(5D, file.getAsOptional("x", double.class).orElse(null));
+        assertEquals(file.getStoredValue().get("y"), file.getAsOptional("y", Section.class).orElse(null));
+        assertEquals(true, file.getAsOptional("y.a", boolean.class).orElse(null));
+        assertEquals(false, file.getAsOptional(Route.from(7), boolean.class).orElse(null));
+        assertFalse(file.getAsOptional(Route.from("a", "c"), int.class).isPresent());
+        assertFalse(file.getAsOptional("z", double.class).isPresent());
     }
 
     @Test

@@ -18,6 +18,11 @@
         <option value="$PROJECT_DIR$/yamlupdater-proxy/dependency-reduced-pom.xml" />
       </list>
     </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/yamlupdater-bungeecord/pom.xml" />
+      </set>
+    </option>
   </component>
   <component name="NullableNotNullManager">
     <instrumentedNotNulls />

@@ -27,7 +27,7 @@ public class GeneralSettings {
     /**
      * Key mode for sections to use, specifies how the loaded/supplied keys should be treated and how to convert them.
      * <p>
-     * It highly recommended to read {@link Section#getBlockSafe(Route)} and {@link Section#getBlockSafe(String)} documentation.
+     * It highly recommended to read {@link Section#getOptionalBlock(Route)} and {@link Section#getOptionalBlock(String)} documentation.
      */
     public enum KeyMode {
 

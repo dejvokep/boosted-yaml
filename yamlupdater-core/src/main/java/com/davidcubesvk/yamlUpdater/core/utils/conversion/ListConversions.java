@@ -26,7 +26,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getStringSafe(Route)}.
+     * method {@link Section#getOptionalString(Route)}.
      *
      * @param value the list to construct
      * @return list of strings
@@ -41,7 +41,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getIntSafe(Route)}.
+     * method {@link Section#getOptionalInt(Route)}.
      *
      * @param value the list to construct
      * @return list of integers
@@ -56,7 +56,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getBigIntSafe(Route)}.
+     * method {@link Section#getOptionalBigInt(Route)}.
      *
      * @param value the list to construct
      * @return list of big integers
@@ -71,7 +71,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getByteSafe(Route)}.
+     * method {@link Section#getOptionalByte(Route)}.
      *
      * @param value the list to construct
      * @return list of bytes
@@ -86,7 +86,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getLongSafe(Route)}.
+     * method {@link Section#getOptionalLong(Route)}.
      *
      * @param value the list to construct
      * @return list of longs
@@ -101,7 +101,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getDoubleSafe(Route)}.
+     * method {@link Section#getOptionalDouble(Route)}.
      *
      * @param value the list to construct
      * @return list of doubles
@@ -116,7 +116,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getFloatSafe(Route)}.
+     * method {@link Section#getOptionalFloat(Route)}.
      *
      * @param value the list to construct
      * @return list of floats
@@ -131,7 +131,7 @@ public class ListConversions {
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
-     * method {@link Section#getShortSafe(Route)}.
+     * method {@link Section#getOptionalShort(Route)}.
      *
      * @param value the list to construct
      * @return list of shorts

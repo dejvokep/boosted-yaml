@@ -79,7 +79,7 @@ public class Merger {
             //Delete
             userKeys.remove(key);
             //Blocks
-            Block<?> userBlock = userSection.getBlockSafe(route).orElse(null), defBlock = entry.getValue();
+            Block<?> userBlock = userSection.getOptionalBlock(route).orElse(null), defBlock = entry.getValue();
             //If user block is present
             if (userBlock != null) {
                 //If are sections
@@ -109,7 +109,7 @@ public class Merger {
             //Route
             Route route = Route.from(userKey);
             //If present
-            userSection.getBlockSafe(route).ifPresent(block -> {
+            userSection.getOptionalBlock(route).ifPresent(block -> {
                 //If force copy disabled
                 if (!block.isKeep())
                     //Remove

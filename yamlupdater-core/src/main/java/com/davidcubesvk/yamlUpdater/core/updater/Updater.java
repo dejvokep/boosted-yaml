@@ -119,7 +119,7 @@ public class Updater {
             //Go through all keep routes
             for (Route route : keepRoutes)
                 //Set
-                userSection.getBlockSafe(route).ifPresent(block -> block.setKeep(true));
+                userSection.getOptionalBlock(route).ifPresent(block -> block.setKeep(true));
 
         //Initialize relocator
         Relocator relocator = new Relocator(userSection, user, def);

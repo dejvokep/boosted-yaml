@@ -101,7 +101,7 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to integer, returns an empty optional if an only the given one is empty.
+     * Converts the given number to integer, returns an empty optional if and only the given one is empty.
      *
      * @param value the number
      * @return the integer
@@ -111,7 +111,7 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to big integer, returns an empty optional if an only the given one is empty.
+     * Converts the given number to big integer, returns an empty optional if and only the given one is empty.
      *
      * @param value the number
      * @return the big integer
@@ -121,7 +121,7 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to byte, returns an empty optional if an only the given one is empty.
+     * Converts the given number to byte, returns an empty optional if and only the given one is empty.
      *
      * @param value the number
      * @return the byte
@@ -131,7 +131,7 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to long, returns an empty optional if an only the given one is empty.
+     * Converts the given number to long, returns an empty optional if and only the given one is empty.
      *
      * @param value the number
      * @return the long
@@ -141,7 +141,7 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to double, returns an empty optional if an only the given one is empty.
+     * Converts the given number to double, returns an empty optional if and only the given one is empty.
      *
      * @param value the number
      * @return the double
@@ -151,7 +151,7 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to float, returns an empty optional if an only the given one is empty.
+     * Converts the given number to float, returns an empty optional if and only the given one is empty.
      *
      * @param value the number
      * @return the float
@@ -161,7 +161,7 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to short, returns an empty optional if an only the given one is empty.
+     * Converts the given number to short, returns an empty optional if and only the given one is empty.
      *
      * @param value the number
      * @return the short

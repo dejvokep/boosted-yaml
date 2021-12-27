@@ -4,11 +4,9 @@ import com.davidcubesvk.yamlUpdater.core.settings.dumper.DumperSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.general.GeneralSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.loader.LoaderSettings;
 import com.davidcubesvk.yamlUpdater.core.settings.updater.UpdaterSettings;
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.Loader;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,11 +23,11 @@ class YamlFileTest {
         // Create
         YamlFile file = createFile();
         // Load
-        file.load(createStream("m: 2\nn: x"));
+        file.reload(createStream("m: 2\nn: x"));
         // Assert
         assertEquals(2, file.getInt("m"));
         assertEquals("x", file.getString("n"));
-        assertFalse(file.load());
+        assertFalse(file.reload());
     }
 
     @Test
@@ -104,17 +102,6 @@ class YamlFileTest {
     @Test
     void dump() throws IOException {
         assertEquals("x: y\nb: 5\n", YamlFile.create(createStream("x: y\nb: 5")).dump());
-    }
-
-    @Test
-    void setDefaults() throws IOException {
-        // Create
-        YamlFile file = YamlFile.create(createStream("x: y\nb: 5"));
-        // Set
-        file.setDefaults(createStream("m: 4"));
-        // Assert
-        assertNotNull(file.getDefaults());
-        assertEquals(4, file.getDefaults().getInt("m"));
     }
 
     @Test

@@ -13,12 +13,12 @@
         <sourceOutputDir name="../target/generated-sources/annotations" />
         <sourceTestOutputDir name="../target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="yamlupdater-bungeecord" />
         <module name="yamlupdater-spigot" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="proxz" target="8" />
+      <module name="yamlupdater-bungeecord" target="7" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -152,7 +152,7 @@ public class Block<T> {
     /**
      * Returns comments at the given position.
      * <p>
-     * Please expect <code>null</code> or an empty {@link List}.
+     * Expect <code>null</code> or an empty {@link List}.
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      *

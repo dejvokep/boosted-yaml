@@ -7,7 +7,6 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -16,9 +15,14 @@ import java.util.*;
 public class SpigotSerializer implements YamlSerializer {
 
     /**
+     * Serializer instance. Should be only one per VM.
+     */
+    public static final SpigotSerializer INSTANCE = new SpigotSerializer();
+
+    /**
      * All supported abstract classes.
      */
-    private static final Set<Class<?>> SUPPORTED_ABSTRACT_CLASSES = new HashSet<Class<?>>(){{
+    private static final Set<Class<?>> SUPPORTED_ABSTRACT_CLASSES = new HashSet<Class<?>>() {{
         add(ConfigurationSerializable.class);
     }};
 
