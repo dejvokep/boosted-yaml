@@ -175,12 +175,12 @@ public class RangeSegment implements Segment {
             //If out of bounds
             if (i >= versionId.length() - index)
                 break;
+            //Cannot have more than 1 zero
+            if (i == 1 && value == 0 && digits == 1)
+                break;
 
             //Parse digit
             int digit = Character.digit(versionId.charAt(index + i), 10);
-            //Cannot have leading zeros
-            if (i == 0 && digit == 0)
-                return -1;
             //If invalid
             if (digit == -1)
                 break;
@@ -192,6 +192,9 @@ public class RangeSegment implements Segment {
             digits += 1;
         }
 
+        //No digit
+        if (digits == 0)
+            return -1;
         //If zero
         if (value == 0)
             return getRangeIndex(0);
