@@ -6,12 +6,12 @@
 
     <!-- Artifact data -->
     <parent>
-        <artifactId>yamlupdater</artifactId>
-        <groupId>com.davidcubesvk</groupId>
+        <artifactId>boosted-yaml-parent</artifactId>
+        <groupId>dev.dejvokep</groupId>
         <version>1.0</version>
     </parent>
-    <artifactId>boostedyaml-spigot</artifactId>
-    <description>A professional updater for YAML configuration files - for backend servers powered by Spigot and forks.</description>
+    <artifactId>boosted-yaml-spigot</artifactId>
+    <description>A professional library for handling YAML files - extension for servers powered by Spigot and forks.</description>
     <packaging>jar</packaging>
 
     <!-- Build configuration -->

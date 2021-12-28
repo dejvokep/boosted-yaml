@@ -5,22 +5,22 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Artifact data -->
-    <groupId>com.davidcubesvk</groupId>
-    <artifactId>yamlupdater</artifactId>
+    <groupId>dev.dejvokep</groupId>
+    <artifactId>boosted-yaml-parent</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
     <modules>
-        <module>boostedyaml</module>
-        <module>boostedyaml-spigot</module>
+        <module>boosted-yaml</module>
+        <module>boosted-yaml-spigot</module>
     </modules>
-    <name>YamlUpdater</name>
-    <description>A professional updater for YAML configuration files - for backend servers powered by Spigot and proxy servers powered by BungeeCord.</description>
+    <name>BoostedYAML</name>
+    <description>A professional library for handling YAML files.</description>
     <developers>
         <developer>
-            <name>davidcubesvk</name>
-            <email>davidcubesvkdev@gmail.com</email>
+            <name>dejvokep</name>
+            <email>admin@dejvokep.dev</email>
             <timezone>CET</timezone>
-            <url>https://davidcubesvk.com</url>
+            <url>https://dejvokep.dev</url>
         </developer>
     </developers>
 
