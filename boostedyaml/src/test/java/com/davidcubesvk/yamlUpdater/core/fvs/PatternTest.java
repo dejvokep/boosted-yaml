@@ -30,6 +30,13 @@ class PatternTest {
         assertEquals(1, version.getCursor(0));
         assertEquals(0, version.getCursor(1));
         assertEquals(4, version.getCursor(2));
+        // Create a version
+        version = PATTERN.getVersion("12.9");
+        // Assert all cursors
+        assertNotNull(version);
+        assertEquals(11, version.getCursor(0));
+        assertEquals(0, version.getCursor(1));
+        assertEquals(9, version.getCursor(2));
     }
 
     @Test

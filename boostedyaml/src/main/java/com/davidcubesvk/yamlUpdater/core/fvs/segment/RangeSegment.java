@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class RangeSegment implements Segment {
 
     //Variables
-    private final int start, step, minStringLength, maxStringLength, fill, length;
+    private final int start, end, step, minStringLength, maxStringLength, fill, length;
 
     /**
      * Creates a segment from the given range.
@@ -35,12 +35,14 @@ public class RangeSegment implements Segment {
      *
      * @param start starting boundary (inclusive) of the range, also the 1st element in the range
      * @param end   ending boundary (exclusive) of the range
-     * @param step difference between each 2 elements in the range (step needed to make to get from element <i>i</i> to
-     *             <i>i+1</i>)
-     * @param fill filling parameter (or <code><= 0</code> to disable)
+     * @param step  difference between each 2 elements in the range (step needed to make to get from element <i>i</i>
+     *              to
+     *              <i>i+1</i>)
+     * @param fill  filling parameter (or <code><= 0</code> to disable)
      */
     public RangeSegment(int start, int end, int step, int fill) {
         this.start = start;
+        this.end = end;
         this.step = step;
         this.fill = fill;
 
@@ -112,8 +114,9 @@ public class RangeSegment implements Segment {
      *
      * @param start starting boundary (inclusive) of the range, also the 1st element in the range
      * @param end   ending boundary (exclusive) of the range
-     * @param step difference between each 2 elements in the range (step needed to make to get from element <i>i</i> to
-     *             <i>i+1</i>)
+     * @param step  difference between each 2 elements in the range (step needed to make to get from element <i>i</i>
+     *              to
+     *              <i>i+1</i>)
      * @see #range(int, int, int, int)
      */
     public RangeSegment(int start, int end, int step) {
@@ -153,39 +156,63 @@ public class RangeSegment implements Segment {
             if (fill > versionId.length() - index)
                 return -1;
 
-            //Return
-            return getRangeIndex(Integer.parseInt(versionId.substring(index, fill)));
+            try {
+                return getRangeIndex(Integer.parseInt(versionId.substring(index, fill)));
+            } catch (NumberFormatException ignored) {
+                return -1;
+            }
         }
 
-        //Current integer value
+        //If no remaining chars
+        if (versionId.length() <= index)
+            return -1;
+
+        //Value
         int value = 0;
+        int digits = 0;
         //Index of the currently processed char
         for (int i = 0; i < maxStringLength; i++) {
             //If out of bounds
             if (i >= versionId.length() - index)
-                return -1;
-            //Shift to the left
-            value *= 10;
+                break;
+
             //Parse digit
             int digit = Character.digit(versionId.charAt(index + i), 10);
+            //Cannot have leading zeros
+            if (i == 0 && digit == 0)
+                return -1;
             //If invalid
             if (digit == -1)
-                return -1;
+                break;
+
+            //Shift to the left
+            value *= 10;
             //Add
             value += digit;
+            digits += 1;
+        }
 
-            //If not available to be compared yet
-            if (i + 1 < minStringLength)
-                continue;
+        //If zero
+        if (value == 0)
+            return getRangeIndex(0);
 
+        //While greater than 0
+        while (value > 0) {
+            //If not parsable
+            if (digits < minStringLength)
+                break;
             //Parse index
             int rangeIndex = getRangeIndex(value);
             //If parsed successfully
             if (rangeIndex != -1)
                 return rangeIndex;
+            //Divide
+            value /= 10;
+            //Subtract
+            digits -= 1;
         }
 
-        //Cannot parse
+        //Could not parse
         return -1;
     }
 
@@ -219,6 +246,15 @@ public class RangeSegment implements Segment {
      * @return the index in the range, or <code>-1</code> if not an element in this range
      */
     private int getRangeIndex(int value) {
+        //If out of range
+        if (step > 0) {
+            if (start > value || end <= value)
+                return -1;
+        } else {
+            if (start < value || end >= value)
+                return -1;
+        }
+
         //Difference from the start
         int diff = Math.abs(value - start);
         //If is greater than or equal to 0 and is an element of the range
@@ -232,6 +268,9 @@ public class RangeSegment implements Segment {
 
     @Override
     public String getElement(int index) {
+        //If out of range
+        if (index >= length)
+            throw new IndexOutOfBoundsException(String.format("Index out of bounds! i=%d length=%d", index, length));
         //The int value
         String value = Integer.toString(start + step * index, 10);
         //If not filling
@@ -247,6 +286,10 @@ public class RangeSegment implements Segment {
 
     @Override
     public int getElementLength(int index) {
+        //If out of range
+        if (index >= length)
+            throw new IndexOutOfBoundsException(String.format("Index out of bounds! i=%d length=%d", index, length));
+        //Calculate
         return fill > 0 ? fill : countDigits(start + step * index);
     }
 

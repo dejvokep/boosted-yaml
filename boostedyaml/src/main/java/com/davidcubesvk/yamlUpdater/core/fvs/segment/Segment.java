@@ -32,9 +32,10 @@ public interface Segment {
      *
      * @param start starting boundary (inclusive) of the range, also the 1st element in the range
      * @param end   ending boundary (exclusive) of the range
-     * @param step difference between each 2 elements in the range (step needed to make to get from element <i>i</i> to
-     *             <i>i+1</i>)
-     * @param fill filling parameter (or <code><= 0</code> to disable)
+     * @param step  difference between each 2 elements in the range (step needed to make to get from element <i>i</i>
+     *              to
+     *              <i>i+1</i>)
+     * @param fill  filling parameter (or <code><= 0</code> to disable)
      */
     static Segment range(int start, int end, int step, int fill) {
         return new RangeSegment(start, end, step, fill);
@@ -61,8 +62,9 @@ public interface Segment {
      *
      * @param start starting boundary (inclusive) of the range, also the 1st element in the range
      * @param end   ending boundary (exclusive) of the range
-     * @param step difference between each 2 elements in the range (step needed to make to get from element <i>i</i> to
-     *             <i>i+1</i>)
+     * @param step  difference between each 2 elements in the range (step needed to make to get from element <i>i</i>
+     *              to
+     *              <i>i+1</i>)
      * @see #range(int, int, int, int)
      */
     static Segment range(int start, int end, int step) {
@@ -119,7 +121,7 @@ public interface Segment {
     /**
      * Returns i-th element in the segment's definition (1st element being represented by <code>0</code>).
      * <p>
-     * It must apply that <code>0 <= i < length()</code>, otherwise, an {@link ArrayIndexOutOfBoundsException} will be
+     * It must apply that <code>0 <= i < length()</code>, otherwise, an {@link IndexOutOfBoundsException} will be
      * thrown.
      *
      * @param index the index
@@ -131,7 +133,7 @@ public interface Segment {
      * Returns length (in characters) of the i-th element in the segment's definition (1st element being represented by
      * <code>0</code>).
      * <p>
-     * It must apply that <code>0 <= i < length()</code>, otherwise, an {@link ArrayIndexOutOfBoundsException} will be
+     * It must apply that <code>0 <= i < length()</code>, otherwise, an {@link IndexOutOfBoundsException} will be
      * thrown.
      *
      * @param index the index
