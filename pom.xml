@@ -4,21 +4,31 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.davidcubesvk</groupId>
-    <artifactId>YamlUpdater</artifactId>
+    <!-- Artifact data -->
+    <groupId>dev.dejvokep</groupId>
+    <artifactId>boosted-yaml-parent</artifactId>
+    <packaging>pom</packaging>
     <version>1.0</version>
+    <modules>
+        <module>boosted-yaml</module>
+        <module>boosted-yaml-spigot</module>
+    </modules>
+    <name>BoostedYAML</name>
+    <description>A professional library for handling YAML files.</description>
+    <developers>
+        <developer>
+            <name>dejvokep</name>
+            <email>admin@dejvokep.dev</email>
+            <timezone>CET</timezone>
+            <url>https://dejvokep.dev</url>
+        </developer>
+    </developers>
 
+    <!-- Properties -->
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.26</version>
-        </dependency>
-    </dependencies>
 
 </project>
