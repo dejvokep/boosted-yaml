@@ -92,6 +92,28 @@
       <url>http://oss.sonatype.org/content/groups/public/</url>
     </repository>
   </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.8.2</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit-jupiter-api</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>junit-jupiter-params</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

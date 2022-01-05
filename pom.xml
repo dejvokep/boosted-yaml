@@ -55,8 +55,8 @@
                 <configuration>
                     <relocations>
                         <relocation>
-                            <pattern>org.yaml.snakeyaml</pattern>
-                            <shadedPattern>dev.dejvokep.boostedyaml.libs.org.yaml.snakeyaml</shadedPattern>
+                            <pattern>org.snakeyaml.engine</pattern>
+                            <shadedPattern>dev.dejvokep.boostedyaml.libs.org.snakeyaml.engine</shadedPattern>
                         </relocation>
                     </relocations>
 
