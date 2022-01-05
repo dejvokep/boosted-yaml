@@ -5,30 +5,93 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Artifact data -->
+    <artifactId>boosted-yaml</artifactId>
     <groupId>dev.dejvokep</groupId>
-    <artifactId>boosted-yaml-parent</artifactId>
-    <packaging>pom</packaging>
     <version>1.0</version>
-    <modules>
-        <module>boosted-yaml</module>
-        <module>boosted-yaml-spigot</module>
-    </modules>
-    <name>BoostedYAML</name>
     <description>A professional library for handling YAML files.</description>
-    <developers>
-        <developer>
-            <name>dejvokep</name>
-            <email>admin@dejvokep.dev</email>
-            <timezone>CET</timezone>
-            <url>https://dejvokep.dev</url>
-        </developer>
-    </developers>
+    <packaging>jar</packaging>
 
-    <!-- Properties -->
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <!-- Build configuration -->
+    <build>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+                <version>3.8.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+
+                <!-- Module shading -->
+                <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.yaml.snakeyaml</pattern>
+                            <shadedPattern>dev.dejvokep.boostedyaml.libs.org.yaml.snakeyaml</shadedPattern>
+                        </relocation>
+                    </relocations>
+
+                    <!-- MANIFEST.MF file exclusion -->
+                    <filters>
+                        <filter>
+                            <artifact>dev.dejvokep:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>Sonatype-public</id>
+            <url>http://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <!-- Dependencies -->
+    <dependencies>
+        <!-- SnakeYAML -->
+        <dependency>
+            <groupId>org.snakeyaml</groupId>
+            <artifactId>snakeyaml-engine</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <!-- Annotations -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+            <version>22.0.0</version>
+        </dependency>
+        <!-- JUnit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.8.2</version>
+        </dependency>
+    </dependencies>
 
 </project>
