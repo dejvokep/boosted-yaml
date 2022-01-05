@@ -66,10 +66,11 @@ public class NumericConversions {
     }
 
     /**
-     * Converts a number to the target type. It must be guaranteed that the given object is an instance of {@link Number}
-     * and {@link #NUMERICAL_CLASSES} must contain the target class.
+     * Converts a number to the target type. It must be guaranteed that the given object is an instance of {@link
+     * Number} and {@link #NUMERICAL_CLASSES} must contain the target class.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations and one
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations
+     * and one
      * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
      *
      * @param value  the value to convert
@@ -103,8 +104,8 @@ public class NumericConversions {
     /**
      * Converts the given value to integer.
      * <p>
-     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
-     * {@link Integer#valueOf(String)}, returns an empty optional.
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing
+     * from string via {@link Integer#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the integer
@@ -128,8 +129,8 @@ public class NumericConversions {
     /**
      * Converts the given value to byte.
      * <p>
-     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
-     * {@link Byte#valueOf(String)}, returns an empty optional.
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing
+     * from string via {@link Byte#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the byte
@@ -153,8 +154,8 @@ public class NumericConversions {
     /**
      * Converts the given value to long.
      * <p>
-     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
-     * {@link Long#valueOf(String)}, returns an empty optional.
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing
+     * from string via {@link Long#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the long
@@ -178,8 +179,8 @@ public class NumericConversions {
     /**
      * Converts the given value to double.
      * <p>
-     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
-     * {@link Double#valueOf(String)}, returns an empty optional.
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing
+     * from string via {@link Double#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the double
@@ -203,8 +204,8 @@ public class NumericConversions {
     /**
      * Converts the given value to float.
      * <p>
-     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
-     * {@link Float#valueOf(String)}, returns an empty optional.
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing
+     * from string via {@link Float#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the float
@@ -228,8 +229,8 @@ public class NumericConversions {
     /**
      * Converts the given value to short.
      * <p>
-     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
-     * {@link Short#valueOf(String)}, returns an empty optional.
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing
+     * from string via {@link Short#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the short
@@ -253,8 +254,8 @@ public class NumericConversions {
     /**
      * Converts the given value to big integer.
      * <p>
-     * If the given value is <code>null</code>, not an instance of {@link BigInteger}, {@link Number} or could not be converted by parsing
-     * from string via {@link BigInteger#BigInteger(String)}, returns an empty optional.
+     * If the given value is <code>null</code>, not an instance of {@link BigInteger}, {@link Number} or could not be
+     * converted by parsing from string via {@link BigInteger#BigInteger(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the big integer

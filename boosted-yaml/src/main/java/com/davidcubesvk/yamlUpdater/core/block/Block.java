@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
+import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
 import org.snakeyaml.engine.v2.nodes.SequenceNode;
 
@@ -36,7 +37,7 @@ public abstract class Block<T> {
      * @param valueNode node which represents the value
      * @param value     the value to store
      */
-    public Block(@Nullable org.snakeyaml.engine.v2.nodes.Node keyNode, @Nullable org.snakeyaml.engine.v2.nodes.Node valueNode, @Nullable T value) {
+    public Block(@Nullable Node keyNode, @Nullable Node valueNode, @Nullable T value) {
         this.value = value;
         init(keyNode, valueNode);
     }
@@ -45,8 +46,7 @@ public abstract class Block<T> {
      * Creates a block with the given value, but no comments.
      * <p>
      * <b>This constructor is only used by extending classes, where the comments (respective nodes) are unknown at the
-     * time of initialization. In such a scenario, it is needed to call {@link #init(org.snakeyaml.engine.v2.nodes.Node,
-     * org.snakeyaml.engine.v2.nodes.Node)} afterwards.</b>
+     * time of initialization. In such a scenario, it is needed to call {@link #init(Node, Node)} afterwards.</b>
      *
      * @param value the value to store
      */
@@ -85,7 +85,7 @@ public abstract class Block<T> {
      * @param key   node which represents the key to the block
      * @param value node which represents the value
      */
-    protected void init(@Nullable org.snakeyaml.engine.v2.nodes.Node key, @Nullable org.snakeyaml.engine.v2.nodes.Node value) {
+    protected void init(@Nullable Node key, @Nullable Node value) {
         //If not null
         if (key != null) {
             // Set
@@ -114,7 +114,7 @@ public abstract class Block<T> {
      * @param node    the node to collect from
      * @param initial if this node is the initial one in the recursive call stack
      */
-    private void collectComments(@NotNull org.snakeyaml.engine.v2.nodes.Node node, boolean initial) {
+    private void collectComments(@NotNull Node node, boolean initial) {
         // Add
         if (!initial) {
             if (node.getBlockComments() != null)
@@ -134,7 +134,7 @@ public abstract class Block<T> {
             // The node
             SequenceNode sequenceNode = (SequenceNode) node;
             // Iterate
-            for (org.snakeyaml.engine.v2.nodes.Node sub : sequenceNode.getValue())
+            for (Node sub : sequenceNode.getValue())
                 // Collect
                 collectComments(sub, false);
         } else if (node instanceof MappingNode) {

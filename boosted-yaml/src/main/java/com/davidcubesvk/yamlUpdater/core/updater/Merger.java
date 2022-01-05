@@ -146,7 +146,7 @@ public class Merger {
     @NotNull
     private Section cloneSection(@NotNull Section section, @NotNull Section newParent) {
         //If is the root
-        if (section.isRoot())
+        if (section.getRoute() == null)
             throw new IllegalArgumentException("Cannot clone the root!");
         //Root
         YamlFile root = section.getRoot();
@@ -163,7 +163,7 @@ public class Merger {
         constructor.constructSingleDocument(Optional.of(represented));
 
         //Create
-        section = new Section(newParent.getRoot(), newParent.isRoot() ? null : newParent.getParent(), section.getRoute(), null, (MappingNode) represented, constructor);
+        section = new Section(newParent.getRoot(), newParent, section.getRoute(), null, (MappingNode) represented, constructor);
         //Clear
         constructor.clear();
         //Create

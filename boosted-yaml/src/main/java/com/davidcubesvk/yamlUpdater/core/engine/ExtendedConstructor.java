@@ -2,13 +2,11 @@ package com.davidcubesvk.yamlUpdater.core.engine;
 
 import com.davidcubesvk.yamlUpdater.core.serialization.YamlSerializer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.constructor.StandardConstructor;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.Tag;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 

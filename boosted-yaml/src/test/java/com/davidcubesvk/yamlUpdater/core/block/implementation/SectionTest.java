@@ -379,6 +379,16 @@ class SectionTest {
         assertFalse(file.is("z", double.class));
     }
 
+    @Test
+    void defaults() throws IOException {
+        // Create file
+        YamlFile file = YamlFile.create(new ByteArrayInputStream("x: \"y\"\ny:\n  a: true\n  b: abc\n7: f".getBytes(StandardCharsets.UTF_8)), new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: true".getBytes(StandardCharsets.UTF_8)));
+        // Assert
+        assertEquals(5, file.getInt("x"));
+        assertEquals(true, file.getBoolean("y.a"));
+        assertEquals(true, file.getBoolean("7"));
+    }
+
     private YamlFile createFile(GeneralSettings settings) throws IOException {
         return YamlFile.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false".getBytes(StandardCharsets.UTF_8)), settings, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
     }

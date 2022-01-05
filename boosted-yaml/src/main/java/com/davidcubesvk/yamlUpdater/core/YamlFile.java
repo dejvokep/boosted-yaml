@@ -317,6 +317,8 @@ public class YamlFile extends Section {
      * <p>
      * If there is no associated user file, returns <code>false</code> (use other saving methods). Returns
      * <code>true</code> otherwise.
+     * <p>
+     * <b>Does not include the defaults</b>.
      *
      * @return if there is any associated (user) file
      * @throws IOException an IO error
@@ -334,6 +336,8 @@ public class YamlFile extends Section {
     /**
      * Saves the contents into the given file using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
+     * <p>
+     * <b>Does not include the defaults</b>.
      *
      * @param file file to save to
      * @throws IOException an IO error
@@ -348,6 +352,8 @@ public class YamlFile extends Section {
     /**
      * Saves the contents to the given stream using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
+     * <p>
+     * <b>Does not include the defaults</b>.
      *
      * @param stream  stream to save to
      * @param charset charset to use
@@ -360,6 +366,8 @@ public class YamlFile extends Section {
     /**
      * Saves the contents to the given stream using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
+     * <p>
+     * <b>Does not include the defaults</b>.
      *
      * @param writer writer to save to
      * @throws IOException an IO error
@@ -371,6 +379,8 @@ public class YamlFile extends Section {
     /**
      * Dumps the contents to a string using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
+     * <p>
+     * <b>Does not include the defaults</b>.
      *
      * @return the dumped contents
      */
@@ -380,6 +390,8 @@ public class YamlFile extends Section {
 
     /**
      * Dumps the contents to a string using the given settings.
+     * <p>
+     * <b>Does not include the defaults</b>.
      *
      * @param dumperSettings  dumper settings to use for this dump
      * @param generalSettings general settings to use for this dump
@@ -451,7 +463,7 @@ public class YamlFile extends Section {
     public void setGeneralSettings(@NotNull GeneralSettings generalSettings) {
         //Validate
         if (generalSettings.getKeyMode() != this.generalSettings.getKeyMode())
-            throw new IllegalArgumentException("Cannot change key mode! Re-create the file if needed to do so.");
+            throw new IllegalArgumentException("Cannot change key mode! Recreate the file if needed to do so.");
         //Set
         this.generalSettings = generalSettings;
     }
