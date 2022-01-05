@@ -169,7 +169,8 @@ public class YamlFile extends Section {
 
         //Create if enabled
         if (loaderSettings.isCreateFileIfAbsent()) {
-            file.mkdirs();
+            if (file.getParentFile() != null)
+                file.getParentFile().mkdirs();
             file.createNewFile();
         }
 
@@ -233,7 +234,8 @@ public class YamlFile extends Section {
         //If enabled
         if (file != null && loaderSettings.isCreateFileIfAbsent() && !file.exists()) {
             //Create new file
-            file.mkdirs();
+            if (file.getParentFile() != null)
+                file.getParentFile().mkdirs();
             file.createNewFile();
             //Save
             save();
