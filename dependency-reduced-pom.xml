@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <parent>
-    <artifactId>yamlupdater</artifactId>
-    <groupId>com.davidcubesvk</groupId>
-    <version>1.0</version>
-  </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>yamlupdater-core</artifactId>
-  <description>A professional updater for YAML configuration files - core module.</description>
+  <groupId>dev.dejvokep</groupId>
+  <artifactId>boosted-yaml</artifactId>
+  <version>1.0</version>
+  <description>A professional library for handling YAML files.</description>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>manual</distribution>
+    </license>
+  </licenses>
   <build>
     <testSourceDirectory>src/test/java</testSourceDirectory>
     <testResources>
@@ -39,17 +43,45 @@
           <relocations>
             <relocation>
               <pattern>org.yaml.snakeyaml</pattern>
-              <shadedPattern>com.davidcubesvk.yamlUpdater.core.libs.org.yaml.snakeyaml</shadedPattern>
+              <shadedPattern>dev.dejvokep.boostedyaml.libs.org.yaml.snakeyaml</shadedPattern>
             </relocation>
           </relocations>
           <filters>
             <filter>
-              <artifact>com.davidcubesvk:*</artifact>
+              <artifact>dev.dejvokep:*</artifact>
               <excludes>
                 <exclude>META-INF/MANIFEST.MF</exclude>
               </excludes>
             </filter>
           </filters>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>4.1</version>
+        <executions>
+          <execution>
+            <id>check-headers</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <properties>
+            <owner>dejvokep</owner>
+            <email>admin@dejvokep.dev</email>
+          </properties>
+          <header>${project.basedir}/LICENSE-header.txt</header>
+          <excludes>
+            <exclude>**/README</exclude>
+          </excludes>
+          <includes>
+            <include>**/*.java</include>
+            <include>**/*.xml</include>
+          </includes>
         </configuration>
       </plugin>
     </plugins>
@@ -60,4 +92,7 @@
       <url>http://oss.sonatype.org/content/groups/public/</url>
     </repository>
   </repositories>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 </project>
