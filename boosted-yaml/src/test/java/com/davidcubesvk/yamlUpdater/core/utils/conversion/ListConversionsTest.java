@@ -6,7 +6,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,19 +22,18 @@ class ListConversionsTest {
         add(Short.MAX_VALUE);
     }};
     // List
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static final Optional<List<?>> LIST = Optional.of(new ArrayList<Object>(){{
+    private static final List<?> LIST = new ArrayList<Object>(){{
         add("x");
         add(true);
         addAll(NUMBER_LIST);
         add(new HashMap<String, String>(){{
             put("x", "y");
         }});
-    }});
+    }};
 
     @Test
     void toStringList() {
-        assertFalse(ListConversions.toStringList(Optional.empty()).isPresent());
+        assertFalse(ListConversions.toStringList(null).isPresent());
         assertTrue(ListConversions.toStringList(LIST).map(list -> {
             //Assert the size
             assertEquals(9, list.size());

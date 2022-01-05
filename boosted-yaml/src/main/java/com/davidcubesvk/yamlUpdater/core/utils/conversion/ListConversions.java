@@ -3,6 +3,7 @@ package com.davidcubesvk.yamlUpdater.core.utils.conversion;
 import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
 import com.davidcubesvk.yamlUpdater.core.route.Route;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -12,12 +13,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Utility class used to convert raw list optionals into list of target types.
- * <p>
- * Optionals are used as parameters only for sole simplification, as {@link Section} class is built upon optionals -
- * therefore, warnings of this type are suppressed.
+ * Utility class used to convert raw lists to list of target types.
  */
-@SuppressWarnings({"OptionalUsedAsFieldOrParameterType"})
 public class ListConversions {
 
     /**
@@ -31,7 +28,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of strings
      */
-    public static Optional<List<String>> toStringList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<String>> toStringList(@Nullable List<?> value) {
         return construct(value, o -> Optional.ofNullable(o instanceof String || o instanceof Number || o instanceof Boolean ? o.toString() : null));
     }
 
@@ -46,7 +44,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of integers
      */
-    public static Optional<List<Integer>> toIntList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<Integer>> toIntList(@Nullable List<?> value) {
         return construct(value, NumericConversions::toInt);
     }
 
@@ -61,7 +60,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of big integers
      */
-    public static Optional<List<BigInteger>> toBigIntList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<BigInteger>> toBigIntList(@Nullable List<?> value) {
         return construct(value, NumericConversions::toBigInt);
     }
 
@@ -76,7 +76,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of bytes
      */
-    public static Optional<List<Byte>> toByteList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<Byte>> toByteList(@Nullable List<?> value) {
         return construct(value, NumericConversions::toByte);
     }
 
@@ -91,7 +92,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of longs
      */
-    public static Optional<List<Long>> toLongList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<Long>> toLongList(@Nullable List<?> value) {
         return construct(value, NumericConversions::toLong);
     }
 
@@ -106,7 +108,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of doubles
      */
-    public static Optional<List<Double>> toDoubleList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<Double>> toDoubleList(@Nullable List<?> value) {
         return construct(value, NumericConversions::toDouble);
     }
 
@@ -121,7 +124,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of floats
      */
-    public static Optional<List<Float>> toFloatList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<Float>> toFloatList(@Nullable List<?> value) {
         return construct(value, NumericConversions::toFloat);
     }
 
@@ -136,7 +140,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of shorts
      */
-    public static Optional<List<Short>> toShortList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<Short>> toShortList(@Nullable List<?> value) {
         return construct(value, NumericConversions::toShort);
     }
 
@@ -150,7 +155,8 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of maps
      */
-    public static Optional<List<Map<?, ?>>> toMapList(@NotNull Optional<List<?>> value) {
+    @NotNull
+    public static Optional<List<Map<?, ?>>> toMapList(@Nullable List<?> value) {
         return construct(value, o -> o instanceof Map ? Optional.of((Map<?, ?>) o) : Optional.empty());
     }
 
@@ -164,15 +170,16 @@ public class ListConversions {
      * @param value the list to construct
      * @return list of the target type
      */
-    private static <T> Optional<List<T>> construct(@NotNull Optional<List<?>> value, @NotNull Function<Object, Optional<T>> mapper) {
-        //If not present
-        if (!value.isPresent())
+    @NotNull
+    private static <T> Optional<List<T>> construct(@Nullable List<?> value, @NotNull Function<Object, Optional<T>> mapper) {
+        //If null
+        if (value == null)
             return Optional.empty();
 
         //Output
         List<T> list = new ArrayList<>();
         //All elements
-        for (Object element : value.get())
+        for (Object element : value)
             //Add
             mapper.apply(element).ifPresent(list::add);
 

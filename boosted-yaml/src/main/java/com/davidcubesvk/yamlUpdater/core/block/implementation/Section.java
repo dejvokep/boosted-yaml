@@ -3142,7 +3142,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(Route)
      */
     public Optional<List<String>> getOptionalStringList(@NotNull Route route) {
-        return toStringList(getOptionalList(route));
+        return toStringList(getList(route, null));
     }
 
     /**
@@ -3161,7 +3161,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(String)
      */
     public Optional<List<String>> getOptionalStringList(@NotNull String route) {
-        return toStringList(getOptionalList(route));
+        return toStringList(getList(route, null));
     }
 
     /**
@@ -3270,7 +3270,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(Route)
      */
     public Optional<List<Integer>> getOptionalIntList(@NotNull Route route) {
-        return toIntList(getOptionalList(route));
+        return toIntList(getList(route, null));
     }
 
     /**
@@ -3289,7 +3289,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(String)
      */
     public Optional<List<Integer>> getOptionalIntList(@NotNull String route) {
-        return toIntList(getOptionalList(route));
+        return toIntList(getList(route, null));
     }
 
     /**
@@ -3398,7 +3398,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(Route)
      */
     public Optional<List<BigInteger>> getOptionalBigIntList(@NotNull Route route) {
-        return toBigIntList(getOptionalList(route));
+        return toBigIntList(getList(route, null));
     }
 
     /**
@@ -3417,7 +3417,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(String)
      */
     public Optional<List<BigInteger>> getOptionalBigIntList(@NotNull String route) {
-        return toBigIntList(getOptionalList(route));
+        return toBigIntList(getList(route, null));
     }
 
     /**
@@ -3526,7 +3526,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(Route)
      */
     public Optional<List<Byte>> getOptionalByteList(@NotNull Route route) {
-        return toByteList(getOptionalList(route));
+        return toByteList(getList(route, null));
     }
 
     /**
@@ -3545,7 +3545,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(String)
      */
     public Optional<List<Byte>> getOptionalByteList(@NotNull String route) {
-        return toByteList(getOptionalList(route));
+        return toByteList(getList(route, null));
     }
 
     /**
@@ -3654,7 +3654,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(Route)
      */
     public Optional<List<Long>> getOptionalLongList(@NotNull Route route) {
-        return toLongList(getOptionalList(route));
+        return toLongList(getList(route, null));
     }
 
     /**
@@ -3673,7 +3673,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(String)
      */
     public Optional<List<Long>> getOptionalLongList(@NotNull String route) {
-        return toLongList(getOptionalList(route));
+        return toLongList(getList(route, null));
     }
 
     /**
@@ -3782,7 +3782,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(Route)
      */
     public Optional<List<Double>> getOptionalDoubleList(@NotNull Route route) {
-        return toDoubleList(getOptionalList(route));
+        return toDoubleList(getList(route, null));
     }
 
     /**
@@ -3801,7 +3801,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(String)
      */
     public Optional<List<Double>> getOptionalDoubleList(@NotNull String route) {
-        return toDoubleList(getOptionalList(route));
+        return toDoubleList(getList(route, null));
     }
 
     /**
@@ -3910,7 +3910,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(Route)
      */
     public Optional<List<Float>> getOptionalFloatList(@NotNull Route route) {
-        return toFloatList(getOptionalList(route));
+        return toFloatList(getList(route, null));
     }
 
     /**
@@ -3929,7 +3929,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(String)
      */
     public Optional<List<Float>> getOptionalFloatList(@NotNull String route) {
-        return toFloatList(getOptionalList(route));
+        return toFloatList(getList(route, null));
     }
 
     /**
@@ -4038,7 +4038,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(Route)
      */
     public Optional<List<Short>> getOptionalShortList(@NotNull Route route) {
-        return toShortList(getOptionalList(route));
+        return toShortList(getList(route, null));
     }
 
     /**
@@ -4057,7 +4057,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(String)
      */
     public Optional<List<Short>> getOptionalShortList(@NotNull String route) {
-        return toShortList(getOptionalList(route));
+        return toShortList(getList(route, null));
     }
 
     /**
@@ -4167,7 +4167,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalList(Route)
      */
     public Optional<List<Map<?, ?>>> getOptionalMapList(@NotNull Route route) {
-        return toMapList(getOptionalList(route));
+        return toMapList(getList(route, null));
     }
 
     /**
@@ -4187,7 +4187,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalList(String)
      */
     public Optional<List<Map<?, ?>>> getOptionalMapList(@NotNull String route) {
-        return toMapList(getOptionalList(route));
+        return toMapList(getList(route, null));
     }
 
     /**
