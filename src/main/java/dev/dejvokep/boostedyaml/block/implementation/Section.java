@@ -291,9 +291,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns the name of this section as a string. Name is considered to be the key used to access <b>this</b> section
      * from the parent section.
      * <p>
-     * This method will throw an {@link UnsupportedOperationException} if using {@link KeyMode#OBJECT}, as the key might
-     * not be correctly interpreted. Use {@link #getName()} instead.
-     * <p>
      * If this section is the root (check {@link #isRoot()}), returns <code>null</code>.
      * <p>
      * <b>Incompatible with Spigot/BungeeCord API</b>, where those, if this section represented the root file, would
@@ -303,9 +300,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @Nullable
     public String getNameAsString() {
-        //If not string mode
-        if (root.getGeneralSettings().getKeyMode() != KeyMode.STRING)
-            throw new UnsupportedOperationException("Cannot return name as string if the key mode is not set to STRING!");
         return name == null ? null : name.toString();
     }
 
@@ -476,9 +470,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * sections. The returned set is an instance of {@link GeneralSettings#getDefaultSet()}. The routes are <b>relative
      * to this section</b>.
      * <p>
-     * This method will throw an {@link UnsupportedOperationException} if using {@link KeyMode#OBJECT}. Use {@link
-     * #getRoutes(boolean)} instead.
-     * <p>
      * If <code>deep</code> is set to <code>false</code>, (effectively) returns the result of {@link #getKeys()} with
      * the keys converted to string.
      * <p>
@@ -498,10 +489,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @NotNull
     public Set<String> getRoutesAsStrings(boolean deep) {
-        //If not string mode
-        if (root.getGeneralSettings().getKeyMode() != KeyMode.STRING)
-            throw new UnsupportedOperationException("Cannot build string routes if the key mode is not set to STRING!");
-
         //Create a set
         Set<String> keys = root.getGeneralSettings().getDefaultSet();
         //Add
@@ -579,9 +566,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The returned map is an instance of {@link GeneralSettings#getDefaultMap()}. The routes are <b>relative to this
      * section</b>.
      * <p>
-     * This method will throw an {@link UnsupportedOperationException} if using {@link KeyMode#OBJECT}. Use {@link
-     * #getRouteMappedValues(boolean)} instead.
-     * <p>
      * If <code>deep</code> is set to <code>false</code>, returns (effectively) a copy of the underlying map with keys
      * (which are stored as object instances) converted to string routes containing one key - the key itself; with their
      * corresponding values (might also be a {@link Section section}).
@@ -602,10 +586,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @NotNull
     public Map<String, Object> getStringMappedValues(boolean deep) {
-        //If not string mode
-        if (root.getGeneralSettings().getKeyMode() != KeyMode.STRING)
-            throw new UnsupportedOperationException("Cannot build string routes if the key mode is not set to STRING!");
-
         //Create a map
         Map<String, Object> values = root.getGeneralSettings().getDefaultMap();
         //Add
@@ -661,9 +641,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * The returned map is an instance of {@link GeneralSettings#getDefaultMap()}. The routes are <b>relative to this
      * section</b>.
      * <p>
-     * This method will throw an {@link UnsupportedOperationException} if using {@link KeyMode#OBJECT}. Use {@link
-     * #getRouteMappedBlocks(boolean)} instead.
-     * <p>
      * If <code>deep</code> is set to <code>false</code>, returns (effectively) a copy of the underlying map with keys
      * (which are stored as object instances) converted to string routes containing one key - the key itself; with their
      * corresponding blocks.
@@ -684,10 +661,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @NotNull
     public Map<String, Block<?>> getStringMappedBlocks(boolean deep) {
-        //If not string mode
-        if (root.getGeneralSettings().getKeyMode() != KeyMode.STRING)
-            throw new UnsupportedOperationException("Cannot build string routes if the key mode is not set to STRING!");
-
         //Create map
         Map<String, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
         //Add
