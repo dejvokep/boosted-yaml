@@ -1,5 +1,6 @@
 package com.davidcubesvk.yamlUpdater.core.block;
 
+import com.davidcubesvk.yamlUpdater.core.block.implementation.TerminalBlock;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
@@ -15,7 +16,7 @@ class CommentsTest {
     @Test
     void get() {
         //Create block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         //Add
         Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
         //Assert
@@ -28,7 +29,7 @@ class CommentsTest {
     @Test
     void set() {
         //Create block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         //Set
         Comments.set(block, Comments.NodeType.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
             add(Comments.create("comment", Comments.Position.BEFORE));
@@ -43,7 +44,7 @@ class CommentsTest {
     @Test
     void remove() {
         //Create block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         //Add
         Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
         //Remove
@@ -55,7 +56,7 @@ class CommentsTest {
     @Test
     void add() {
         //Create block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         //Add
         Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
             add(Comments.create("comment1", Comments.Position.BEFORE));

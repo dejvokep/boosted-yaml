@@ -1994,7 +1994,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<Integer> getOptionalInt(@NotNull Route route) {
-        return toInt(getAsOptional(route, Number.class));
+        return toInt(getAs(route, Number.class));
     }
 
     /**
@@ -2009,7 +2009,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(String, Class)
      */
     public Optional<Integer> getOptionalInt(@NotNull String route) {
-        return toInt(getAsOptional(route, Number.class));
+        return toInt(getAs(route, Number.class));
     }
 
     /**
@@ -2127,7 +2127,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<BigInteger> getOptionalBigInt(@NotNull Route route) {
-        return getAsOptional(route, Number.class).map(number -> number instanceof BigInteger ? (BigInteger) number : BigInteger.valueOf(number.longValue()));
+        return toBigInt(getAs(route, Number.class));
     }
 
     /**
@@ -2143,7 +2143,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<BigInteger> getOptionalBigInt(@NotNull String route) {
-        return getAsOptional(route, Number.class).map(number -> number instanceof BigInteger ? (BigInteger) number : BigInteger.valueOf(number.longValue()));
+        return toBigInt(getAs(route, Number.class));
     }
 
     /**
@@ -2376,7 +2376,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<Double> getOptionalDouble(@NotNull Route route) {
-        return toDouble(getAsOptional(route, Number.class));
+        return toDouble(getAs(route, Number.class));
     }
 
     /**
@@ -2391,7 +2391,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(String, Class)
      */
     public Optional<Double> getOptionalDouble(@NotNull String route) {
-        return toDouble(getAsOptional(route, Number.class));
+        return toDouble(getAs(route, Number.class));
     }
 
     /**
@@ -2508,7 +2508,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<Float> getOptionalFloat(@NotNull Route route) {
-        return toFloat(getAsOptional(route, Number.class));
+        return toFloat(getAs(route, Number.class));
     }
 
     /**
@@ -2523,7 +2523,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<Float> getOptionalFloat(@NotNull String route) {
-        return toFloat(getAsOptional(route, Number.class));
+        return toFloat(getAs(route, Number.class));
     }
 
     /**
@@ -2640,7 +2640,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<Byte> getOptionalByte(@NotNull Route route) {
-        return toByte(getAsOptional(route, Number.class));
+        return toByte(getAs(route, Number.class));
     }
 
     /**
@@ -2655,7 +2655,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(String, Class)
      */
     public Optional<Byte> getOptionalByte(@NotNull String route) {
-        return toByte(getAsOptional(route, Number.class));
+        return toByte(getAs(route, Number.class));
     }
 
     /**
@@ -2770,7 +2770,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<Long> getOptionalLong(@NotNull Route route) {
-        return toLong(getAsOptional(route, Number.class));
+        return toLong(getAs(route, Number.class));
     }
 
     /**
@@ -2785,7 +2785,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(String, Class)
      */
     public Optional<Long> getOptionalLong(String route) {
-        return toLong(getAsOptional(route, Number.class));
+        return toLong(getAs(route, Number.class));
     }
 
     /**
@@ -2900,7 +2900,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(Route, Class)
      */
     public Optional<Short> getOptionalShort(@NotNull Route route) {
-        return toShort(getAsOptional(route, Number.class));
+        return toShort(getAs(route, Number.class));
     }
 
     /**
@@ -2915,7 +2915,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getAsOptional(String, Class)
      */
     public Optional<Short> getOptionalShort(@NotNull String route) {
-        return toShort(getAsOptional(route, Number.class));
+        return toShort(getAs(route, Number.class));
     }
 
     /**

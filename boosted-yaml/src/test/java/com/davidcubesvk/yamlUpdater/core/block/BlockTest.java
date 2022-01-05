@@ -1,5 +1,6 @@
 package com.davidcubesvk.yamlUpdater.core.block;
 
+import com.davidcubesvk.yamlUpdater.core.block.implementation.TerminalBlock;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
@@ -19,7 +20,7 @@ class BlockTest {
     @Test
     void init() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Nodes
         Node keyNode = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN), valueNode = new ScalarNode(Tag.STR, "abc", ScalarStyle.PLAIN);
         // Comments
@@ -43,7 +44,7 @@ class BlockTest {
     @Test
     void setKeep() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Set keep
         block.setKeep(true);
         // Assert
@@ -57,7 +58,7 @@ class BlockTest {
     @Test
     void getKeyBlockComments() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -75,7 +76,7 @@ class BlockTest {
     @Test
     void getKeyInlineComments() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -93,7 +94,7 @@ class BlockTest {
     @Test
     void getKeyEndComments() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -111,7 +112,7 @@ class BlockTest {
     @Test
     void getValueBlockComments() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -129,7 +130,7 @@ class BlockTest {
     @Test
     void getValueInlineComments() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -148,7 +149,7 @@ class BlockTest {
     @Test
     void getValueEndComments() {
         // Block
-        Block<?> block = new Block<>(null);
+        Block<?> block = new TerminalBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -165,6 +166,6 @@ class BlockTest {
 
     @Test
     void getValue() {
-        assertEquals(5, new Block<>(5).getStoredValue());
+        assertEquals(5, new TerminalBlock(null, 5).getStoredValue());
     }
 }

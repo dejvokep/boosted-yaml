@@ -2,6 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.utils.conversion;
 
 import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -12,7 +13,6 @@ import java.util.*;
  * Optionals are used as parameters only for sole simplification, as {@link Section} class is built upon optionals -
  * therefore, warnings of this type are suppressed.
  */
-@SuppressWarnings({"OptionalUsedAsFieldOrParameterType"})
 public class NumericConversions {
 
     /**
@@ -101,85 +101,18 @@ public class NumericConversions {
     }
 
     /**
-     * Converts the given number to integer, returns an empty optional if and only the given one is empty.
-     *
-     * @param value the number
-     * @return the integer
-     */
-    public static Optional<Integer> toInt(Optional<Number> value) {
-        return value.map(Number::intValue);
-    }
-
-    /**
-     * Converts the given number to big integer, returns an empty optional if and only the given one is empty.
-     *
-     * @param value the number
-     * @return the big integer
-     */
-    public static Optional<BigInteger> toBigInt(Optional<Number> value) {
-        return value.isPresent() ? value.get() instanceof BigInteger ? Optional.of((BigInteger) value.get()) : toBigInt(value.get()) : Optional.empty();
-    }
-
-    /**
-     * Converts the given number to byte, returns an empty optional if and only the given one is empty.
-     *
-     * @param value the number
-     * @return the byte
-     */
-    public static Optional<Byte> toByte(Optional<Number> value) {
-        return value.map(Number::byteValue);
-    }
-
-    /**
-     * Converts the given number to long, returns an empty optional if and only the given one is empty.
-     *
-     * @param value the number
-     * @return the long
-     */
-    public static Optional<Long> toLong(Optional<Number> value) {
-        return value.map(Number::longValue);
-    }
-
-    /**
-     * Converts the given number to double, returns an empty optional if and only the given one is empty.
-     *
-     * @param value the number
-     * @return the double
-     */
-    public static Optional<Double> toDouble(Optional<Number> value) {
-        return value.map(Number::doubleValue);
-    }
-
-    /**
-     * Converts the given number to float, returns an empty optional if and only the given one is empty.
-     *
-     * @param value the number
-     * @return the float
-     */
-    public static Optional<Float> toFloat(Optional<Number> value) {
-        return value.map(Number::floatValue);
-    }
-
-    /**
-     * Converts the given number to short, returns an empty optional if and only the given one is empty.
-     *
-     * @param value the number
-     * @return the short
-     */
-    public static Optional<Short> toShort(Optional<Number> value) {
-        return value.map(Number::shortValue);
-    }
-
-    /**
      * Converts the given value to integer.
      * <p>
-     * If the given value is not an instance of {@link Number} or could not be converted by parsing from string via
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
      * {@link Integer#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the integer
      */
-    public static Optional<Integer> toInt(Object value) {
+    public static Optional<Integer> toInt(@Nullable Object value) {
+        //If null
+        if (value == null)
+            return Optional.empty();
         //If a number
         if (value instanceof Number)
             return Optional.of(((Number) value).intValue());
@@ -195,13 +128,16 @@ public class NumericConversions {
     /**
      * Converts the given value to byte.
      * <p>
-     * If the given value is not an instance of {@link Number} or could not be converted by parsing from string via
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
      * {@link Byte#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the byte
      */
-    public static Optional<Byte> toByte(Object value) {
+    public static Optional<Byte> toByte(@Nullable Object value) {
+        //If null
+        if (value == null)
+            return Optional.empty();
         //If a number
         if (value instanceof Number)
             return Optional.of(((Number) value).byteValue());
@@ -217,13 +153,16 @@ public class NumericConversions {
     /**
      * Converts the given value to long.
      * <p>
-     * If the given value is not an instance of {@link Number} or could not be converted by parsing from string via
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
      * {@link Long#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the long
      */
-    public static Optional<Long> toLong(Object value) {
+    public static Optional<Long> toLong(@Nullable Object value) {
+        //If null
+        if (value == null)
+            return Optional.empty();
         //If a number
         if (value instanceof Number)
             return Optional.of(((Number) value).longValue());
@@ -239,13 +178,16 @@ public class NumericConversions {
     /**
      * Converts the given value to double.
      * <p>
-     * If the given value is not an instance of {@link Number} or could not be converted by parsing from string via
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
      * {@link Double#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the double
      */
-    public static Optional<Double> toDouble(Object value) {
+    public static Optional<Double> toDouble(@Nullable Object value) {
+        //If null
+        if (value == null)
+            return Optional.empty();
         //If a number
         if (value instanceof Number)
             return Optional.of(((Number) value).doubleValue());
@@ -261,13 +203,16 @@ public class NumericConversions {
     /**
      * Converts the given value to float.
      * <p>
-     * If the given value is not an instance of {@link Number} or could not be converted by parsing from string via
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
      * {@link Float#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the float
      */
-    public static Optional<Float> toFloat(Object value) {
+    public static Optional<Float> toFloat(@Nullable Object value) {
+        //If null
+        if (value == null)
+            return Optional.empty();
         //If a number
         if (value instanceof Number)
             return Optional.of(((Number) value).floatValue());
@@ -283,13 +228,16 @@ public class NumericConversions {
     /**
      * Converts the given value to short.
      * <p>
-     * If the given value is not an instance of {@link Number} or could not be converted by parsing from string via
+     * If the given value is <code>null</code>, not an instance of {@link Number} or could not be converted by parsing from string via
      * {@link Short#valueOf(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the short
      */
-    public static Optional<Short> toShort(Object value) {
+    public static Optional<Short> toShort(@Nullable Object value) {
+        //If null
+        if (value == null)
+            return Optional.empty();
         //If a number
         if (value instanceof Number)
             return Optional.of(((Number) value).shortValue());
@@ -305,13 +253,16 @@ public class NumericConversions {
     /**
      * Converts the given value to big integer.
      * <p>
-     * If the given value is not an instance of {@link BigInteger}, {@link Number} or could not be converted by parsing
+     * If the given value is <code>null</code>, not an instance of {@link BigInteger}, {@link Number} or could not be converted by parsing
      * from string via {@link BigInteger#BigInteger(String)}, returns an empty optional.
      *
      * @param value the number
      * @return the big integer
      */
-    public static Optional<BigInteger> toBigInt(Object value) {
+    public static Optional<BigInteger> toBigInt(@Nullable Object value) {
+        //If null
+        if (value == null)
+            return Optional.empty();
         //If a big integer
         if (value instanceof BigInteger)
             return Optional.of((BigInteger) value);
