@@ -168,8 +168,10 @@ public class YamlFile extends Section {
         }
 
         //Create if enabled
-        if (loaderSettings.isCreateFileIfAbsent())
+        if (loaderSettings.isCreateFileIfAbsent()) {
+            file.mkdirs();
             file.createNewFile();
+        }
 
         //If there are no defaults
         if (defaults == null) {
@@ -231,6 +233,7 @@ public class YamlFile extends Section {
         //If enabled
         if (file != null && loaderSettings.isCreateFileIfAbsent() && !file.exists()) {
             //Create new file
+            file.mkdirs();
             file.createNewFile();
             //Save
             save();
