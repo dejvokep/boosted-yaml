@@ -1,33 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="EntryPointsManager">
-    <list size="2">
-      <item index="0" class="java.lang.String" itemvalue="org.bukkit.event.EventHandler" />
-      <item index="1" class="java.lang.String" itemvalue="net.md_5.bungee.event.EventHandler" />
-    </list>
-  </component>
-  <component name="ExternalStorageConfigurationManager" enabled="true" />
-  <component name="JavadocGenerationManager">
-    <option name="OUTPUT_DIRECTORY" value="$USER_HOME$/Downloads/docs" />
-    <option name="OPTION_LINK_TO_JDK_DOCS" value="true" />
-  </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
-        <option value="$PROJECT_DIR$/yamlupdater-proxy/dependency-reduced-pom.xml" />
       </list>
     </option>
-    <option name="ignoredFiles">
-      <set>
-        <option value="$PROJECT_DIR$/yamlupdater-bungeecord/pom.xml" />
-      </set>
-    </option>
   </component>
-  <component name="NullableNotNullManager">
-    <instrumentedNotNulls />
-  </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="corretto-1.8" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/out" />
-  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK" />
 </project>
