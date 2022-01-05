@@ -5,9 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.nodes.Node;
 
 /**
- * Represents one YAML <i>mapping</i> (key=value pair), while storing the mapping's value and comments.
+ * Represents one YAML terminal {@link Block} (key=value pair).
  */
-public class Entry extends Block<Object> {
+public class TerminalBlock extends Block<Object> {
 
     /**
      * Creates a mapping using the given parameters; while storing references to comments from the given nodes.
@@ -16,7 +16,7 @@ public class Entry extends Block<Object> {
      * @param valueNode value node of the mapping
      * @param value     the value to store
      */
-    public Entry(@Nullable Node keyNode, @Nullable Node valueNode, @Nullable Object value) {
+    public TerminalBlock(@Nullable Node keyNode, @Nullable Node valueNode, @Nullable Object value) {
         super(keyNode, valueNode, value);
     }
 
@@ -27,7 +27,12 @@ public class Entry extends Block<Object> {
      * @param previous the previous block to reference comments from
      * @param value    the value to store
      */
-    public Entry(@Nullable Block<?> previous, @Nullable Object value) {
+    public TerminalBlock(@Nullable Block<?> previous, @Nullable Object value) {
         super(previous, value);
+    }
+
+    @Override
+    public boolean isSection() {
+        return false;
     }
 }

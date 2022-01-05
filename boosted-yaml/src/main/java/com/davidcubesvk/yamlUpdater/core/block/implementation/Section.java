@@ -90,7 +90,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Key and value
             Object key = adaptKey(entry.getKey()), value = entry.getValue();
             //Add
-            getStoredValue().put(key, value instanceof Map ? new Section(root, this, route.add(key), null, (Map<?, ?>) value) : new Entry(null, value));
+            getStoredValue().put(key, value instanceof Map ? new Section(root, this, route.add(key), null, (Map<?, ?>) value) : new TerminalBlock(null, value));
         }
     }
 
@@ -166,7 +166,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Add
             getStoredValue().put(key, value instanceof Map ?
                     new Section(root, this, getSubRoute(key), superNodeComments ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
-                    new Entry(superNodeComments ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
+                    new TerminalBlock(superNodeComments ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
             //Set to true
             superNodeComments = true;
         }
@@ -180,8 +180,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * content map represented by this section. However, the section (underlying map) might also contain sections, which
      * are empty, resulting in incorrect returned value by this method <code>false</code>.
      * <p>
-     * If <code>deep == true</code>, contents of this section are iterated. If any of the values is a mapping entry (not
-     * a subsection), returns <code>false</code>. If it is a section, runs this method recursively (with
+     * If <code>deep == true</code>, iterates through contents of this section. If any of the values is not a section,
+     * returns <code>false</code>. If it is a section, runs this method recursively (with
      * <code>deep</code> set to <code>true</code>) and returns <code>false</code> if the result of that call is
      * <code>false</code>. If the iteration finished and none of the sub-calls returned otherwise, returns
      * <code>true</code>.
@@ -199,12 +199,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
         //Loop through all values
         for (Block<?> value : getStoredValue().values()) {
-            //If an entry or non-empty section
-            if (value instanceof Entry || (value instanceof Section && !((Section) value).isEmpty(true)))
+            //If a terminal or non-empty section
+            if (value instanceof TerminalBlock || (value instanceof Section && !((Section) value).isEmpty(true)))
                 return false;
         }
 
         //Empty
+        return true;
+    }
+
+    @Override
+    public boolean isSection() {
         return true;
     }
 
@@ -817,8 +822,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Creates a section at the given direct key in this section and returns it.
      * <p>
-     * If there already is a mapping entry already existing at the key, it is overwritten. If there is a section
-     * already, does not overwrite anything and the already existing section is returned.
+     * If there already is an entry already existing at the key, it is overwritten. If there is a section already,
+     * does not overwrite anything and the already existing section is returned.
      * <p>
      * Comments of already existing block will be kept and will be assigned to the new section created at its place.
      *
@@ -860,7 +865,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
      *     <li>{@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
-     *     <li>{@link Entry}: the given mapping entry will be <i>pasted</i> here (including comments),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
      *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
@@ -907,7 +912,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
      *     <li><b>non-root</b> {@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
-     *     <li>{@link Entry}: the given mapping entry will be <i>pasted</i> here (including comments),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
      *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
@@ -962,16 +967,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
             Section section = (Section) value;
             //If is the root
             if (section.isRoot())
-                throw new IllegalArgumentException("Cannot set a root section as the value!");
+                throw new IllegalArgumentException("Cannot set root section as the value!");
             //Set
             getStoredValue().put(key, section);
 
             //Adapt
             section.adapt(root, this, getSubRoute(key));
             return;
-        } else if (value instanceof Entry) {
+        } else if (value instanceof TerminalBlock) {
             //Set
-            getStoredValue().put(key, (Entry) value);
+            getStoredValue().put(key, (TerminalBlock) value);
             return;
         }
 
@@ -987,12 +992,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //If already existing block is not present
         if (previous == null) {
             //Add
-            getStoredValue().put(key, new Entry(null, null, value));
+            getStoredValue().put(key, new TerminalBlock(null, null, value));
             return;
         }
 
         //Add with existing block's comments
-        getStoredValue().put(key, new Entry(previous, value));
+        getStoredValue().put(key, new TerminalBlock(previous, value));
     }
 
     //
@@ -1020,7 +1025,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Removes entry at the given route (if any); returns <code>true</code> if successfully removed. The method returns
-     * <code>false</code> if and only no entry exists at the route.
+     * <code>false</code> if and only no entry exists at the route (nothing was removed).
      *
      * @param route the route to remove the entry at
      * @return if anything was removed
@@ -1030,7 +1035,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * An internal method used to actually remove the entry. Created to extract common parts from both removal-oriented
+     * An internal method used to actually remove an entry. Created to extract common parts from both removal-oriented
      * methods.
      * <p>
      * Returns <code>false</code> if the parent section is <code>null</code>, or if nothing is present at the key in the
@@ -1039,7 +1044,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param parent the parent section, or <code>null</code> if it does not exist
      * @param key    the last key in the route, key to check in the given section (already adapted using {@link
      *               #adaptKey(Object)})
-     * @return if any entry has been removed
+     * @return if the entry has been removed
      */
     private boolean removeInternal(@Nullable Section parent, @Nullable Object key) {
         //If the parent is null
@@ -1072,8 +1077,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given route encapsulated in an instance of {@link Optional}. If there is no block present
      * (no value) at the given route, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link Entry} instances. See the {wiki} for
-     * more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
+     * for more information.
      * <p>
      * <b>Functionality notes:</b> When individual elements (keys) of the given route are traversed, they are (without
      * modifying the route object given - it is immutable) adapted to the current key mode setting (see {@link
@@ -1093,8 +1098,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given direct key encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given key, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link Entry} instances. See the {wiki} for
-     * more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
+     * for more information.
      * <p>
      * <b>A direct key</b> means the key is referring to object in this section directly (e.g. does not work like
      * route, which might - if consisting of multiple keys - refer to subsections) - similar to {@link
@@ -1118,8 +1123,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given string route encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given route, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link Entry} instances. See the {wiki} for
-     * more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
+     * for more information.
      * <p>
      * <b>Functionality notes:</b> The given route must contain individual keys separated using the separator character
      * configured using {@link GeneralSettings.Builder#setSeparator(char)}.
@@ -1133,9 +1138,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <code>"a"</code> in <b>this</b> section, <b>then</b> block at <code>"b"</code> in <b>that</b> (keyed as
      * <code>"a"</code>) section.
      * <p>
-     * We can also interpret this behaviour as a call to {@link #getOptionalBlock(Route)} with route created via constructor
-     * {@link Route#fromString(String, char)} (which effectively splits the given string route into separate string keys
-     * according to the separator).
+     * We can also interpret this behaviour as a call to {@link #getOptionalBlock(Route)} with route created via
+     * constructor {@link Route#fromString(String, char)} (which effectively splits the given string route into separate
+     * string keys according to the separator).
      * <p>
      * This method works independently of the root's {@link GeneralSettings#getKeyMode()}. However, as the given route
      * contains individual <b>string</b> keys, if set to {@link KeyMode#OBJECT}, you will only be able to access data at
@@ -1281,7 +1286,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * here, with the last route element removed.
      * <p>
      * That means, this method ignores if the given route represents an existing block. If block at that parent route is
-     * not a section (is an entry), returns an empty optional.
+     * not a section, returns an empty optional.
      *
      * @param route the route to get the parent section from
      * @return section at the parent route from the given one encapsulated in an optional
@@ -1296,7 +1301,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * route as given here, with the last route element removed ({@link Route#parent()}).
      * <p>
      * That means, this method ignores if the given route represents an existing block. If block at that parent route is
-     * not a section (is an entry), returns an empty optional.
+     * not a section, returns an empty optional.
      *
      * @param route the route to get the parent section from
      * @return section at the parent route from the given one encapsulated in an optional
@@ -3128,8 +3133,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route
@@ -3147,8 +3152,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route
@@ -3166,8 +3171,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the string list at
      * @param def   the default value
@@ -3186,8 +3191,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the string list at
      * @param def   the default value
@@ -3206,8 +3211,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route, or default according to the documentation above
@@ -3225,8 +3230,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route, or default according to the documentation above
@@ -3256,8 +3261,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route
@@ -3275,8 +3280,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route
@@ -3294,8 +3299,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the integer list at
      * @param def   the default value
@@ -3314,8 +3319,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the integer list at
      * @param def   the default value
@@ -3334,8 +3339,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route, or default according to the documentation above
@@ -3353,8 +3358,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route, or default according to the documentation above
@@ -3384,8 +3389,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route
@@ -3403,8 +3408,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route
@@ -3422,8 +3427,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @param def   the default value
@@ -3442,8 +3447,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @param def   the default value
@@ -3462,8 +3467,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route, or default according to the documentation above
@@ -3481,8 +3486,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route, or default according to the documentation above
@@ -3512,8 +3517,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route
@@ -3531,8 +3536,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route
@@ -3550,8 +3555,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the byte list at
      * @param def   the default value
@@ -3570,8 +3575,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @param def   the default value
@@ -3590,8 +3595,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route, or default according to the documentation above
@@ -3609,8 +3614,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route, or default according to the documentation above
@@ -3640,8 +3645,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route
@@ -3659,8 +3664,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route
@@ -3678,8 +3683,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the long list at
      * @param def   the default value
@@ -3698,8 +3703,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the long list at
      * @param def   the default value
@@ -3718,8 +3723,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear
+     * in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route, or default according to the documentation above
@@ -3737,8 +3742,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route, or default according to the documentation above
@@ -3768,8 +3773,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route
@@ -3787,8 +3792,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route
@@ -3806,8 +3811,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the double list at
      * @param def   the default value
@@ -3826,8 +3831,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the double list at
      * @param def   the default value
@@ -3846,8 +3851,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route, or default according to the documentation above
@@ -3865,8 +3870,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route, or default according to the documentation above
@@ -3896,8 +3901,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route
@@ -3915,8 +3920,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route
@@ -3934,8 +3939,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the float list at
      * @param def   the default value
@@ -3954,8 +3959,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the float list at
      * @param def   the default value
@@ -3974,8 +3979,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route, or default according to the documentation above
@@ -3993,8 +3998,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route, or default according to the documentation above
@@ -4024,8 +4029,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route
@@ -4043,8 +4048,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route
@@ -4062,8 +4067,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the short list at
      * @param def   the default value
@@ -4082,8 +4087,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the short list at
      * @param def   the default value
@@ -4102,8 +4107,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not appear in
-     * the returned list.
+     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route, or default according to the documentation above
@@ -4121,8 +4126,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
      * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not appear
-     * in the returned list.
+     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not
+     * appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route, or default according to the documentation above

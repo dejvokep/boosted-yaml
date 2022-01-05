@@ -2,7 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.updater;
 
 import com.davidcubesvk.yamlUpdater.core.YamlFile;
 import com.davidcubesvk.yamlUpdater.core.block.Block;
-import com.davidcubesvk.yamlUpdater.core.block.implementation.Entry;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.TerminalBlock;
 import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
 import com.davidcubesvk.yamlUpdater.core.engine.ExtendedConstructor;
 import com.davidcubesvk.yamlUpdater.core.engine.ExtendedRepresenter;
@@ -127,11 +127,11 @@ public class Merger {
      * @param newParent new parent section of the block to clone
      * @return the cloned block (with relatives set already)
      * @see #cloneSection(Section, Section)
-     * @see #cloneEntry(Entry, Section)
+     * @see #cloneTerminal(TerminalBlock, Section)
      */
     @NotNull
     private Block<?> cloneBlock(@NotNull Block<?> block, @NotNull Section newParent) {
-        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneEntry((Entry) block, newParent);
+        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneTerminal((TerminalBlock) block, newParent);
     }
 
     /**
@@ -171,7 +171,7 @@ public class Merger {
     }
 
     /**
-     * Deep clones the given entry.
+     * Deep clones the given terminal block.
      * <p>
      * More formally, represents the value of the entry into nodes and then, constructs them back into a Java object.
      *
@@ -180,7 +180,7 @@ public class Merger {
      * @return the cloned entry (with relatives set already)
      */
     @NotNull
-    private Entry cloneEntry(@NotNull Entry entry, @NotNull Section newParent) {
+    private TerminalBlock cloneTerminal(@NotNull TerminalBlock entry, @NotNull Section newParent) {
         //Root
         YamlFile root = newParent.getRoot();
         //General settings
@@ -196,7 +196,7 @@ public class Merger {
         constructor.constructSingleDocument(Optional.of(represented));
 
         //Create
-        entry = new Entry(entry, constructor.getConstructed(represented));
+        entry = new TerminalBlock(entry, constructor.getConstructed(represented));
         //Clear
         constructor.clear();
         //Return

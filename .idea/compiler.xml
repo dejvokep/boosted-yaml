@@ -3,17 +3,17 @@
   <component name="CompilerConfiguration">
     <addNotNullAssertions enabled="false" />
     <annotationProcessing>
-      <profile name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <module name="boosted-yaml" />
-      </profile>
       <profile name="Annotation profile for BoostedYAML" enabled="true">
         <sourceOutputDir name="../target/generated-sources/annotations" />
         <sourceTestOutputDir name="../target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="boosted-yaml-spigot" />
+      </profile>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="boosted-yaml (1)" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

@@ -2,7 +2,7 @@ package com.davidcubesvk.yamlUpdater.core.block;
 
 import com.davidcubesvk.yamlUpdater.core.block.Comments.NodeType;
 import com.davidcubesvk.yamlUpdater.core.block.Comments.Position;
-import com.davidcubesvk.yamlUpdater.core.block.implementation.Entry;
+import com.davidcubesvk.yamlUpdater.core.block.implementation.TerminalBlock;
 import com.davidcubesvk.yamlUpdater.core.block.implementation.Section;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> type of the value stored
  */
-public class Block<T> {
+public abstract class Block<T> {
 
     //Comments
     List<CommentLine> beforeKeyComments, inlineKeyComments, afterKeyComments, beforeValueComments, inlineValueComments, afterValueComments;
@@ -222,6 +222,13 @@ public class Block<T> {
     }
 
     /**
+     * Returns if the value is a {@link Section section}.
+     *
+     * @return if the value is a {@link Section section}
+     */
+    public abstract boolean isSection();
+
+    /**
      * Sets whether to keep this block. Used only internally during updating.
      *
      * @param keep if to keep
@@ -242,7 +249,8 @@ public class Block<T> {
     /**
      * Returns the stored value.
      * <p>
-     * For {@link Section sections}, this is a {@link java.util.Map}; for {@link Entry entries} an {@link Object}.
+     * For {@link Section sections}, this is a {@link java.util.Map}; for {@link TerminalBlock entries} an {@link
+     * Object}.
      *
      * @return the stored value
      */
