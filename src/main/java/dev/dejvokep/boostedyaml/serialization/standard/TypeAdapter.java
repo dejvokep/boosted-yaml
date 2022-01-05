@@ -18,6 +18,7 @@ package dev.dejvokep.boostedyaml.serialization.standard;
 import dev.dejvokep.boostedyaml.block.Block;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -49,6 +50,8 @@ public interface TypeAdapter<T> {
      * Deserializes the given map into instance of this type.
      * <p>
      * The given map is a raw object map; there are no {@link Block} instances, just native Java objects themselves.
+     * <p>
+     * Use {@link #toStringMap(Map)} to convert the map.
      *
      * @param map the raw map to deserialize
      * @return the deserialized object
@@ -56,4 +59,23 @@ public interface TypeAdapter<T> {
     @NotNull
     T deserialize(@NotNull Map<Object, Object> map);
 
+    /**
+     * Converts this map (including all sub-maps) to string=value map.
+     *
+     * @param map the map to convert
+     * @return the converted map
+     */
+    static Map<String, Object> toStringMap(@NotNull Map<?, ?> map) {
+        // New map
+        Map<String, Object> newMap = new HashMap<>();
+        // Iterate
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            // If the value is a map
+            if (entry.getValue() instanceof Map)
+                newMap.put(entry.getKey().toString(), toStringMap((Map<?, ?>) entry.getValue()));
+            else
+                newMap.put(entry.getKey().toString(), entry.getValue());
+        }
+        return newMap;
+    }
 }
