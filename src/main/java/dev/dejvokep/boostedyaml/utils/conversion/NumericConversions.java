@@ -33,29 +33,29 @@ public class NumericConversions {
     /**
      * All numerical primitives and their corresponding non-primitive representations.
      */
-    public static final Map<Class<?>, Class<?>> NUMERICAL_PRIMITIVES = new HashMap<Class<?>, Class<?>>() {{
+    public static final Map<Class<?>, Class<?>> NUMERICAL_PRIMITIVES = Collections.unmodifiableMap(new HashMap<Class<?>, Class<?>>() {{
         put(int.class, Integer.class);
         put(byte.class, Byte.class);
         put(short.class, Short.class);
         put(long.class, Long.class);
         put(float.class, Float.class);
         put(double.class, Double.class);
-    }};
+    }});
 
     /**
      * All non-numerical primitives and their corresponding non-primitive representations; vice-versa.
      */
-    public static final Map<Class<?>, Class<?>> NON_NUMERICAL_CONVERSIONS = new HashMap<Class<?>, Class<?>>() {{
+    public static final Map<Class<?>, Class<?>> NON_NUMERICAL_CONVERSIONS = Collections.unmodifiableMap(new HashMap<Class<?>, Class<?>>() {{
         put(boolean.class, Boolean.class);
         put(char.class, Character.class);
         put(Boolean.class, boolean.class);
         put(Character.class, char.class);
-    }};
+    }});
 
     /**
      * All numerical data type classes.
      */
-    public static final Set<Class<?>> NUMERICAL_CLASSES = new HashSet<Class<?>>() {{
+    public static final Set<Class<?>> NUMERICAL_CLASSES = Collections.unmodifiableSet(new HashSet<Class<?>>() {{
         add(int.class);
         add(byte.class);
         add(short.class);
@@ -68,7 +68,7 @@ public class NumericConversions {
         add(Long.class);
         add(Float.class);
         add(Double.class);
-    }};
+    }});
 
     /**
      * Returns if the given class represents a numerical data type.

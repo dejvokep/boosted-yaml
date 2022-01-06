@@ -17,7 +17,7 @@ package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.YamlFile;
 import dev.dejvokep.boostedyaml.block.Block;
-import dev.dejvokep.boostedyaml.block.implementation.TerminalBlock;
+import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.engine.ExtendedConstructor;
 import dev.dejvokep.boostedyaml.engine.ExtendedRepresenter;
@@ -142,11 +142,11 @@ public class Merger {
      * @param newParent new parent section of the block to clone
      * @return the cloned block (with relatives set already)
      * @see #cloneSection(Section, Section)
-     * @see #cloneTerminal(TerminalBlock, Section)
+     * @see #cloneTerminal(TerminatedBlock, Section)
      */
     @NotNull
     private Block<?> cloneBlock(@NotNull Block<?> block, @NotNull Section newParent) {
-        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneTerminal((TerminalBlock) block, newParent);
+        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneTerminal((TerminatedBlock) block, newParent);
     }
 
     /**
@@ -195,7 +195,7 @@ public class Merger {
      * @return the cloned entry (with relatives set already)
      */
     @NotNull
-    private TerminalBlock cloneTerminal(@NotNull TerminalBlock entry, @NotNull Section newParent) {
+    private TerminatedBlock cloneTerminal(@NotNull TerminatedBlock entry, @NotNull Section newParent) {
         //Root
         YamlFile root = newParent.getRoot();
         //General settings
@@ -211,7 +211,7 @@ public class Merger {
         constructor.constructSingleDocument(Optional.of(represented));
 
         //Create
-        entry = new TerminalBlock(entry, constructor.getConstructed(represented));
+        entry = new TerminatedBlock(entry, constructor.getConstructed(represented));
         //Clear
         constructor.clear();
         //Return

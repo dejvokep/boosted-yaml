@@ -43,7 +43,7 @@ public class Pattern {
      * </ol>
      * Please note that patterns and segments are immutable, and therefore, you can reuse them.
      * <p>
-     * <b>For more information</b> please visit the {wiki}.
+     * <b>For more information</b> please visit the <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
      *
      * @param segments the segments, ordered from left (most-significant) to right (least-significant)
      */

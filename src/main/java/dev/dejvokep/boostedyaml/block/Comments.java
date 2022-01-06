@@ -117,6 +117,10 @@ public class Comments {
      * @param comments the comments to set
      */
     public static void set(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @Nullable List<CommentLine> comments) {
+        //Replace
+        if (comments != null)
+            comments = new ArrayList<>(comments);
+
         switch (position) {
             case BEFORE:
                 if (node == NodeType.KEY)

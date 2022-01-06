@@ -26,10 +26,7 @@ import dev.dejvokep.boostedyaml.fvs.versioning.Versioning;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Updater settings cover all options related explicitly (only) to file updating.
@@ -58,11 +55,11 @@ public class UpdaterSettings {
     /**
      * Default merge preservation rules.
      */
-    public static final Map<MergeRule, Boolean> DEFAULT_MERGE_RULES = new HashMap<MergeRule, Boolean>() {{
+    public static final Map<MergeRule, Boolean> DEFAULT_MERGE_RULES = Collections.unmodifiableMap(new HashMap<MergeRule, Boolean>() {{
         put(MergeRule.MAPPINGS, true);
         put(MergeRule.MAPPING_AT_SECTION, false);
         put(MergeRule.SECTION_AT_MAPPING, false);
-    }};
+    }});
     /**
      * Default versioning.
      */
@@ -355,7 +352,7 @@ public class UpdaterSettings {
         /**
          * Sets which blocks (represented by their routes) to keep in the user file (will not be deleted); if updating
          * from that certain version ID (if the user's file has that version ID). You can learn more at
-         * {@link #setKeepRoutes(String, Set)} or {wiki}. If there already are routes defined for version ID, which is also
+         * {@link #setKeepRoutes(String, Set)} or <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>. If there already are routes defined for version ID, which is also
          * present in the given map, they are overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the defaults).
@@ -381,7 +378,7 @@ public class UpdaterSettings {
          * overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the
-         * defaults). For examples and in-depth explanation, please visit {wiki}.
+         * defaults). For examples and in-depth explanation, please visit <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
          * <p>
          * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of
          * the user and default file, must have their routes specified.
@@ -400,7 +397,7 @@ public class UpdaterSettings {
         /**
          * Sets which blocks (represented by their <i>string</i> routes) to keep in the user file (will not be deleted); if updating
          * from that certain version ID (if the user's file has that version ID). You can learn more at
-         * {@link #setStringKeepRoutes(String, Set)} or {wiki}. If there already are routes defined for version ID, which is also
+         * {@link #setStringKeepRoutes(String, Set)} or <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>. If there already are routes defined for version ID, which is also
          * present in the given map, they are overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the defaults).
@@ -434,7 +431,7 @@ public class UpdaterSettings {
          * overwritten.
          * <p>
          * Note that this applies to blocks which had not been merged (e.g. they don't have equivalent block in the
-         * defaults). For examples and in-depth explanation, please visit {wiki}.
+         * defaults). For examples and in-depth explanation, please visit <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
          * <p>
          * It, naturally, is not required and does not need to be guaranteed, that all version IDs between version ID of
          * the user and default file, must have their routes specified.
@@ -460,7 +457,7 @@ public class UpdaterSettings {
 
         /**
          * Sets relocations (in <code>from route = to route</code> format) per version ID string. You can learn more at
-         * {@link #setRelocations(String, Map)} or {wiki}. If there already are relocations defined for version ID which
+         * {@link #setRelocations(String, Map)} or <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>. If there already are relocations defined for version ID which
          * is also present in the given map, they are overwritten.
          *
          * @param relocations the relocations to add
@@ -492,7 +489,7 @@ public class UpdaterSettings {
 
         /**
          * Sets relocations (in <code>from route = to route</code> format) per version ID. You can learn more at
-         * {@link #setStringRelocations(String, Map)} or {wiki}. If there already are string-based relocations defined for
+         * {@link #setStringRelocations(String, Map)} or <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>. If there already are string-based relocations defined for
          * version ID which is also present in the given map, they are overwritten.
          * <p>
          * <b>Please note</b> that, as the documentation above suggests, string routes supplied via this and

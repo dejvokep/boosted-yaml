@@ -136,38 +136,14 @@ public class ExtendedRepresenter extends StandardRepresenter {
     }
 
     @Override
-    protected Node representMapping(Tag tag, Map<?, ?> mapping, FlowStyle flowStyle) {
-        //Best flow style for this object
-        FlowStyle bestStyle = FlowStyle.FLOW;
-
-        //List of mappings
-        List<NodeTuple> mappings = new ArrayList<>(mapping.size());
-        //Create a node
-        MappingNode node = new MappingNode(tag, mappings, flowStyle);
-        //Add
-        representedObjects.put(objectToRepresent, node);
-
-        //All mappings
-        for (Map.Entry<?, ?> entry : mapping.entrySet()) {
-            //Block
-            Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
-            //Represent nodes
-            Node key = applyKeyComments(block, representData(entry.getKey()));
-            Node value = applyValueComments(block, representData(block == null ? entry.getValue() : block.getStoredValue()));
-            //If a scalar and plain, set to block
-            if (!(key instanceof ScalarNode && ((ScalarNode) key).isPlain()) || !(value instanceof ScalarNode && ((ScalarNode) value).isPlain()))
-                bestStyle = FlowStyle.BLOCK;
-
-            //Add the value
-            mappings.add(new NodeTuple(key, value));
-        }
-
-        //If target flow style is automatic
-        if (flowStyle == FlowStyle.AUTO)
-            //Set to default if not auto, or picked
-            node.setFlowStyle(defaultFlowStyle != FlowStyle.AUTO ? defaultFlowStyle : bestStyle);
-
-        //Return
-        return node;
+    protected NodeTuple representMappingEntry(Map.Entry<?, ?> entry) {
+        //Block
+        Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
+        //Represent nodes
+        Node key = applyKeyComments(block, representData(entry.getKey()));
+        Node value = applyValueComments(block, representData(block == null ? entry.getValue() : block.getStoredValue()));
+        //Create
+        return new NodeTuple(key, value);
     }
+
 }

@@ -32,7 +32,7 @@ public interface TypeAdapter<T> {
     /**
      * Serializes the given instance into a map.
      * <p>
-     * The returned map does not need to (but may) contain the type identifier {wiki}. Type identifier is one entry in
+     * The returned map does not need to (but may) contain the type identifier <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>. Type identifier is one entry in
      * the top-level map (the one returned), where the key is defined by the serializer (<code>==</code> for {@link
      * StandardSerializer#DEFAULT}) and the value identifies the serialized type - either by the full canonical
      * classname (e.g. <code>me.name.project.objects.CustomObject</code>) or it's alias. <b>Both must also be

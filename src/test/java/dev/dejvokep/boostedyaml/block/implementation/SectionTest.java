@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -395,13 +396,27 @@ class SectionTest {
     }
 
     @Test
+    void getList() throws IOException {
+        // Create file
+        YamlFile file = YamlFile.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false\nz:\n- \"a\"\n- \"b\"\n- 4".getBytes(StandardCharsets.UTF_8)));
+        List<?> list = file.getList("z");
+        // Assert
+        assertNotNull(list);
+        assertEquals(3, list.size());
+        assertEquals("a", list.get(0));
+        assertEquals("b", list.get(1));
+        assertEquals(4, list.get(2));
+    }
+
+    @Test
     void defaults() throws IOException {
         // Create file
-        YamlFile file = YamlFile.create(new ByteArrayInputStream("x: \"y\"\ny:\n  a: true\n  b: abc\n7: f".getBytes(StandardCharsets.UTF_8)), new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: true".getBytes(StandardCharsets.UTF_8)));
+        YamlFile file = YamlFile.create(new ByteArrayInputStream("x: \"y\"\ny:\n  a: true\n  b: false\n7: f".getBytes(StandardCharsets.UTF_8)), new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: def\n7: true".getBytes(StandardCharsets.UTF_8)));
         // Assert
         assertEquals(5, file.getInt("x"));
         assertEquals(true, file.getBoolean("y.a"));
         assertEquals(true, file.getBoolean("7"));
+        assertEquals(false, file.getBoolean("y.b"));
     }
 
     private YamlFile createFile(GeneralSettings settings) throws IOException {

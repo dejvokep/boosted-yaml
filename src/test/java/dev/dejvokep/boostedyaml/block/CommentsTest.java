@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.block;
 
-import dev.dejvokep.boostedyaml.block.implementation.TerminalBlock;
+import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
@@ -31,7 +31,7 @@ class CommentsTest {
     @Test
     void get() {
         //Create block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         //Add
         Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
         //Assert
@@ -44,7 +44,7 @@ class CommentsTest {
     @Test
     void set() {
         //Create block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         //Set
         Comments.set(block, Comments.NodeType.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
             add(Comments.create("comment", Comments.Position.BEFORE));
@@ -59,7 +59,7 @@ class CommentsTest {
     @Test
     void remove() {
         //Create block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         //Add
         Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
         //Remove
@@ -71,7 +71,7 @@ class CommentsTest {
     @Test
     void add() {
         //Create block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         //Add
         Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
             add(Comments.create("comment1", Comments.Position.BEFORE));

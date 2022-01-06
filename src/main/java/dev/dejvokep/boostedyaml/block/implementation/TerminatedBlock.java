@@ -20,9 +20,10 @@ import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.nodes.Node;
 
 /**
- * Represents one YAML terminal {@link Block} (key=value pair).
+ * Represents one YAML terminated (does not contain sub-blocks like {@link Section sections}) {@link Block} (key=value
+ * pair).
  */
-public class TerminalBlock extends Block<Object> {
+public class TerminatedBlock extends Block<Object> {
 
     /**
      * Creates a mapping using the given parameters; while storing references to comments from the given nodes.
@@ -31,7 +32,7 @@ public class TerminalBlock extends Block<Object> {
      * @param valueNode value node of the mapping
      * @param value     the value to store
      */
-    public TerminalBlock(@Nullable Node keyNode, @Nullable Node valueNode, @Nullable Object value) {
+    public TerminatedBlock(@Nullable Node keyNode, @Nullable Node valueNode, @Nullable Object value) {
         super(keyNode, valueNode, value);
     }
 
@@ -42,7 +43,7 @@ public class TerminalBlock extends Block<Object> {
      * @param previous the previous block to reference comments from
      * @param value    the value to store
      */
-    public TerminalBlock(@Nullable Block<?> previous, @Nullable Object value) {
+    public TerminatedBlock(@Nullable Block<?> previous, @Nullable Object value) {
         super(previous, value);
     }
 

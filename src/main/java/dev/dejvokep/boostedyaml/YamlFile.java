@@ -15,6 +15,8 @@
  */
 package dev.dejvokep.boostedyaml;
 
+import dev.dejvokep.boostedyaml.block.Block;
+import dev.dejvokep.boostedyaml.block.Comments;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.updater.Updater;
 import dev.dejvokep.boostedyaml.engine.ExtendedConstructor;
@@ -82,10 +84,10 @@ public class YamlFile extends Section {
         this.dumperSettings = dumperSettings;
         this.updaterSettings = updaterSettings;
         this.file = null;
-        this.defaults = defaults == null ? null : new YamlFile(new BufferedInputStream(defaults), null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
+        this.defaults = defaults == null ? null : new YamlFile(defaults, null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
 
         //Load
-        reload(userFile instanceof BufferedInputStream ? (BufferedInputStream) userFile : new BufferedInputStream(userFile));
+        reload(userFile);
     }
 
     /**
@@ -110,7 +112,7 @@ public class YamlFile extends Section {
         this.dumperSettings = dumperSettings;
         this.updaterSettings = updaterSettings;
         this.file = userFile;
-        this.defaults = defaults == null ? null : new YamlFile(new BufferedInputStream(defaults), null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
+        this.defaults = defaults == null ? null : new YamlFile(defaults, null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
         //Load
         reload();
     }
@@ -169,6 +171,7 @@ public class YamlFile extends Section {
 
         //Create if enabled
         if (loaderSettings.isCreateFileIfAbsent()) {
+            //Create new file
             if (file.getParentFile() != null)
                 file.getParentFile().mkdirs();
             file.createNewFile();
@@ -192,7 +195,7 @@ public class YamlFile extends Section {
      * @param inputStream stream to load the contents from
      * @throws IOException an IO error
      */
-    public void reload(@NotNull BufferedInputStream inputStream) throws IOException {
+    public void reload(@NotNull InputStream inputStream) throws IOException {
         reload(inputStream, loaderSettings, generalSettings);
     }
 
@@ -204,7 +207,7 @@ public class YamlFile extends Section {
      * @param generalSettings the general settings to use for this reload
      * @throws IOException an IO error
      */
-    public void reload(@NotNull BufferedInputStream inputStream, @NotNull LoaderSettings loaderSettings, @NotNull GeneralSettings generalSettings) throws IOException {
+    public void reload(@NotNull InputStream inputStream, @NotNull LoaderSettings loaderSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Validate
         Objects.requireNonNull(inputStream, "Input stream cannot be null!");
         Objects.requireNonNull(loaderSettings, "Loader settings cannot be null!");

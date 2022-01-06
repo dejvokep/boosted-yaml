@@ -23,9 +23,9 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings.KeyMode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.snakeyaml.engine.v2.nodes.MappingNode;
-import org.snakeyaml.engine.v2.nodes.Node;
-import org.snakeyaml.engine.v2.nodes.NodeTuple;
+import org.snakeyaml.engine.v2.comments.CommentLine;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.nodes.*;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -44,7 +44,7 @@ import static dev.dejvokep.boostedyaml.utils.conversion.NumericConversions.*;
  * <p>
  * BoostedYAML represents every entry (key=value pair) in the file as a block, which also applies to sections - sections
  * actually store {@link Block blocks}, which carry the raw value - Java object. Please learn more about implementations
- * at {wiki}.
+ * at <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
  */
 @SuppressWarnings("unused")
 public class Section extends Block<Map<Object, Block<?>>> {
@@ -74,7 +74,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public Section(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass (value node is null because there can't be any value comments)
-        super(keyNode, valueNode, root.getGeneralSettings().getDefaultMap());
+        super(keyNode, null, root.getGeneralSettings().getDefaultMap());
         //Set
         this.root = root;
         this.parent = parent;
@@ -109,7 +109,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Key and value
             Object key = adaptKey(entry.getKey()), value = entry.getValue();
             //Add
-            getStoredValue().put(key, value instanceof Map ? new Section(root, this, route.add(key), null, (Map<?, ?>) value) : new TerminalBlock(null, value));
+            getStoredValue().put(key, value instanceof Map ? new Section(root, this, route.add(key), null, (Map<?, ?>) value) : new TerminatedBlock(null, value));
         }
     }
 
@@ -169,8 +169,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Initializes this section, and it's contents using the given parameters, while also initializing the superclass by
      * calling {@link Block#init(Node, Node)}.
-     * <p>
-     * This method must only be called if {@link #isRoot()} returns <code>true</code>.
      *
      * @param root        the root file of this section
      * @param keyNode     node which represents the key to this section, used <b>only</b> to retrieve comments
@@ -181,6 +179,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
     protected void init(@NotNull YamlFile root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass
         super.init(keyNode, null);
+
         //Set
         this.root = root;
         resetDefaults();
@@ -192,11 +191,30 @@ public class Section extends Block<Map<Object, Block<?>>> {
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
             //Add
             getStoredValue().put(key, value instanceof Map ?
-                    new Section(root, this, getSubRoute(key), superNodeComments ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
-                    new TerminalBlock(superNodeComments ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
+                    new Section(root, this, getSubRoute(key), superNodeComments ? tuple.getKeyNode() : mainCommentsOnly(valueNode), (MappingNode) tuple.getValueNode(), constructor) :
+                    new TerminatedBlock(superNodeComments ? tuple.getKeyNode() : mainCommentsOnly(valueNode), tuple.getValueNode(), value));
             //Set to true
             superNodeComments = true;
         }
+    }
+
+    /**
+     * Returns a newly created node with only main comments referenced from the given node.
+     * <p>
+     * The returned node must only be used for the comments, not for loading its content as it might be invalid.
+     *
+     * @param node the node to reference comments from
+     * @return new node with only the main comments
+     */
+    private Node mainCommentsOnly(@NotNull MappingNode node) {
+        //New node
+        ScalarNode result = new ScalarNode(Tag.STR, "", ScalarStyle.LITERAL);
+        //Reset
+        result.setBlockComments(node.getBlockComments());
+        result.setInLineComments(node.getInLineComments());
+        result.setEndComments(node.getEndComments());
+        //Return
+        return result;
     }
 
     /**
@@ -229,7 +247,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Loop through all values
         for (Block<?> value : getStoredValue().values()) {
             //If a terminal or non-empty section
-            if (value instanceof TerminalBlock || (value instanceof Section && !((Section) value).isEmpty(true)))
+            if (value instanceof TerminatedBlock || (value instanceof Section && !((Section) value).isEmpty(true)))
                 return false;
         }
 
@@ -896,8 +914,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * As the value to set, you can give instances of <b>anything</b>, with the following warnings:
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
-     *     <li>{@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
-     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments),</li>
+     *     <li>{@link Section}: the given section will be <i>moved</i> here (including comments, it will be deleted from the previous location),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
      *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
@@ -907,7 +925,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
-     * considered illegal and will result in an {@link IllegalArgumentException}.</b>
+     * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
+     * between two different files with different key modes will result in such exception.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -943,8 +962,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * As the value to set, you can give instances of <b>anything</b>, with the following warnings:
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
-     *     <li><b>non-root</b> {@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
-     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments),</li>
+     *     <li><b>non-root</b> {@link Section}: the given section will be <i>moved</i> here (including comments, it will be deleted from the previous location),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
      *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
@@ -954,7 +973,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
-     * considered illegal and will result in an {@link IllegalArgumentException}.</b>
+     * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
+     * between two different files with different key modes will result in such exception.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -1000,15 +1020,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //If is the root
             if (section.isRoot())
                 throw new IllegalArgumentException("Cannot set root section as the value!");
+            //Different key modes
+            if (section.getRoot().getGeneralSettings().getKeyMode() != getRoot().getGeneralSettings().getKeyMode())
+                throw new IllegalArgumentException("Cannot move sections between files with different key modes!");
             //Set
             getStoredValue().put(key, section);
 
             //Adapt
             section.adapt(root, this, getSubRoute(key));
             return;
-        } else if (value instanceof TerminalBlock) {
+        } else if (value instanceof TerminatedBlock) {
             //Set
-            getStoredValue().put(key, (TerminalBlock) value);
+            getStoredValue().put(key, (TerminatedBlock) value);
             return;
         }
 
@@ -1024,12 +1047,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //If already existing block is not present
         if (previous == null) {
             //Add
-            getStoredValue().put(key, new TerminalBlock(null, null, value));
+            getStoredValue().put(key, new TerminatedBlock(null, null, value));
             return;
         }
 
         //Add with existing block's comments
-        getStoredValue().put(key, new TerminalBlock(previous, value));
+        getStoredValue().put(key, new TerminatedBlock(previous, value));
     }
 
     //
@@ -1115,8 +1138,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given route encapsulated in an instance of {@link Optional}. If there is no block present
      * (no value) at the given route, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
-     * for more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminatedBlock} instances. See the <a
+     * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>Functionality notes:</b> When individual elements (keys) of the given route are traversed, they are (without
      * modifying the route object given - it is immutable) adapted to the current key mode setting (see {@link
@@ -1131,15 +1154,15 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return block at the given route encapsulated in an optional
      */
     public Optional<Block<?>> getOptionalBlock(@NotNull Route route) {
-        return getSafeInternal(route, false);
+        return getBlockInternal(route, false);
     }
 
     /**
      * Returns block at the given direct key encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given key, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
-     * for more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminatedBlock} instances. See the <a
+     * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>A direct key</b> means the key is referring to object in this section directly (e.g. does not work like
      * route, which might - if consisting of multiple keys - refer to subsections) - similar to {@link
@@ -1165,8 +1188,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given string route encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given route, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
-     * for more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminatedBlock} instances. See the <a
+     * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>Functionality notes:</b> The given route must contain individual keys separated using the separator character
      * configured using {@link GeneralSettings.Builder#setSeparator(char)}.
@@ -1201,7 +1224,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return block at the given route encapsulated in an optional
      */
     public Optional<Block<?>> getOptionalBlock(@NotNull String route) {
-        return route.indexOf(root.getGeneralSettings().getSeparator()) != -1 ? getSafeInternalString(route, false) : getDirectOptionalBlock(route);
+        return route.indexOf(root.getGeneralSettings().getSeparator()) != -1 ? getBlockInternalString(route, false) : getDirectOptionalBlock(route);
     }
 
     /**
@@ -1258,7 +1281,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param parent if searching for the parent section of the given route
      * @return block at the given route encapsulated in an optional
      */
-    private Optional<Block<?>> getSafeInternalString(@NotNull String route, boolean parent) {
+    private Optional<Block<?>> getBlockInternalString(@NotNull String route, boolean parent) {
         //Index of the last separator + 1
         int lastSeparator = 0;
         //Section
@@ -1299,7 +1322,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param parent if searching for the parent section of the given route
      * @return block at the given route encapsulated in an optional
      */
-    private Optional<Block<?>> getSafeInternal(@NotNull Route route, boolean parent) {
+    private Optional<Block<?>> getBlockInternal(@NotNull Route route, boolean parent) {
         //Starting index
         int i = -1;
         //Section
@@ -1346,7 +1369,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return section at the parent route from the given one encapsulated in an optional
      */
     public Optional<Section> getParent(@NotNull Route route) {
-        return getSafeInternal(route, true).map(block -> block instanceof Section ? (Section) block : null);
+        return getBlockInternal(route, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
     /**
@@ -1363,7 +1386,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return section at the parent route from the given one encapsulated in an optional
      */
     public Optional<Section> getParent(@NotNull String route) {
-        return getSafeInternalString(route, true).map(block -> block instanceof Section ? (Section) block : null);
+        return getBlockInternalString(route, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
     //
@@ -1646,8 +1669,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
      * supported.
      * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks the defaults under the same conditions as
-     * above.</b>
+     * <b>If there are any defaults and if couldn't find a valid value, checks the defaults under the same conditions
+     * as above.</b>
      *
      * @param route the route to check the value at
      * @param clazz class of the target type

@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.block;
 
-import dev.dejvokep.boostedyaml.block.implementation.TerminalBlock;
+import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
@@ -35,7 +35,7 @@ class BlockTest {
     @Test
     void init() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Nodes
         Node keyNode = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN), valueNode = new ScalarNode(Tag.STR, "abc", ScalarStyle.PLAIN);
         // Comments
@@ -47,19 +47,20 @@ class BlockTest {
             add(new CommentLine(Optional.empty(), Optional.empty(), "ghi", CommentType.IN_LINE));
         }};
         // Set comments
-        keyNode.setBlockComments(keyComments);
-        valueNode.setEndComments(valueComments);
+        keyNode.setBlockComments(new ArrayList<>(keyComments));
+        valueNode.setEndComments(new ArrayList<>(valueComments));
         // Init
         block.init(keyNode, valueNode);
         // Assert
-        //assertEquals(keyComments, block.getKeyBlockComments());
-        //assertEquals(valueComments, block.getValueEndComments());
+        List<CommentLine> result = new ArrayList<>(keyComments);
+        result.addAll(valueComments);
+        assertEquals(result, block.beforeKeyComments);
     }
 
     @Test
     void setKeep() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Set keep
         block.setKeep(true);
         // Assert
@@ -73,7 +74,7 @@ class BlockTest {
     @Test
     void getKeyBlockComments() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -85,13 +86,13 @@ class BlockTest {
         // Init
         block.init(node, null);
         // Assert
-        //assertEquals(comments, block.getKeyBlockComments());
+        assertEquals(comments, block.beforeKeyComments);
     }
 
     @Test
     void getKeyInlineComments() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -103,13 +104,13 @@ class BlockTest {
         // Init
         block.init(node, null);
         // Assert
-        //assertEquals(comments, block.getKeyInlineComments());
+        assertEquals(comments, block.inlineKeyComments);
     }
 
     @Test
     void getKeyEndComments() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -121,13 +122,13 @@ class BlockTest {
         // Init
         block.init(node, null);
         // Assert
-        //assertEquals(comments, block.getKeyEndComments());
+        assertEquals(comments, block.beforeKeyComments);
     }
 
     @Test
     void getValueBlockComments() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -139,13 +140,13 @@ class BlockTest {
         // Init
         block.init(null, node);
         // Assert
-        //assertEquals(comments, block.getValueBlockComments());
+        assertEquals(comments, block.beforeValueComments);
     }
 
     @Test
     void getValueInlineComments() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -157,14 +158,13 @@ class BlockTest {
         // Init
         block.init(null, node);
         // Assert
-        //assertEquals(comments, block.getValueInlineComments());
-
+        assertEquals(comments, block.inlineValueComments);
     }
 
     @Test
     void getValueEndComments() {
         // Block
-        Block<?> block = new TerminalBlock(null, null);
+        Block<?> block = new TerminatedBlock(null, null);
         // Nodes
         Node node = new ScalarNode(Tag.INT, "7", ScalarStyle.PLAIN);
         // Comments
@@ -176,11 +176,11 @@ class BlockTest {
         // Init
         block.init(null, node);
         // Assert
-        //assertEquals(comments, block.getValueEndComments());
+        assertEquals(comments, block.beforeKeyComments);
     }
 
     @Test
     void getValue() {
-        assertEquals(5, new TerminalBlock(null, 5).getStoredValue());
+        assertEquals(5, new TerminatedBlock(null, 5).getStoredValue());
     }
 }

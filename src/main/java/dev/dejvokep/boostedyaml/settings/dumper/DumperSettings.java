@@ -86,7 +86,7 @@ public class DumperSettings {
      * @return the new settings
      */
     public DumpSettings buildEngineSettings() {
-        return builder.setAnchorGenerator(generatorSupplier.get()).build();
+        return builder.setAnchorGenerator(generatorSupplier.get()).setDumpComments(true).build();
     }
 
     /**
