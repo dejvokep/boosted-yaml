@@ -64,6 +64,7 @@ public class StandardSerializer implements YamlSerializer {
      *
      * @param clazz the class of the type to register
      * @param adapter adapter for the type
+     * @param <T> type to register
      */
     public <T> void register(@NotNull Class<T> clazz, @NotNull TypeAdapter<T> adapter) {
         adapters.put(clazz, adapter);
@@ -77,6 +78,7 @@ public class StandardSerializer implements YamlSerializer {
      *
      * @param clazz the class to register
      * @param alias alias for the class to register
+     * @param <T> type to register
      */
     public <T> void register(@NotNull String alias, @NotNull Class<T> clazz) {
         //If not registered

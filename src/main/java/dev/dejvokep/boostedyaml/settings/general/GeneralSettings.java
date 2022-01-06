@@ -254,6 +254,8 @@ public class GeneralSettings {
     /**
      * Returns default list of the given size, using the default list supplier.
      *
+     * @param size initial size (if supported)
+     * @param <T> content type
      * @return the default list of the given size
      */
     public <T> List<T> getDefaultList(int size) {
@@ -263,6 +265,7 @@ public class GeneralSettings {
     /**
      * Returns default empty list using the default list supplier.
      *
+     * @param <T> content type
      * @return the default empty list
      */
     public <T> List<T> getDefaultList() {
@@ -272,6 +275,8 @@ public class GeneralSettings {
     /**
      * Returns default set of the given size, using the default set supplier.
      *
+     * @param size initial size (if supported)
+     * @param <T> content type
      * @return the default set of the given size
      */
     public <T> Set<T> getDefaultSet(int size) {
@@ -281,6 +286,7 @@ public class GeneralSettings {
     /**
      * Returns default empty set using the default set supplier.
      *
+     * @param <T> content type
      * @return the default empty set
      */
     public <T> Set<T> getDefaultSet() {
@@ -290,6 +296,9 @@ public class GeneralSettings {
     /**
      * Returns default map of the given size, using the default map supplier.
      *
+     * @param size initial size (if supported)
+     * @param <K> key type
+     * @param <V> value type
      * @return the default empty size
      */
     public <K, V> Map<K, V> getDefaultMap(int size) {
@@ -299,6 +308,8 @@ public class GeneralSettings {
     /**
      * Returns default empty map using the default map supplier.
      *
+     * @param <K> key type
+     * @param <V> value type
      * @return the default map of the given size
      */
     public <K, V> Map<K, V> getDefaultMap() {

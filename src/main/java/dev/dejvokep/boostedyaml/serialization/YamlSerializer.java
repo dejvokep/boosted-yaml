@@ -58,6 +58,7 @@ public interface YamlSerializer {
      *
      * @param object   the object to serialize
      * @param supplier the supplier used to supply default maps
+     * @param <T> type of the object to serialize
      * @return the serialized object
      */
     @Nullable

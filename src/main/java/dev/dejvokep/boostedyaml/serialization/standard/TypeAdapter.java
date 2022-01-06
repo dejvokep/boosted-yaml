@@ -26,6 +26,8 @@ import java.util.Map;
  * <p>
  * Please note that classes implementing this interface must also be registered at the serializer instance used. See
  * {@link StandardSerializer#register(Class, TypeAdapter)}.
+ *
+ * @param <T> type of the adapter
  */
 public interface TypeAdapter<T> {
 
@@ -41,6 +43,7 @@ public interface TypeAdapter<T> {
      * If the returned map does not contain the identifier, the {@link StandardSerializer serializer} will automatically
      * use the full classname.
      *
+     * @param object object to serialize
      * @return the serialized object
      */
     @NotNull

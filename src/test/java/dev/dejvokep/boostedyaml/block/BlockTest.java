@@ -54,7 +54,11 @@ class BlockTest {
         // Assert
         List<CommentLine> result = new ArrayList<>(keyComments);
         result.addAll(valueComments);
-        assertEquals(result, block.beforeKeyComments);
+        assertEquals(4, block.beforeKeyComments.size());
+        for (int i = 0; i < 4; i++) {
+            assertEquals(CommentType.BLOCK, block.beforeKeyComments.get(i).getCommentType());
+            assertEquals(result.get(i).getValue(), block.beforeKeyComments.get(i).getValue());
+        }
     }
 
     @Test
@@ -104,7 +108,9 @@ class BlockTest {
         // Init
         block.init(node, null);
         // Assert
-        assertEquals(comments, block.inlineKeyComments);
+        assertEquals(1, block.beforeKeyComments.size());
+        assertEquals(CommentType.BLOCK, block.beforeKeyComments.get(0).getCommentType());
+        assertEquals("abc2", block.beforeKeyComments.get(0).getValue());
     }
 
     @Test
@@ -158,7 +164,9 @@ class BlockTest {
         // Init
         block.init(null, node);
         // Assert
-        assertEquals(comments, block.inlineValueComments);
+        assertEquals(1, block.beforeKeyComments.size());
+        assertEquals(CommentType.BLOCK, block.beforeKeyComments.get(0).getCommentType());
+        assertEquals("def2", block.beforeKeyComments.get(0).getValue());
     }
 
     @Test

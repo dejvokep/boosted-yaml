@@ -60,6 +60,7 @@ public class Updater {
      * @param defSection      section equivalent in the default file (to update against)
      * @param updaterSettings the updater settings
      * @param generalSettings the general settings used to obtain the route separator, to split string-based relocations and force copy routes
+     * @throws IOException an IO error
      */
     public static void update(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Apply versioning stuff

@@ -74,7 +74,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     public Section(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass (value node is null because there can't be any value comments)
-        super(keyNode, null, root.getGeneralSettings().getDefaultMap());
+        super(keyNode, valueNode, root.getGeneralSettings().getDefaultMap());
         //Set
         this.root = root;
         this.parent = parent;
@@ -178,43 +178,19 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     protected void init(@NotNull YamlFile root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass
-        super.init(keyNode, null);
-
+        super.init(keyNode, valueNode);
         //Set
         this.root = root;
         resetDefaults();
-        //If comments of the super node were assigned
-        boolean superNodeComments = false;
         //Loop through all mappings
         for (NodeTuple tuple : valueNode.getValue()) {
             //Key and value
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
             //Add
             getStoredValue().put(key, value instanceof Map ?
-                    new Section(root, this, getSubRoute(key), superNodeComments ? tuple.getKeyNode() : mainCommentsOnly(valueNode), (MappingNode) tuple.getValueNode(), constructor) :
-                    new TerminatedBlock(superNodeComments ? tuple.getKeyNode() : mainCommentsOnly(valueNode), tuple.getValueNode(), value));
-            //Set to true
-            superNodeComments = true;
+                    new Section(root, this, getSubRoute(key), tuple.getKeyNode(), (MappingNode) tuple.getValueNode(), constructor) :
+                    new TerminatedBlock(tuple.getKeyNode(), tuple.getValueNode(), value));
         }
-    }
-
-    /**
-     * Returns a newly created node with only main comments referenced from the given node.
-     * <p>
-     * The returned node must only be used for the comments, not for loading its content as it might be invalid.
-     *
-     * @param node the node to reference comments from
-     * @return new node with only the main comments
-     */
-    private Node mainCommentsOnly(@NotNull MappingNode node) {
-        //New node
-        ScalarNode result = new ScalarNode(Tag.STR, "", ScalarStyle.LITERAL);
-        //Reset
-        result.setBlockComments(node.getBlockComments());
-        result.setInLineComments(node.getInLineComments());
-        result.setEndComments(node.getEndComments());
-        //Return
-        return result;
     }
 
     /**
@@ -372,6 +348,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, calls {@link Route#addTo(Route, Object)}.
      *
+     * @param key key to add
      * @return sub-route derived from the {@link #getRoute() section's absolute route}
      * @see Route#addTo(Route, Object)
      */
@@ -3021,6 +2998,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the byte at
+     * @param def   the default value
      * @return the byte at the given route, or default according to the documentation above
      * @see #getOptionalByte(Route)
      */
@@ -3039,6 +3017,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the byte at
+     * @param def   the default value
      * @return the byte at the given route, or default according to the documentation above
      * @see #getOptionalByte(String)
      */
@@ -3175,6 +3154,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the long at
+     * @param def   the default value
      * @return the long at the given route, or default according to the documentation above
      * @see #getOptionalLong(Route)
      */
@@ -3193,6 +3173,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the long at
+     * @param def   the default value
      * @return the long at the given route, or default according to the documentation above
      * @see #getOptionalLong(String)
      */
@@ -3329,6 +3310,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the short at
+     * @param def   the default value
      * @return the short at the given route, or default according to the documentation above
      * @see #getOptionalShort(Route)
      */
@@ -3347,6 +3329,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the short at
+     * @param def   the default value
      * @return the short at the given route, or default according to the documentation above
      * @see #getOptionalShort(Route)
      */

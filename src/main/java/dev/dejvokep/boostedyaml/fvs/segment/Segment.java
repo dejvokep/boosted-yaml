@@ -33,15 +33,15 @@ public interface Segment {
      * Filling defines how long (in digits) must each element (= integer) in the range be. If an element in the range
      * has fewer digits than defined by the parameter, additional zeros (<code>0</code>) are appended in front of the
      * number to fulfill the requirement. It must, however, be guaranteed that no number from the range has more digits
-     * than defined by the parameter. Set to non-positive (<code><= 0</code>) integer to disable.
+     * than defined by the parameter. Set to non-positive (<code>&lt;= 0</code>) integer to disable.
      * <p>
      * <b>Please mind following:</b>
      * <ul>
      *     <li><code>step</code> must not be equal to <code>0</code>,</li>
      *     <li><code>start</code> cannot be equal to <code>end</code>,</li>
-     *     <li><code>step</code> must be specified accordingly to the boundaries, if <code>start < end</code> it must be positive (and vice-versa),</li>
-     *     <li>all elements in the range must be <code>>= 0</code>, meaning the same for <code>start</code>, but not for <code>end</code>, which can be negative,</li>
-     *     <li>if <code>fill > 0</code>, no element must in it's base representation have more digits than defined by the parameter.</li>
+     *     <li><code>step</code> must be specified accordingly to the boundaries, if <code>start &lt; end</code> it must be positive (and vice-versa),</li>
+     *     <li>all elements in the range must be <code>&gt;= 0</code>, meaning the same for <code>start</code>, but not for <code>end</code>, which can be negative,</li>
+     *     <li>if <code>fill &gt; 0</code>, no element must in it's base representation have more digits than defined by the parameter.</li>
      * </ul>
      * If any of the conditions above is not met, an {@link IllegalArgumentException} is thrown.
      *
@@ -50,7 +50,8 @@ public interface Segment {
      * @param step  difference between each 2 elements in the range (step needed to make to get from element <i>i</i>
      *              to
      *              <i>i+1</i>)
-     * @param fill  filling parameter (or <code><= 0</code> to disable)
+     * @param fill  filling parameter (or <code>&lt;= 0</code> to disable)
+     * @return the created segment
      */
     static Segment range(int start, int end, int step, int fill) {
         return new RangeSegment(start, end, step, fill);
@@ -70,8 +71,8 @@ public interface Segment {
      * <ul>
      *     <li><code>step</code> must not be equal to <code>0</code>,</li>
      *     <li><code>start</code> cannot be equal to <code>end</code>,</li>
-     *     <li><code>step</code> must be specified accordingly to the boundaries, if <code>start < end</code> it must be positive (and vice-versa),</li>
-     *     <li>all elements in the range must be <code>>= 0</code>, meaning the same for <code>start</code>, but not for <code>end</code>, which can be negative.</li>
+     *     <li><code>step</code> must be specified accordingly to the boundaries, if <code>start &lt; end</code> it must be positive (and vice-versa),</li>
+     *     <li>all elements in the range must be <code>&gt;= 0</code>, meaning the same for <code>start</code>, but not for <code>end</code>, which can be negative.</li>
      * </ul>
      * If any of the conditions above is not met, an {@link IllegalArgumentException} is thrown.
      *
@@ -80,6 +81,7 @@ public interface Segment {
      * @param step  difference between each 2 elements in the range (step needed to make to get from element <i>i</i>
      *              to
      *              <i>i+1</i>)
+     * @return the created segment
      * @see #range(int, int, int, int)
      */
     static Segment range(int start, int end, int step) {
@@ -90,17 +92,18 @@ public interface Segment {
      * Creates a segment from the given range.
      * <p>
      * The range is defined by <code>start</code> (inclusive) and <code>end</code> (exclusive) boundaries. Step is equal
-     * to <code>1</code> if <code>start < end</code>, <code>-1</code> otherwise. Filling is disabled.
+     * to <code>1</code> if <code>start &lt; end</code>, <code>-1</code> otherwise. Filling is disabled.
      * <p>
      * <b>Please mind following:</b>
      * <ul>
      *     <li><code>start</code> cannot be equal to <code>end</code>,</li>
-     *     <li>all elements in the range must be <code>>= 0</code>, meaning the same for <code>start</code>, but not for <code>end</code>, which can be negative.</li>
+     *     <li>all elements in the range must be <code>&gt;= 0</code>, meaning the same for <code>start</code>, but not for <code>end</code>, which can be negative.</li>
      * </ul>
      * If any of the conditions above is not met, an {@link IllegalArgumentException} is thrown.
      *
      * @param start starting boundary (inclusive) of the range, also the 1st element in the range
      * @param end   ending boundary (exclusive) of the range
+     * @return the created segment
      * @see #range(int, int, int, int)
      */
     static Segment range(int start, int end) {
@@ -111,6 +114,7 @@ public interface Segment {
      * Creates a segment with the given elements.
      *
      * @param elements the elements
+     * @return the created segment
      */
     static Segment literal(String... elements) {
         return new LiteralSegment(elements);
@@ -136,7 +140,7 @@ public interface Segment {
     /**
      * Returns i-th element in the segment's definition (1st element being represented by <code>0</code>).
      * <p>
-     * It must apply that <code>0 <= i < length()</code>, otherwise, an {@link IndexOutOfBoundsException} will be
+     * It must apply that <code>0 &lt;= i &lt; length()</code>, otherwise, an {@link IndexOutOfBoundsException} will be
      * thrown.
      *
      * @param index the index
@@ -148,7 +152,7 @@ public interface Segment {
      * Returns length (in characters) of the i-th element in the segment's definition (1st element being represented by
      * <code>0</code>).
      * <p>
-     * It must apply that <code>0 <= i < length()</code>, otherwise, an {@link IndexOutOfBoundsException} will be
+     * It must apply that <code>0 &lt;= i &lt; length()</code>, otherwise, an {@link IndexOutOfBoundsException} will be
      * thrown.
      *
      * @param index the index

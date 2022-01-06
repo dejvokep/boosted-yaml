@@ -74,10 +74,10 @@ public class Version implements Comparable<Version> {
     /**
      * Returns the cursor corresponding to pattern's segment at the given index.
      * <p>
-     * The given index must be <code>>= 0</code>, simultaneously less than the amount of segments defining the {@link
+     * The given index must be <code>&gt;= 0</code>, simultaneously less than the amount of segments defining the {@link
      * #getPattern() pattern}.
      * <p>
-     * The returned cursor is guaranteed to be <code>>= 0</code> and less than {@link Segment#length()}.
+     * The returned cursor is guaranteed to be <code>&gt;= 0</code> and less than {@link Segment#length()}.
      *
      * @param index the index of the cursor to return
      * @return the cursor
@@ -92,7 +92,7 @@ public class Version implements Comparable<Version> {
      * More formally, shifts the cursor of the least significant segment (on the right). If it is the last element in
      * the segment's definition, shifts the cursor of 2nd least significant part (just to the left), etc.
      * <p>
-     * For example, <code>1.2</code> > <code>1.3</code> (depending on the pattern configuration, just for
+     * For example, <code>1.2</code> &gt; <code>1.3</code> (depending on the pattern configuration, just for
      * illustration).
      */
     public void next() {

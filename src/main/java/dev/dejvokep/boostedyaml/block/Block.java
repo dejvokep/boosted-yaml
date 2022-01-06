@@ -20,6 +20,7 @@ import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
+import org.snakeyaml.engine.v2.comments.CommentType;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
@@ -102,15 +103,12 @@ public abstract class Block<T> {
         //If not null
         if (key != null) {
             // Set
-            beforeKeyComments = key.getBlockComments();
-            inlineKeyComments = key.getInLineComments();
-            // Manage end comments
-            if (key.getEndComments() != null) {
-                if (beforeKeyComments == null)
-                    beforeKeyComments = key.getEndComments();
-                else
-                    beforeKeyComments.addAll(key.getEndComments());
-            }
+            beforeKeyComments = key.getBlockComments() == null ? new ArrayList<>(0) : key.getBlockComments();
+            // Manage comments
+            if (key.getInLineComments() != null)
+                beforeKeyComments.addAll(toBlockComments(key.getInLineComments()));
+            if (key.getEndComments() != null)
+                beforeKeyComments.addAll(toBlockComments(key.getEndComments()));
             // Collect
             collectComments(key, true);
         }
@@ -119,14 +117,14 @@ public abstract class Block<T> {
         if (value != null) {
             // Set
             beforeValueComments = value.getBlockComments();
-            inlineValueComments = value.getInLineComments();
-            // Manage end comments
-            if (value.getEndComments() != null) {
-                if (beforeKeyComments == null)
-                    beforeKeyComments = value.getEndComments();
-                else
-                    beforeKeyComments.addAll(value.getEndComments());
-            }
+            // Verify
+            if (beforeKeyComments == null)
+                beforeKeyComments = new ArrayList<>(0);
+            // Manage comments
+            if (value.getInLineComments() != null)
+                beforeKeyComments.addAll(toBlockComments(value.getInLineComments()));
+            if (value.getEndComments() != null)
+                beforeKeyComments.addAll(toBlockComments(value.getEndComments()));
             // Collect
             collectComments(value, true);
         }
@@ -143,11 +141,11 @@ public abstract class Block<T> {
         // Add
         if (!initial) {
             if (node.getBlockComments() != null)
-                beforeKeyComments.addAll(node.getBlockComments());
+                beforeKeyComments.addAll(toBlockComments(node.getBlockComments()));
             if (node.getInLineComments() != null)
-                beforeKeyComments.addAll(node.getInLineComments());
+                beforeKeyComments.addAll(toBlockComments(node.getInLineComments()));
             if (node.getEndComments() != null)
-                beforeKeyComments.addAll(node.getEndComments());
+                beforeKeyComments.addAll(toBlockComments(node.getEndComments()));
         } else {
             // Ensure not null
             if (beforeKeyComments == null)
@@ -172,6 +170,13 @@ public abstract class Block<T> {
                 collectComments(sub.getValueNode(), false);
             }
         }
+    }
+
+    private List<CommentLine> toBlockComments(@NotNull List<CommentLine> commentLines) {
+        int i = -1;
+        for (CommentLine commentLine : commentLines)
+            commentLines.set(++i, commentLine.getCommentType() != CommentType.IN_LINE ? commentLine : new CommentLine(commentLine.getStartMark(), commentLine.getEndMark(), commentLine.getValue(), CommentType.BLOCK));
+        return commentLines;
     }
 
     /**
