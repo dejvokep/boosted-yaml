@@ -45,7 +45,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<String>> toStringList(@Nullable List<?> value) {
-        return construct(value, o -> Optional.ofNullable(o instanceof String || o instanceof Number || o instanceof Boolean ? o.toString() : null));
+        return construct(value, o -> Optional.ofNullable(o.toString()));
     }
 
     /**
@@ -194,9 +194,14 @@ public class ListConversions {
         //Output
         List<T> list = new ArrayList<>();
         //All elements
-        for (Object element : value)
+        for (Object element : value) {
+            //If null
+            if (element == null)
+                continue;
+
             //Add
             mapper.apply(element).ifPresent(list::add);
+        }
 
         //Return
         return Optional.of(list);
