@@ -15,16 +15,16 @@
  */
 package dev.dejvokep.boostedyaml;
 
-import dev.dejvokep.boostedyaml.block.Block;
-import dev.dejvokep.boostedyaml.block.Comments;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
-import dev.dejvokep.boostedyaml.updater.Updater;
 import dev.dejvokep.boostedyaml.engine.ExtendedConstructor;
 import dev.dejvokep.boostedyaml.engine.ExtendedRepresenter;
+import dev.dejvokep.boostedyaml.serialization.standard.TypeAdapter;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.MergeRule;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -184,8 +184,16 @@ public class YamlFile extends Section {
             return;
         }
 
+        //Dump
+        String dump = defaults.dump();
+        //Save
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
+            //Save
+            writer.write(dump);
+        }
+
         //Load the defaults
-        reload(new BufferedInputStream(new ByteArrayInputStream(defaults.dump().getBytes(StandardCharsets.UTF_8))));
+        reload(new BufferedInputStream(new ByteArrayInputStream(dump.getBytes(StandardCharsets.UTF_8))));
     }
 
     /**
@@ -196,22 +204,20 @@ public class YamlFile extends Section {
      * @throws IOException an IO error
      */
     public void reload(@NotNull InputStream inputStream) throws IOException {
-        reload(inputStream, loaderSettings, generalSettings);
+        reload(inputStream, loaderSettings);
     }
 
     /**
-     * Reloads the contents from the given stream and using the given settings.
+     * Reloads the contents from the given stream and using the given settings and associated {@link #getGeneralSettings()}.
      *
      * @param inputStream     stream to load the contents from
      * @param loaderSettings  the loader settings to use for this reload
-     * @param generalSettings the general settings to use for this reload
      * @throws IOException an IO error
      */
-    public void reload(@NotNull InputStream inputStream, @NotNull LoaderSettings loaderSettings, @NotNull GeneralSettings generalSettings) throws IOException {
+    public void reload(@NotNull InputStream inputStream, @NotNull LoaderSettings loaderSettings) throws IOException {
         //Validate
         Objects.requireNonNull(inputStream, "Input stream cannot be null!");
         Objects.requireNonNull(loaderSettings, "Loader settings cannot be null!");
-        Objects.requireNonNull(generalSettings, "General settings cannot be null!");
         //Clear
         clear();
 
@@ -222,17 +228,22 @@ public class YamlFile extends Section {
         //Create the parser and composer
         Parser parser = new ParserImpl(settings, new StreamReader(settings, new YamlUnicodeReader(inputStream)));
         Composer composer = new Composer(settings, parser);
-        //Drop the first event
-        parser.next();
-        //Node
-        Node node = composer.next();
-        //Construct
-        constructor.constructSingleDocument(Optional.of(node));
 
-        //Init
-        init(this, null, (MappingNode) node, constructor);
-        //Clear
-        constructor.clear();
+        //If there's no next document (also drops stream start)
+        if (composer.hasNext()) {
+            //Node
+            Node node = composer.next();
+            //Construct
+            constructor.constructSingleDocument(Optional.of(node));
+
+            //Init
+            init(this, null, (MappingNode) node, constructor);
+            //Clear
+            constructor.clear();
+        } else {
+            //Init
+            initEmpty(this);
+        }
 
         //If enabled
         if (file != null && loaderSettings.isCreateFileIfAbsent() && !file.exists()) {
@@ -308,7 +319,7 @@ public class YamlFile extends Section {
     }
 
     /**
-     * Updates the contents against the given defaults using the given settings.
+     * Updates the contents against the given defaults using the given settings and associated {@link #getGeneralSettings()}.
      *
      * @param defaults        defaults to update against (will be loaded using the associated settings)
      * @param updaterSettings updater settings to use for this update
@@ -341,7 +352,7 @@ public class YamlFile extends Section {
      * If there is no associated user file, returns <code>false</code> (use other saving methods). Returns
      * <code>true</code> otherwise.
      * <p>
-     * <b>Does not include the defaults</b>.
+     * <b>Does not include the defaults.</b>
      *
      * @return if there is any associated (user) file
      * @throws IOException an IO error
@@ -360,15 +371,15 @@ public class YamlFile extends Section {
      * Saves the contents into the given file using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
      * <p>
-     * <b>Does not include the defaults</b>.
+     * <b>Does not include the defaults.</b>
      *
      * @param file file to save to
      * @throws IOException an IO error
      */
     public void save(@NotNull File file) throws IOException {
-        try (FileWriter fileWriter = new FileWriter(file)) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
             //Save
-            save(fileWriter);
+            writer.write(dump());
         }
     }
 
@@ -376,10 +387,10 @@ public class YamlFile extends Section {
      * Saves the contents to the given stream using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
      * <p>
-     * <b>Does not include the defaults</b>.
+     * <b>Does not include the defaults.</b>
      *
      * @param stream  stream to save to
-     * @param charset charset to use
+     * @param charset charset to use to for bytes
      * @throws IOException an IO error
      */
     public void save(@NotNull OutputStream stream, Charset charset) throws IOException {
@@ -390,7 +401,7 @@ public class YamlFile extends Section {
      * Saves the contents to the given stream using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
      * <p>
-     * <b>Does not include the defaults</b>.
+     * <b>Does not include the defaults.</b>
      *
      * @param writer writer to save to
      * @throws IOException an IO error
@@ -403,24 +414,23 @@ public class YamlFile extends Section {
      * Dumps the contents to a string using the associated settings ({@link #getDumperSettings()} and {@link
      * #getGeneralSettings()}).
      * <p>
-     * <b>Does not include the defaults</b>.
+     * <b>Does not include the defaults.</b>
      *
      * @return the dumped contents
      */
     public String dump() {
-        return dump(dumperSettings, generalSettings);
+        return dump(dumperSettings);
     }
 
     /**
-     * Dumps the contents to a string using the given settings.
+     * Dumps the contents to a string using the given settings and associated {@link #getGeneralSettings()}.
      * <p>
-     * <b>Does not include the defaults</b>.
+     * <b>Does not include the defaults.</b>
      *
      * @param dumperSettings  dumper settings to use for this dump
-     * @param generalSettings general settings to use for this dump
      * @return the dumped contents
      */
-    public String dump(DumperSettings dumperSettings, GeneralSettings generalSettings) {
+    public String dump(DumperSettings dumperSettings) {
         //Create the settings
         DumpSettings settings = dumperSettings.buildEngineSettings();
         //Output
@@ -430,11 +440,11 @@ public class YamlFile extends Section {
 
         //Serializer
         Serializer serializer = new Serializer(settings, new Emitter(settings, stream));
-        serializer.open();
+        serializer.emitStreamStart();
         //Serialize
-        serializer.serialize(representer.represent(this));
+        serializer.serializeDocument(representer.represent(this));
         //Close
-        serializer.close();
+        serializer.emitStreamEnd();
 
         //Return
         return stream.toString();
@@ -475,7 +485,7 @@ public class YamlFile extends Section {
      * <p>
      * <b>WARNING!</b>
      * <ul>
-     *     <li>Never change the key mode! Such attempts will result in a {@link IllegalArgumentException}.</li>
+     *     <li>Never change the key mode! Such attempts will result in an {@link IllegalArgumentException}.</li>
      *     <li>If the default {@link GeneralSettings#getDefaultList() list}, {@link GeneralSettings#getDefaultMap() map}
      *     or {@link GeneralSettings#getDefaultSet() set} was changed, already existing instances will not be changed.
      *     Reload to take effect.</li>
@@ -584,7 +594,7 @@ public class YamlFile extends Section {
     //
 
     /**
-     * Loads the given user file and defaults, which are given (associated to) the same settings.
+     * Loads the given user file and defaults, which are given (associated) the same settings.
      * <p>
      * Associates the given user file, loaded defaults and settings.
      *
@@ -602,7 +612,7 @@ public class YamlFile extends Section {
     }
 
     /**
-     * Loads the given user file and defaults, which are given (associated to) the same settings.
+     * Loads the given user file and defaults, which are given (associated) the same settings.
      * <p>
      * Associates the given user file, loaded defaults and all default settings ({@link GeneralSettings#DEFAULT}, {@link
      * LoaderSettings#DEFAULT}...).
@@ -617,7 +627,7 @@ public class YamlFile extends Section {
     }
 
     /**
-     * Loads the given user file and defaults, which are given (associated to) the same settings.
+     * Loads the given user file and defaults, which are given (associated) the same settings.
      * <p>
      * Associates the loaded defaults and settings.
      *
@@ -635,7 +645,7 @@ public class YamlFile extends Section {
     }
 
     /**
-     * Loads the given user file and defaults, which are given (associated to) the same settings.
+     * Loads the given user file and defaults, which are given (associated) the same settings.
      * <p>
      * Associates the loaded defaults and all default settings ({@link GeneralSettings#DEFAULT}, {@link
      * LoaderSettings#DEFAULT}...).

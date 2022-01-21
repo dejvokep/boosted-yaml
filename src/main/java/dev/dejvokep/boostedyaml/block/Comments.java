@@ -79,7 +79,7 @@ public class Comments {
     /**
      * Comment representing a blank line.
      */
-    public static final CommentLine BLANK_LINE = new CommentLine(Optional.empty(), Optional.empty(), null, CommentType.BLANK_LINE);
+    public static final CommentLine BLANK_LINE = new CommentLine(Optional.empty(), Optional.empty(), "", CommentType.BLANK_LINE);
 
     /**
      * Returns comments at the given position.

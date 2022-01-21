@@ -34,11 +34,11 @@ public interface TypeAdapter<T> {
     /**
      * Serializes the given instance into a map.
      * <p>
-     * The returned map does not need to (but may) contain the type identifier <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>. Type identifier is one entry in
-     * the top-level map (the one returned), where the key is defined by the serializer (<code>==</code> for {@link
-     * StandardSerializer#DEFAULT}) and the value identifies the serialized type - either by the full canonical
-     * classname (e.g. <code>me.name.project.objects.CustomObject</code>) or it's alias. <b>Both must also be
-     * registered</b>.
+     * The returned map does not need to (but may) contain the type identifier <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
+     * Type identifier is one entry in the top-level map (the one returned), where the key is defined by the serializer
+     * (<code>==</code> for {@link StandardSerializer#defaultSerializer}) and the value identifies the serialized type - either by
+     * the full canonical classname (e.g. <code>me.name.project.objects.CustomObject</code>) or it's alias. <b>Both must
+     * also be registered</b>.
      * <p>
      * If the returned map does not contain the identifier, the {@link StandardSerializer serializer} will automatically
      * use the full classname.
@@ -54,7 +54,7 @@ public interface TypeAdapter<T> {
      * <p>
      * The given map is a raw object map; there are no {@link Block} instances, just native Java objects themselves.
      * <p>
-     * Use {@link #toStringMap(Map)} to convert the map.
+     * Use {@link #toStringKeyMap(Map)} to convert the map.
      *
      * @param map the raw map to deserialize
      * @return the deserialized object
@@ -63,19 +63,20 @@ public interface TypeAdapter<T> {
     T deserialize(@NotNull Map<Object, Object> map);
 
     /**
-     * Converts this map (including all sub-maps) to string=value map.
+     * Converts this map (including all sub-maps) to string=value {@link HashMap}.
      *
      * @param map the map to convert
      * @return the converted map
      */
-    static Map<String, Object> toStringMap(@NotNull Map<?, ?> map) {
+    @NotNull
+    default Map<String, Object> toStringKeyMap(@NotNull Map<?, ?> map) {
         // New map
         Map<String, Object> newMap = new HashMap<>();
         // Iterate
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             // If the value is a map
             if (entry.getValue() instanceof Map)
-                newMap.put(entry.getKey().toString(), toStringMap((Map<?, ?>) entry.getValue()));
+                newMap.put(entry.getKey().toString(), toStringKeyMap((Map<?, ?>) entry.getValue()));
             else
                 newMap.put(entry.getKey().toString(), entry.getValue());
         }

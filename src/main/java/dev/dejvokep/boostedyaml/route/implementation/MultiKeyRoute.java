@@ -36,7 +36,7 @@ public class MultiKeyRoute implements Route {
      * The given array cannot contain <code>null</code> keys.
      * <p>
      * Empty array is considered illegal and will throw an {@link IllegalArgumentException}. Call with <code>null</code>
-     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) is will throw a {@link
+     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) will throw a {@link
      * NullPointerException}.
      * <p>
      * The given keys are traversed in order as they were specified - just like folders: assuming route <code>["x",

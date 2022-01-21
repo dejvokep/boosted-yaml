@@ -84,9 +84,9 @@ public class NumericConversions {
      * Converts a number to the target type. It must be guaranteed that the given object is an instance of {@link
      * Number} and {@link #NUMERICAL_CLASSES} must contain the target class.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations
-     * and one
-     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
+     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical
+     * representations and one of each kind. Casting between any primitive type, and it's non-primitive representation
+     * is also supported.
      *
      * @param value  the value to convert
      * @param target the target type

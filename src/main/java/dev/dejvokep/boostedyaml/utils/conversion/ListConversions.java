@@ -34,7 +34,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of strings from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -50,7 +50,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of integers from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -66,7 +66,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of big integers from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -82,7 +82,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of bytes from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -98,7 +98,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of longs from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -114,7 +114,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of doubles from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -130,7 +130,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of floats from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -146,7 +146,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of shorts from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -162,7 +162,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of maps from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an non-map element, it is
      * skipped and will not appear in the returned list.

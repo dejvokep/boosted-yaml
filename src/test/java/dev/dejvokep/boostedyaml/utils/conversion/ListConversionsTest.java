@@ -51,7 +51,7 @@ class ListConversionsTest {
         assertFalse(ListConversions.toStringList(null).isPresent());
         assertTrue(ListConversions.toStringList(LIST).map(list -> {
             //Assert the size
-            assertEquals(9, list.size());
+            assertEquals(10, list.size());
             //Assert individual elements
             assertEquals("x", list.get(0));
             assertEquals("true", list.get(1));
@@ -62,6 +62,9 @@ class ListConversionsTest {
             assertEquals(String.valueOf(Double.MAX_VALUE), list.get(6));
             assertEquals(String.valueOf(Float.MAX_VALUE), list.get(7));
             assertEquals(String.valueOf(Short.MAX_VALUE), list.get(8));
+            assertEquals(new HashMap<String, String>(){{
+                put("x", "y");
+            }}.toString(), list.get(9));
             //Return
             return list;
         }).isPresent());

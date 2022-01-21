@@ -31,14 +31,14 @@ import java.util.Set;
 public class StandardSerializer implements YamlSerializer {
 
     /**
-     * Default key for serialized class identifier. Used by the default serializer {@link #DEFAULT}.
+     * Default key for serialized class identifier. Used by the default serializer {@link #defaultSerializer}.
      */
     public static final String DEFAULT_SERIALIZED_TYPE_KEY = "==";
 
     /**
      * The default serializer.
      */
-    public static final StandardSerializer DEFAULT = new StandardSerializer(DEFAULT_SERIALIZED_TYPE_KEY);
+    private static final StandardSerializer defaultSerializer = new StandardSerializer(DEFAULT_SERIALIZED_TYPE_KEY);
 
     //Registered classes
     private final Map<Class<?>, TypeAdapter<?>> adapters = new HashMap<>();
@@ -56,15 +56,15 @@ public class StandardSerializer implements YamlSerializer {
     }
 
     /**
-     * Registers the given type for serialization. The type now will be recognizable by its full classname
-     * (e.g. <code>me.name.project.objects.Custom</code>).
+     * Registers the given type for serialization. The type now will be recognizable by its full classname (e.g.
+     * <code>me.name.project.objects.Custom</code>).
      * <p>
      * If you also want to set an alias (maybe for compatibility reasons), please use {@link #register(String, Class)}
      * afterwards.
      *
-     * @param clazz the class of the type to register
+     * @param clazz   the class of the type to register
      * @param adapter adapter for the type
-     * @param <T> type to register
+     * @param <T>     type to register
      */
     public <T> void register(@NotNull Class<T> clazz, @NotNull TypeAdapter<T> adapter) {
         adapters.put(clazz, adapter);
@@ -78,7 +78,7 @@ public class StandardSerializer implements YamlSerializer {
      *
      * @param clazz the class to register
      * @param alias alias for the class to register
-     * @param <T> type to register
+     * @param <T>   type to register
      */
     public <T> void register(@NotNull String alias, @NotNull Class<T> clazz) {
         //If not registered
@@ -130,5 +130,14 @@ public class StandardSerializer implements YamlSerializer {
     @Override
     public Set<Class<?>> getSupportedParentClasses() {
         return Collections.emptySet();
+    }
+
+    /**
+     * Returns the default serializer.
+     *
+     * @return the default serializer
+     */
+    public static StandardSerializer getDefault() {
+        return defaultSerializer;
     }
 }

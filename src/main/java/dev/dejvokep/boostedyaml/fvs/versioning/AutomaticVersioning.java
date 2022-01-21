@@ -84,9 +84,9 @@ public class AutomaticVersioning implements Versioning {
     }
 
     /**
-     * Returns the parsed version from the given section, at path and parsed using pattern given in the constructor.
+     * Returns the parsed version from the given section, at the route and parsed using pattern given in the constructor.
      * <p>
-     * If not a string is present at the path, returns <code>null</code>. If the found ID cannot be parsed using the
+     * If not a string is present at the route, returns <code>null</code>. If the found ID cannot be parsed using the
      * pattern, an {@link IllegalArgumentException} is thrown (see {@link Pattern#getVersion(String)}).
      *
      * @param section the section to get the version from

@@ -77,7 +77,7 @@ public class GeneralSettings {
     /**
      * Default serializer.
      */
-    public static final YamlSerializer DEFAULT_SERIALIZER = StandardSerializer.DEFAULT;
+    public static final YamlSerializer DEFAULT_SERIALIZER = StandardSerializer.getDefault();
     /**
      * Default object.
      */
