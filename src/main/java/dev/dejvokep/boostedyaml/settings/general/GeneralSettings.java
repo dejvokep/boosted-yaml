@@ -335,6 +335,30 @@ public class GeneralSettings {
     }
 
     /**
+     * Returns a new builder with the same configuration as the given settings.
+     *
+     * @return the new builder
+     */
+    public static Builder builder(GeneralSettings settings) {
+        //Builder
+        Builder builder = builder();
+        //Set all
+        builder.setKeyMode(settings.getKeyMode());
+        builder.setSeparator(settings.getSeparator());
+        builder.setSerializer(settings.getSerializer());
+        builder.setDefaultObject(settings.getDefaultObject());
+        builder.setDefaultNumber(settings.getDefaultNumber());
+        builder.setDefaultString(settings.getDefaultString());
+        builder.setDefaultChar(settings.getDefaultChar());
+        builder.setDefaultBoolean(settings.getDefaultBoolean());
+        builder.setDefaultList(settings.defaultList);
+        builder.setDefaultSet(settings.defaultSet);
+        builder.setDefaultMap(settings.defaultMap);
+        //Return
+        return builder;
+    }
+
+    /**
      * Builder for general settings.
      */
     public static class Builder {
