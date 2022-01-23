@@ -453,6 +453,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * It is guaranteed that call to {@link #contains(Route)} with any route from the returned set will return
      * <code>true</code> (unless modified in between).
+     * <p>
+     * The returned map will also contain routes from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. To disable, use {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
      *
      * @param deep if to get routes deeply (from sub-sections)
      * @return the complete set of routes
@@ -461,11 +464,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Set<Route> getRoutes(boolean deep) {
         //Create a set
         Set<Route> keys = root.getGeneralSettings().getDefaultSet();
-        //Add
-        addData((route, entry) -> keys.add(route), null, deep);
         //Add defaults
         if (defaults != null && root.getGeneralSettings().isUseDefaults())
             keys.addAll(defaults.getRoutes(deep));
+        //Add
+        addData((route, entry) -> keys.add(route), null, deep);
         //Return
         return keys;
     }
@@ -486,6 +489,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * It is guaranteed that call to {@link #contains(String)} with any route from the returned set will return
      * <code>true</code> (unless modified in between).
+     * <p>
+     * The returned map will also contain routes from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. To disable, use {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
      *
      * @param deep if to get routes deeply
      * @return the complete set of string routes
@@ -494,11 +500,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Set<String> getRoutesAsStrings(boolean deep) {
         //Create a set
         Set<String> keys = root.getGeneralSettings().getDefaultSet();
-        //Add
-        addData((route, entry) -> keys.add(route), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
         //Add defaults
         if (defaults != null && root.getGeneralSettings().isUseDefaults())
             keys.addAll(defaults.getRoutesAsStrings(deep));
+        //Add
+        addData((route, entry) -> keys.add(route), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
         //Return
         return keys;
     }
@@ -508,6 +514,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, returns the key set of the underlying map. The returned set is an instance of {@link
      * GeneralSettings#getDefaultSet()}.
+     * <p>
+     * The returned map will also contain keys from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. To disable, use {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
      *
      * @return the complete set of keys directly contained within this (only; not sub-) section
      * @see #getRoutes(boolean)
@@ -517,11 +526,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Set<Object> getKeys() {
         //Create a set
         Set<Object> keys = root.getGeneralSettings().getDefaultSet(getStoredValue().size());
-        //Add all
-        keys.addAll(getStoredValue().keySet());
         //Add defaults
         if (defaults != null && root.getGeneralSettings().isUseDefaults())
             keys.addAll(defaults.getKeys());
+        //Add all
+        keys.addAll(getStoredValue().keySet());
         //Return
         return keys;
     }
@@ -552,6 +561,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * It is guaranteed that call to {@link #get(Route)} with any route from the returned map will return the value
      * assigned to that route in the returned map (unless modified in between).
+     * <p>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. To disable, use {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
      *
      * @param deep if to get values from sub-sections too
      * @return the complete map of <i>route=value</i> pairs
@@ -560,11 +572,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Map<Route, Object> getRouteMappedValues(boolean deep) {
         //Create a map
         Map<Route, Object> values = root.getGeneralSettings().getDefaultMap();
-        //Add
-        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), null, deep);
         //Add defaults
         if (defaults != null && root.getGeneralSettings().isUseDefaults())
             values.putAll(defaults.getRouteMappedValues(deep));
+        //Add
+        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), null, deep);
         //Return
         return values;
     }
@@ -586,6 +598,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * It is guaranteed that call to {@link #get(String)} with any route from the returned map will return the value
      * assigned to that route in the returned map (unless modified in between).
+     * <p>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. To disable, use {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
      *
      * @param deep if to get values from sub-sections too
      * @return the complete map of <i>string route=value</i> pairs, including sections
@@ -594,11 +609,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Map<String, Object> getStringMappedValues(boolean deep) {
         //Create a map
         Map<String, Object> values = root.getGeneralSettings().getDefaultMap();
-        //Add
-        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
         //Add defaults
         if (defaults != null && root.getGeneralSettings().isUseDefaults())
             values.putAll(defaults.getStringMappedValues(deep));
+        //Add
+        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
         //Return
         return values;
     }
@@ -629,6 +644,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * It is guaranteed that call to {@link #getBlock(Route)} with any route from the returned map will return the block
      * assigned to that route in the returned map (unless modified in between).
+     * <p>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. To disable, use {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
      *
      * @param deep if to get blocks from sub-sections too
      * @return the complete map of <i>route=block</i> pairs
@@ -637,11 +655,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Map<Route, Block<?>> getRouteMappedBlocks(boolean deep) {
         //Create map
         Map<Route, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
-        //Add
-        addData((route, entry) -> blocks.put(route, entry.getValue()), null, deep);
         //Add defaults
         if (defaults != null && root.getGeneralSettings().isUseDefaults())
             blocks.putAll(defaults.getRouteMappedBlocks(deep));
+        //Add
+        addData((route, entry) -> blocks.put(route, entry.getValue()), null, deep);
         //Return
         return blocks;
     }
@@ -663,6 +681,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * It is guaranteed that call to {@link #getBlock(String)} with any route from the returned map will return the
      * block assigned to that route in the returned map (unless modified in between).
+     * <p>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. To disable, use {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
      *
      * @param deep if to get blocks from sub-sections too
      * @return the complete map of <i>route=block</i> pairs
@@ -671,11 +692,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Map<String, Block<?>> getStringMappedBlocks(boolean deep) {
         //Create map
         Map<String, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
-        //Add
-        addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
         //Add defaults
         if (defaults != null && root.getGeneralSettings().isUseDefaults())
             blocks.putAll(defaults.getStringMappedBlocks(deep));
+        //Add
+        addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
         //Return
         return blocks;
     }

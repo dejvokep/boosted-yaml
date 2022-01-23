@@ -213,6 +213,11 @@ public class GeneralSettings {
         return serializer;
     }
 
+    /**
+     * Returns if to use defaults in {@link Section} methods.
+     *
+     * @return if to use defaults
+     */
     public boolean isUseDefaults() {
         return useDefaults;
     }
