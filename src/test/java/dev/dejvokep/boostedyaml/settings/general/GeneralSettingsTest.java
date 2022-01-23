@@ -51,6 +51,12 @@ class GeneralSettingsTest {
     }
 
     @Test
+    void isUseDefaults() {
+        assertTrue(GeneralSettings.builder().setUseDefaults(true).build().isUseDefaults());
+        assertFalse(GeneralSettings.builder().setUseDefaults(false).build().isUseDefaults());
+    }
+
+    @Test
     void getDefaultObject() {
         Object o = new Object();
         assertEquals(o, GeneralSettings.builder().setDefaultObject(o).build().getDefaultObject());
