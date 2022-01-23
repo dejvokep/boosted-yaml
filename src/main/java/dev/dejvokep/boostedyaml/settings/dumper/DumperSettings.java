@@ -15,6 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.dumper;
 
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -112,6 +113,15 @@ public class DumperSettings {
      */
     public static Builder builder(DumpSettingsBuilder builder) {
         return new Builder(builder);
+    }
+
+    /**
+     * Returns a new builder with the same configuration as the given settings.
+     *
+     * @return the new builder
+     */
+    public static Builder builder(DumperSettings settings) {
+        return builder(settings.builder).setAnchorGenerator(settings.generatorSupplier);
     }
 
     /**

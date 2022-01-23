@@ -233,6 +233,24 @@ public class UpdaterSettings {
     }
 
     /**
+     * Returns a new builder with the same configuration as the given settings.
+     *
+     * @return the new builder
+     */
+    public static Builder builder(UpdaterSettings settings) {
+        return builder()
+                .setAutoSave(settings.autoSave)
+                .setEnableDowngrading(settings.enableDowngrading)
+                .setKeepAll(settings.keepAll)
+                .setMergeRules(settings.mergeRules)
+                .setKeepRoutes(settings.keep)
+                .setStringKeepRoutes(settings.stringKeep)
+                .setRelocations(settings.relocations)
+                .setStringRelocations(settings.stringRelocations)
+                .setVersioning(settings.versioning);
+    }
+
+    /**
      * Builder for updater settings.
      */
     public static class Builder {

@@ -129,6 +129,17 @@ public class LoaderSettings {
     }
 
     /**
+     * Returns a new builder with the same configuration as the given settings.
+     *
+     * @return the new builder
+     */
+    public static Builder builder(LoaderSettings settings) {
+        return builder(settings.builder)
+                .setAutoUpdate(settings.autoUpdate)
+                .setCreateFileIfAbsent(settings.createFileIfAbsent);
+    }
+
+    /**
      * Builder for loader settings; wrapper for SnakeYAML Engine's {@link LoadSettingsBuilder} class which is more
      * detailed, provides more options and possibilities, hides options which should not be configured.
      */
