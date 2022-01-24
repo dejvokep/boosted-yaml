@@ -1829,7 +1829,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns string at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultString()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
@@ -1845,7 +1845,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns string at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultString()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
@@ -1963,7 +1963,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns char at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultChar()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
@@ -1980,7 +1980,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns char at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultChar()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
@@ -2103,7 +2103,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2119,7 +2119,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2237,7 +2237,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns big integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2254,7 +2254,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns big integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2367,7 +2367,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns boolean at the given route. If nothing is present at the given route, or is not a {@link Boolean} (or the
-     * primitive variant), returns default value defined by root's general settings {@link
+     * primitive variant), returns default defined by root's {@link
      * GeneralSettings#getDefaultBoolean()}<a href="#1"><sup>or default</sup></a>.
      *
      * @param route the route to get the boolean at
@@ -2380,7 +2380,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns boolean at the given route. If nothing is present at the given route, or is not a {@link Boolean} (or the
-     * primitive variant), returns default value defined by root's general settings {@link
+     * primitive variant), returns default defined by root's {@link
      * GeneralSettings#getDefaultBoolean()}<a href="#1"><sup>or default</sup></a>.
      *
      * @param route the route to get the boolean at
@@ -2485,7 +2485,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns double at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2501,7 +2501,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns double at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2617,7 +2617,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns float at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2633,7 +2633,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns float at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2749,7 +2749,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns byte at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2765,7 +2765,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns byte at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2881,7 +2881,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns long at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -2897,7 +2897,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns long at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -3013,7 +3013,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns short at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -3029,7 +3029,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns short at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
+     * compatible type (see below), returns default defined by root's {@link
      * GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below)<a href="#1"><sup>or default</sup></a>.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
@@ -3301,7 +3301,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of strings at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3320,7 +3320,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of strings at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3429,7 +3429,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of integers at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3448,7 +3448,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of integers at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3557,7 +3557,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3576,7 +3576,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3685,7 +3685,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of bytes at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3704,7 +3704,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of bytes at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3813,7 +3813,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of longs at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3832,7 +3832,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of longs at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3941,7 +3941,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of doubles at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -3960,7 +3960,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of doubles at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -4069,7 +4069,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of floats at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -4088,7 +4088,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of floats at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -4197,7 +4197,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of shorts at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -4216,7 +4216,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of shorts at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -4331,7 +4331,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of maps at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
@@ -4352,7 +4352,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of maps at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#1"><sup>or default</sup></a>.
      * <p>
      * This method creates and returns newly created list of instance defined by root's general settings {@link
      * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
