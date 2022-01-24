@@ -176,7 +176,7 @@ class YamlFileTest {
         // Create
         YamlFile file = YamlFile.create(createStream("x: y\nb: 5"), createStream("m: 6"));
         // Assert
-        Assertions.assertEquals(2, file.getRouteMappedValues(true).size());
+        Assertions.assertEquals(3, file.getRouteMappedValues(true).size());
         Assertions.assertEquals("y", file.getString("x"));
         Assertions.assertEquals(5, file.getInt("b"));
         Assertions.assertEquals(1, file.getDefaults().getRouteMappedValues(true).size());
