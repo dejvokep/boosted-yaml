@@ -474,7 +474,7 @@ public class GeneralSettings {
          *                         <ul>
          *                             <li><b>2A.</b> Yes: Return it.</li>
          *                             <li>
-         *                                 <b>2B.</b> No: Is there an equivalent of this section in the defaults ({@link Section#getDefaults()})?
+         *                                 <b>2B.</b> No: Is there an equivalent of this section in the defaults ({@link Section#hasDefaults()})?
          *                                 <ul>
          *                                     <li>
          *                                         <b>3A.</b> Yes: Return the value returned by calling the same method on the default section equivalent ({@link Section#getDefaults()}).
