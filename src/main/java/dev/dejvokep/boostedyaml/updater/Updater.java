@@ -43,7 +43,7 @@ public class Updater {
     /**
      * Updater instance for calling non-static methods.
      */
-    private static final Updater UPDATER = new Updater();
+    private static final Updater instance = new Updater();
 
     /**
      * Updates the given user section using the given default equivalent and settings; with the result reflected in the
@@ -64,7 +64,8 @@ public class Updater {
      */
     public static void update(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Apply versioning stuff
-        UPDATER.runVersionDependent(userSection, defSection, updaterSettings, generalSettings.getSeparator());
+        if (instance.runVersionDependent(userSection, defSection, updaterSettings, generalSettings.getSeparator()))
+            return;
         //Merge
         Merger.merge(userSection, defSection, updaterSettings);
         //If present
@@ -95,13 +96,14 @@ public class Updater {
      * @param defaultSection the default section equivalent
      * @param settings       updater settings to use
      * @param separator      the route separator, used to split string-based relocations and force copy routes
+     * @return if the files are up-to-date, <code>false</code> otherwise
      */
-    private void runVersionDependent(@NotNull Section userSection, @NotNull Section defaultSection, @NotNull UpdaterSettings settings, char separator) {
+    private boolean runVersionDependent(@NotNull Section userSection, @NotNull Section defaultSection, @NotNull UpdaterSettings settings, char separator) {
         //Versioning
         Versioning versioning = settings.getVersioning();
         //If the versioning is not set
         if (versioning == null)
-            return;
+            return false;
 
         //Versions
         Version user = versioning.getUserSectionVersion(userSection), def = versioning.getDefSectionVersion(defaultSection);
@@ -118,7 +120,7 @@ public class Updater {
         if (compared > 0) {
             //If enabled
             if (settings.isEnableDowngrading())
-                return;
+                return false;
 
             //Throw an error
             throw new UnsupportedOperationException(String.format("Downgrading is not enabled (%s > %s)!", def.asID(), user.asID()));
@@ -126,7 +128,7 @@ public class Updater {
 
         //No update needed
         if (compared == 0)
-            return;
+            return true;
 
         // Keep routes
         Set<Route> keepRoutes = settings.getKeep(separator).getOrDefault(user.asID(), null);
@@ -141,6 +143,7 @@ public class Updater {
         Relocator relocator = new Relocator(userSection, user, def);
         //Apply all
         relocator.apply(settings.getRelocations(separator));
+        return false;
     }
 
 }

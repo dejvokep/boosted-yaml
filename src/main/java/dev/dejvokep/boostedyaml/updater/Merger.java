@@ -43,7 +43,7 @@ public class Merger {
     /**
      * Merger instance for calling non-static methods.
      */
-    private static final Merger MERGER = new Merger();
+    private static final Merger instance = new Merger();
 
     /**
      * Merges the given sections, with the result being the given user section.
@@ -63,7 +63,7 @@ public class Merger {
      * @see #iterate(Section, Section, UpdaterSettings)
      */
     public static void merge(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings settings) {
-        MERGER.iterate(userSection, defSection, settings);
+        instance.iterate(userSection, defSection, settings);
     }
 
     /**

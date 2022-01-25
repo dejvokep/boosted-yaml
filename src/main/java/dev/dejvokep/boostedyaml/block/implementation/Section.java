@@ -474,10 +474,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
         return hasDefaults() && root.getGeneralSettings().isUseDefaults();
     }
 
-    private boolean isInstance(Object o, Class<?> objectClazz, Class<?> primitiveClazz) {
-        return objectClazz.isInstance(o) || primitiveClazz.isInstance(o);
-    }
-
     //
     //
     //      -----------------------
@@ -514,7 +510,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create a set
         Set<Route> keys = root.getGeneralSettings().getDefaultSet();
         //Add defaults
-        if (defaults != null && root.getGeneralSettings().isUseDefaults())
+        if (canUseDefaults())
             keys.addAll(defaults.getRoutes(deep));
         //Add
         addData((route, entry) -> keys.add(route), null, deep);
@@ -550,7 +546,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create a set
         Set<String> keys = root.getGeneralSettings().getDefaultSet();
         //Add defaults
-        if (defaults != null && root.getGeneralSettings().isUseDefaults())
+        if (canUseDefaults())
             keys.addAll(defaults.getRoutesAsStrings(deep));
         //Add
         addData((route, entry) -> keys.add(route), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
@@ -576,7 +572,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create a set
         Set<Object> keys = root.getGeneralSettings().getDefaultSet(getStoredValue().size());
         //Add defaults
-        if (defaults != null && root.getGeneralSettings().isUseDefaults())
+        if (canUseDefaults())
             keys.addAll(defaults.getKeys());
         //Add all
         keys.addAll(getStoredValue().keySet());
@@ -622,7 +618,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create a map
         Map<Route, Object> values = root.getGeneralSettings().getDefaultMap();
         //Add defaults
-        if (defaults != null && root.getGeneralSettings().isUseDefaults())
+        if (canUseDefaults())
             values.putAll(defaults.getRouteMappedValues(deep));
         //Add
         addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), null, deep);
@@ -659,7 +655,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create a map
         Map<String, Object> values = root.getGeneralSettings().getDefaultMap();
         //Add defaults
-        if (defaults != null && root.getGeneralSettings().isUseDefaults())
+        if (canUseDefaults())
             values.putAll(defaults.getStringMappedValues(deep));
         //Add
         addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
@@ -705,7 +701,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create map
         Map<Route, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
         //Add defaults
-        if (defaults != null && root.getGeneralSettings().isUseDefaults())
+        if (canUseDefaults())
             blocks.putAll(defaults.getRouteMappedBlocks(deep));
         //Add
         addData((route, entry) -> blocks.put(route, entry.getValue()), null, deep);
@@ -742,7 +738,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //Create map
         Map<String, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
         //Add defaults
-        if (defaults != null && root.getGeneralSettings().isUseDefaults())
+        if (canUseDefaults())
             blocks.putAll(defaults.getStringMappedBlocks(deep));
         //Add
         addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
@@ -1281,7 +1277,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBlock(Route)
      */
     public Block<?> getBlock(@NotNull Route route) {
-        return getOptionalBlock(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? null : defaults.getBlock(route));
+        return getOptionalBlock(route).orElseGet(() -> canUseDefaults() ? defaults.getBlock(route) : null);
     }
 
     /**
@@ -1295,7 +1291,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBlock(String)
      */
     public Block<?> getBlock(@NotNull String route) {
-        return getOptionalBlock(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? null : defaults.getBlock(route));
+        return getOptionalBlock(route).orElseGet(() -> canUseDefaults() ? defaults.getBlock(route) : null);
     }
 
     //
@@ -1472,7 +1468,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the value at the given route, or default according to the documentation above
      */
     public Object get(@NotNull Route route) {
-        return getOptional(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultObject() : defaults.get(route));
+        return getOptional(route).orElseGet(() -> canUseDefaults() ? defaults.get(route) : root.getGeneralSettings().getDefaultObject());
     }
 
     /**
@@ -1487,7 +1483,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the value at the given route, or default according to the documentation above
      */
     public Object get(@NotNull String route) {
-        return getOptional(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultObject() : defaults.get(route));
+        return getOptional(route).orElseGet(() -> canUseDefaults() ? defaults.get(route) : root.getGeneralSettings().getDefaultObject());
     }
 
     /**
@@ -1600,7 +1596,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the value cast to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull Route route, @NotNull Class<T> clazz) {
-        return getAsOptional(route, clazz).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? null : defaults.getAs(route, clazz));
+        return getAsOptional(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getAs(route, clazz) : null);
     }
 
     /**
@@ -1621,7 +1617,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the value cast to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull String route, @NotNull Class<T> clazz) {
-        return getAsOptional(route, clazz).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? null : defaults.getAs(route, clazz));
+        return getAsOptional(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getAs(route, clazz) : null);
     }
 
     /**
@@ -1746,7 +1742,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getSection(Route, Section)
      */
     public Section getSection(@NotNull Route route) {
-        return getOptionalSection(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? null : defaults.getSection(route));
+        return getOptionalSection(route).orElseGet(() -> canUseDefaults() ? defaults.getSection(route) : null);
     }
 
     /**
@@ -1758,7 +1754,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getSection(String, Section)
      */
     public Section getSection(@NotNull String route) {
-        return getOptionalSection(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? null : defaults.getSection(route));
+        return getOptionalSection(route).orElseGet(() -> canUseDefaults() ? defaults.getSection(route) : null);
     }
 
     /**
@@ -1866,7 +1862,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getString(Route, String)
      */
     public String getString(@NotNull Route route) {
-        return getOptionalString(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultString() : defaults.getString(route));
+        return getOptionalString(route).orElseGet(() -> canUseDefaults() ? defaults.getString(route) : root.getGeneralSettings().getDefaultString());
     }
 
     /**
@@ -1882,7 +1878,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getString(String, String)
      */
     public String getString(@NotNull String route) {
-        return getOptionalString(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultString() : defaults.getString(route));
+        return getOptionalString(route).orElseGet(() -> canUseDefaults() ? defaults.getString(route) : root.getGeneralSettings().getDefaultString());
     }
 
     /**
@@ -1999,7 +1995,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getChar(Route, Character)
      */
     public Character getChar(@NotNull Route route) {
-        return getOptionalChar(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultChar() : defaults.getChar(route));
+        return getOptionalChar(route).orElseGet(() -> canUseDefaults() ? defaults.getChar(route) : root.getGeneralSettings().getDefaultChar());
     }
 
     /**
@@ -2016,7 +2012,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getChar(String, Character)
      */
     public Character getChar(@NotNull String route) {
-        return getOptionalChar(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultChar() : defaults.getChar(route));
+        return getOptionalChar(route).orElseGet(() -> canUseDefaults() ? defaults.getChar(route) : root.getGeneralSettings().getDefaultChar());
     }
 
     /**
@@ -2155,7 +2151,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getInt(Route, Integer)
      */
     public Integer getInt(@NotNull Route route) {
-        return getOptionalInt(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().intValue() : defaults.getInt(route));
+        return getOptionalInt(route).orElseGet(() -> canUseDefaults() ? defaults.getInt(route) : root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     /**
@@ -2171,7 +2167,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getInt(String, Integer)
      */
     public Integer getInt(@NotNull String route) {
-        return getOptionalInt(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().intValue() : defaults.getInt(route));
+        return getOptionalInt(route).orElseGet(() -> canUseDefaults() ? defaults.getInt(route) : root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     /**
@@ -2288,7 +2284,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getBigInt(Route, BigInteger)
      */
     public BigInteger getBigInt(@NotNull Route route) {
-        return getOptionalBigInt(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()) : defaults.getBigInt(route));
+        return getOptionalBigInt(route).orElseGet(() -> canUseDefaults() ? defaults.getBigInt(route) : BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
     }
 
     /**
@@ -2305,7 +2301,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getBigInt(Route, BigInteger)
      */
     public BigInteger getBigInt(@NotNull String route) {
-        return getOptionalBigInt(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()) : defaults.getBigInt(route));
+        return getOptionalBigInt(route).orElseGet(() -> canUseDefaults() ? defaults.getBigInt(route) : BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
     }
 
     /**
@@ -2412,7 +2408,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getBoolean(Route, Boolean)
      */
     public Boolean getBoolean(@NotNull Route route) {
-        return getOptionalBoolean(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultBoolean() : defaults.getBoolean(route));
+        return getOptionalBoolean(route).orElseGet(() -> canUseDefaults() ? defaults.getBoolean(route) : root.getGeneralSettings().getDefaultBoolean());
     }
 
     /**
@@ -2425,7 +2421,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getBoolean(String, Boolean)
      */
     public Boolean getBoolean(@NotNull String route) {
-        return getOptionalBoolean(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultBoolean() : defaults.getBoolean(route));
+        return getOptionalBoolean(route).orElseGet(() -> canUseDefaults() ? defaults.getBoolean(route) : root.getGeneralSettings().getDefaultBoolean());
     }
 
     /**
@@ -2533,7 +2529,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getDouble(Route, Double)
      */
     public Double getDouble(@NotNull Route route) {
-        return getOptionalDouble(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().doubleValue() : defaults.getDouble(route));
+        return getOptionalDouble(route).orElseGet(() -> canUseDefaults() ? defaults.getDouble(route) : root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     /**
@@ -2549,7 +2545,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getDouble(String, Double)
      */
     public Double getDouble(@NotNull String route) {
-        return getOptionalDouble(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().doubleValue() : defaults.getDouble(route));
+        return getOptionalDouble(route).orElseGet(() -> canUseDefaults() ? defaults.getDouble(route) : root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     /**
@@ -2663,7 +2659,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getFloat(Route, Float)
      */
     public Float getFloat(@NotNull Route route) {
-        return getOptionalFloat(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().floatValue() : defaults.getFloat(route));
+        return getOptionalFloat(route).orElseGet(() -> canUseDefaults() ? defaults.getFloat(route) : root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     /**
@@ -2679,7 +2675,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getFloat(Route, Float)
      */
     public Float getFloat(@NotNull String route) {
-        return getOptionalFloat(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().floatValue() : defaults.getFloat(route));
+        return getOptionalFloat(route).orElseGet(() -> canUseDefaults() ? defaults.getFloat(route) : root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     /**
@@ -2793,7 +2789,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getByte(Route, Byte)
      */
     public Byte getByte(@NotNull Route route) {
-        return getOptionalByte(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().byteValue() : defaults.getByte(route));
+        return getOptionalByte(route).orElseGet(() -> canUseDefaults() ? defaults.getByte(route) : root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     /**
@@ -2809,7 +2805,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getByte(String, Byte)
      */
     public Byte getByte(@NotNull String route) {
-        return getOptionalByte(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().byteValue() : defaults.getByte(route));
+        return getOptionalByte(route).orElseGet(() -> canUseDefaults() ? defaults.getByte(route) : root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     /**
@@ -2923,7 +2919,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getLong(Route, Long)
      */
     public Long getLong(@NotNull Route route) {
-        return getOptionalLong(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().longValue() : defaults.getLong(route));
+        return getOptionalLong(route).orElseGet(() -> canUseDefaults() ? defaults.getLong(route) : root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     /**
@@ -2939,7 +2935,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getLong(Route, Long)
      */
     public Long getLong(@NotNull String route) {
-        return getOptionalLong(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().longValue() : defaults.getLong(route));
+        return getOptionalLong(route).orElseGet(() -> canUseDefaults() ? defaults.getLong(route) : root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     /**
@@ -3053,7 +3049,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getShort(Route, Short)
      */
     public Short getShort(@NotNull Route route) {
-        return getOptionalShort(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().shortValue() : defaults.getShort(route));
+        return getOptionalShort(route).orElseGet(() -> canUseDefaults() ? defaults.getShort(route) : root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     /**
@@ -3069,7 +3065,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getShort(String, Short)
      */
     public Short getShort(@NotNull String route) {
-        return getOptionalShort(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultNumber().shortValue() : defaults.getShort(route));
+        return getOptionalShort(route).orElseGet(() -> canUseDefaults() ? defaults.getShort(route) : root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     /**
@@ -3173,7 +3169,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getList(Route, List)
      */
     public List<?> getList(@NotNull Route route) {
-        return getOptionalList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getList(route));
+        return getOptionalList(route).orElseGet(() -> canUseDefaults() ? defaults.getList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -3185,7 +3181,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getList(String, List)
      */
     public List<?> getList(@NotNull String route) {
-        return getOptionalList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getList(route));
+        return getOptionalList(route).orElseGet(() -> canUseDefaults() ? defaults.getList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -3345,7 +3341,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(Route)
      */
     public List<String> getStringList(@NotNull Route route) {
-        return getOptionalStringList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getStringList(route));
+        return getOptionalStringList(route).orElseGet(() -> canUseDefaults() ? defaults.getStringList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -3365,7 +3361,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(String)
      */
     public List<String> getStringList(@NotNull String route) {
-        return getOptionalStringList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getStringList(route));
+        return getOptionalStringList(route).orElseGet(() -> canUseDefaults() ? defaults.getStringList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3475,7 +3471,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(Route)
      */
     public List<Integer> getIntList(@NotNull Route route) {
-        return getOptionalIntList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getIntList(route));
+        return getOptionalIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -3495,7 +3491,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(String)
      */
     public List<Integer> getIntList(@NotNull String route) {
-        return getOptionalIntList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getIntList(route));
+        return getOptionalIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3605,7 +3601,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(Route)
      */
     public List<BigInteger> getBigIntList(@NotNull Route route) {
-        return getOptionalBigIntList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getBigIntList(route));
+        return getOptionalBigIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getBigIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -3625,7 +3621,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(String)
      */
     public List<BigInteger> getBigIntList(@NotNull String route) {
-        return getOptionalBigIntList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getBigIntList(route));
+        return getOptionalBigIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getBigIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3735,7 +3731,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(Route)
      */
     public List<Byte> getByteList(@NotNull Route route) {
-        return getOptionalByteList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getByteList(route));
+        return getOptionalByteList(route).orElseGet(() -> canUseDefaults() ? defaults.getByteList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -3755,7 +3751,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(String)
      */
     public List<Byte> getByteList(@NotNull String route) {
-        return getOptionalByteList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getByteList(route));
+        return getOptionalByteList(route).orElseGet(() -> canUseDefaults() ? defaults.getByteList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3865,7 +3861,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(Route)
      */
     public List<Long> getLongList(@NotNull Route route) {
-        return getOptionalLongList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getLongList(route));
+        return getOptionalLongList(route).orElseGet(() -> canUseDefaults() ? defaults.getLongList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -3885,7 +3881,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(String)
      */
     public List<Long> getLongList(@NotNull String route) {
-        return getOptionalLongList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getLongList(route));
+        return getOptionalLongList(route).orElseGet(() -> canUseDefaults() ? defaults.getLongList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3995,7 +3991,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(Route)
      */
     public List<Double> getDoubleList(@NotNull Route route) {
-        return getOptionalDoubleList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getDoubleList(route));
+        return getOptionalDoubleList(route).orElseGet(() -> canUseDefaults() ? defaults.getDoubleList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -4015,7 +4011,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(String)
      */
     public List<Double> getDoubleList(@NotNull String route) {
-        return getOptionalDoubleList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getDoubleList(route));
+        return getOptionalDoubleList(route).orElseGet(() -> canUseDefaults() ? defaults.getDoubleList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4125,7 +4121,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(Route)
      */
     public List<Float> getFloatList(@NotNull Route route) {
-        return getOptionalFloatList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getFloatList(route));
+        return getOptionalFloatList(route).orElseGet(() -> canUseDefaults() ? defaults.getFloatList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -4145,7 +4141,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(String)
      */
     public List<Float> getFloatList(@NotNull String route) {
-        return getOptionalFloatList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getFloatList(route));
+        return getOptionalFloatList(route).orElseGet(() -> canUseDefaults() ? defaults.getFloatList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4255,7 +4251,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(Route)
      */
     public List<Short> getShortList(@NotNull Route route) {
-        return getOptionalShortList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getShortList(route));
+        return getOptionalShortList(route).orElseGet(() -> canUseDefaults() ? defaults.getShortList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -4275,7 +4271,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(String)
      */
     public List<Short> getShortList(@NotNull String route) {
-        return getOptionalShortList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getShortList(route));
+        return getOptionalShortList(route).orElseGet(() -> canUseDefaults() ? defaults.getShortList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4393,7 +4389,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getMapList(Route, List)
      */
     public List<Map<?, ?>> getMapList(@NotNull Route route) {
-        return getOptionalMapList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getMapList(route));
+        return getOptionalMapList(route).orElseGet(() -> canUseDefaults() ? defaults.getMapList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
@@ -4415,7 +4411,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getMapList(String, List)
      */
     public List<Map<?, ?>> getMapList(@NotNull String route) {
-        return getOptionalMapList(route).orElseGet(() -> defaults == null || !root.getGeneralSettings().isUseDefaults() ? root.getGeneralSettings().getDefaultList() : defaults.getMapList(route));
+        return getOptionalMapList(route).orElseGet(() -> canUseDefaults() ? defaults.getMapList(route) : root.getGeneralSettings().getDefaultList());
     }
 
 }

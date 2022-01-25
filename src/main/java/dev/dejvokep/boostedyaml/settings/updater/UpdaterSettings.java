@@ -215,7 +215,7 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns if the file should automatically be saved after finished updating (does not require successful update).
+     * Returns if the file should automatically be saved after finished updating (does not save if nothing's changed).
      *
      * @return if to save automatically after update
      */
@@ -279,7 +279,7 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if the file should automatically be saved after the updater has finished updating (does not require successful update) using {@link YamlFile#save()}.
+         * Sets if the file should automatically be saved using {@link YamlFile#save()} after the updater has finished updating (does not save if nothing's changed).
          * <p>
          * Not effective if there is no user file associated with the YamlFile that's being loaded.
          * <p>
