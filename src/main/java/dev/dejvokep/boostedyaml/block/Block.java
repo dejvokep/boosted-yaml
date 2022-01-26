@@ -203,7 +203,7 @@ public abstract class Block<T> {
     /**
      * Sets the given comments at the given node.
      * <p>
-     * To remove comments, use {@link #remove()} instead. Alternatively, pass either
+     * To remove comments, use {@link #removeComments()} instead. Alternatively, pass either
      * <code>null</code> or an empty {@link List} as the parameter.
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
@@ -219,7 +219,7 @@ public abstract class Block<T> {
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      */
-    public void remove() {
+    public void removeComments() {
         Comments.remove(this, Comments.NodeType.KEY, Comments.Position.BEFORE);
     }
 
