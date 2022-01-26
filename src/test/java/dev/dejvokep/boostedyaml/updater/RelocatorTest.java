@@ -20,6 +20,7 @@ import dev.dejvokep.boostedyaml.fvs.segment.Segment;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.fvs.Pattern;
 import dev.dejvokep.boostedyaml.fvs.Version;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -38,8 +39,8 @@ class RelocatorTest {
     private static final Pattern PATTERN = new Pattern(Segment.range(1, Integer.MAX_VALUE), Segment.literal("."), Segment.range(0, 10));
     // Versions
     private static final Version VERSION_USER = Objects.requireNonNull(PATTERN.getVersion("1.2")), VERSION_DEFAULT = Objects.requireNonNull(PATTERN.getVersion("2.3"));
-    // Relocations
-    private static final Map<String, Map<Route, Route>> RELOCATIONS = new HashMap<String, Map<Route, Route>>(){{
+    // Settings
+    private static final UpdaterSettings SETTINGS = UpdaterSettings.builder().setRelocations(new HashMap<String, Map<Route, Route>>(){{
         put("1.0", new HashMap<Route, Route>(){{
             put(Route.from("d"), Route.from("e"));
         }});
@@ -55,7 +56,7 @@ class RelocatorTest {
             put(Route.from("g"), Route.from("h"));
             put(Route.from("z"), Route.from("i"));
         }});
-    }};
+    }}).build();
 
     @Test
     void apply() {
@@ -65,7 +66,7 @@ class RelocatorTest {
             // Create relocator
             Relocator relocator = new Relocator(file, VERSION_USER, VERSION_DEFAULT);
             // Apply
-            relocator.apply(RELOCATIONS);
+            relocator.apply(SETTINGS, '.');
             // Assert
             assertEquals("a", file.get("h", null));
             assertEquals("b", file.get("x", null));

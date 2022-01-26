@@ -43,7 +43,7 @@ class MergerTest {
                     new ByteArrayInputStream("x: 1.4\ny: false\nz:\n  a: 5\n  b: 10\nm: \"a: c\"".getBytes(StandardCharsets.UTF_8)),
                     GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UPDATER_SETTINGS);
 
-            // Mark "p" to be kept
+            // Mark "p" to be ignored
             file.getOptionalBlock("p").orElseThrow(NullPointerException::new).setIgnored(true);
             // Merge
             Merger.merge(file, file.getDefaults(), UPDATER_SETTINGS);

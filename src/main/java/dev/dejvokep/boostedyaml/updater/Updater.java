@@ -24,7 +24,6 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
 
 /**

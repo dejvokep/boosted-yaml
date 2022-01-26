@@ -23,6 +23,7 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -49,76 +50,78 @@ public class Relocator {
 
     /**
      * Applies all appropriate relocations to the given section (in constructor), one by one using {@link #apply(Map,
-     * Iterator, Route)}.
+     * Route)}.
      * <p>
      * More formally, iterates through all version IDs, starting from the just next version ID of the user file version
      * ID, ending (inclusive) when the currently iterated version ID is equal to the version ID of the default file.
      *
      * @param settings  settings used to get relocations
      * @param separator separator used to split string routes
-     * @see #apply(Map, Iterator, Route)
+     * @see #apply(Map, Route)
      */
     public void apply(@NotNull UpdaterSettings settings, char separator) {
         //Copy
         Version current = this.userVersion.copy();
-        //Move to the next version
-        current.next();
         //While not at the latest version
         while (current.compareTo(defVersion) <= 0) {
-            //Relocations
-            Map<Route, Route> relocations = settings.getRelocations(current.asID(), separator);
             //Move to the next version
             current.next();
+            //Relocations
+            Map<Route, Route> relocations = settings.getRelocations(current.asID(), separator);
             //If there is not any
             if (relocations.isEmpty())
                 continue;
 
-            //The iterator
-            Iterator<Route> iterator = relocations.keySet().iterator();
             //Go through all entries
-            while (iterator.hasNext())
+            while (relocations.size() > 0)
                 //Apply
-                apply(relocations, iterator, iterator.next());
+                apply(relocations, relocations.keySet().iterator().next());
         }
     }
 
     /**
-     * Applies a relocation from the given map, whose key is defined by <code>from</code> parameter.
+     * Applies a relocation from the given map, whose key is defined by <code>from</code> parameter; removes the
+     * relocation from the map.
      * <p>
      * This method also checks if there are any relocations for the <code>to</code> (target) route and if yes, relocates
      * that first. Cyclic relocations are also supported (<code>a > b</code> and <code>b > a</code> for example). If
      * there is no block to relocate, nothing is changed.
      *
      * @param relocations all the relocations
-     * @param keyIterator iterator used to remove applied relocation(s) - key set iterator of the given map
      * @param from        from where to relocate
      */
-    private void apply(@NotNull Map<Route, Route> relocations, @NotNull Iterator<Route> keyIterator, @Nullable Route from) {
+    private void apply(@NotNull Map<Route, Route> relocations, @Nullable Route from) {
         //If there is no relocation
         if (from == null || !relocations.containsKey(from))
             return;
         //The parent section
         Optional<Section> parent = file.getParent(from);
         //If absent
-        if (!parent.isPresent())
+        if (!parent.isPresent()) {
+            relocations.remove(from);
             return;
+        }
+
         // Last key
         Object lastKey = from.get(from.length() - 1);
         //The block
         Block<?> block = parent.get().getStoredValue().get(lastKey);
         //If absent
-        if (block == null)
+        if (block == null) {
+            relocations.remove(from);
             return;
+        }
+
         //To
         Route to = relocations.get(from);
 
         //Remove
-        keyIterator.remove();
+        relocations.remove(from);
         parent.get().getStoredValue().remove(lastKey);
         removeParents(parent.get());
 
         //Relocate to
-        apply(relocations, keyIterator, to);
+        apply(relocations, to);
 
         //Relocate
         file.set(to, block);

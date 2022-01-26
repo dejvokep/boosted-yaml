@@ -83,7 +83,7 @@ public class Merger {
      */
     private void iterate(Section userSection, Section defSection, UpdaterSettings settings) {
         //Keys
-        Set<Object> userKeys = userSection.getKeys();
+        Set<Object> userKeys = new HashSet<>(userSection.getStoredValue().keySet());
 
         //Loop through all default entries
         for (Map.Entry<Object, Block<?>> entry : defSection.getStoredValue().entrySet()) {
@@ -126,9 +126,21 @@ public class Merger {
             return;
 
         //Loop through all default keys
-        for (Object userKey : userKeys)
+        for (Object userKey : userKeys) {
+            //Route
+            Route route = Route.fromSingleKey(userKey);
+            //Block
+            Block<?> block = userSection.getOptionalBlock(route).orElse(null);
+            //If ignored
+            if (block != null && block.isIgnored()) {
+                //Reset
+                block.setIgnored(false);
+                continue;
+            }
+
             //Remove
-            userSection.remove(Route.fromSingleKey(userKey));
+            userSection.remove(route);
+        }
     }
 
     /**
