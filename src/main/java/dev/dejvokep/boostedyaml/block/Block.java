@@ -245,10 +245,20 @@ public abstract class Block<T> {
         Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
     }
 
+    /**
+     * Sets if to ignore this block. Used only internally while updating.
+     *
+     * @param ignored if to ignore this block
+     */
     public void setIgnored(boolean ignored) {
         this.ignored = ignored;
     }
 
+    /**
+     * Returns if this block is ignored. Used only internally while updating.
+     *
+     * @return if this block is ignored
+     */
     public boolean isIgnored() {
         return ignored;
     }
