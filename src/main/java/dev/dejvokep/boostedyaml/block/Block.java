@@ -41,8 +41,8 @@ public abstract class Block<T> {
     List<CommentLine> beforeKeyComments = new ArrayList<>(0), inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
     //Value
     private final T value;
-    //Keep (updater)
-    private boolean keep = false;
+    //If to ignore
+    private boolean ignored;
 
     /**
      * Creates a block using the given parameters; while storing references to comments from the given nodes.
@@ -245,30 +245,20 @@ public abstract class Block<T> {
         Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
     }
 
+    public void setIgnored(boolean ignored) {
+        this.ignored = ignored;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+
     /**
-     * Returns if the value is a {@link Section section}.
+     * Returns if this block represents a {@link Section section}.
      *
-     * @return if the value is a {@link Section section}
+     * @return if this block represents a {@link Section section}
      */
     public abstract boolean isSection();
-
-    /**
-     * Sets whether to keep this block. Used only internally during updating.
-     *
-     * @param keep if to keep
-     */
-    public void setKeep(boolean keep) {
-        this.keep = keep;
-    }
-
-    /**
-     * Returns whether to keep this block. Used only internally during updating.
-     *
-     * @return if to keep this block
-     */
-    public boolean isKeep() {
-        return keep;
-    }
 
     /**
      * Returns the stored value.

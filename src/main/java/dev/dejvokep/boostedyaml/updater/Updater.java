@@ -16,26 +16,25 @@
 package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.fvs.Version;
+import dev.dejvokep.boostedyaml.fvs.versioning.Versioning;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import dev.dejvokep.boostedyaml.fvs.Version;
-import dev.dejvokep.boostedyaml.fvs.versioning.Versioning;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Updater class responsible for executing the whole process:
  * <ol>
- *     <li>loading file version IDs</li>
- *     <li>comparing IDs (to check if updating, downgrading...)</li>
- *     <li>marking force copy blocks in the user section</li>
- *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(Map)}</li>
- *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}</li>
+ *     <li>loading file version IDs,</li>
+ *     <li>comparing IDs (to check if updating, downgrading...),</li>
+ *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+ *     <li>marking ignored blocks in the user section,</li>
+ *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
  * </ol>
  */
 public class Updater {
@@ -51,15 +50,16 @@ public class Updater {
      * <ol>
      *     <li>loading file version IDs,</li>
      *     <li>comparing IDs (to check if updating, downgrading...),</li>
-     *     <li>marking force copy blocks in the user section,</li>
-     *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(Map)}),</li>
+     *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+     *     <li>marking ignored blocks in the user section,</li>
      *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
      * </ol>
      *
      * @param userSection     the user section to update
      * @param defSection      section equivalent in the default file (to update against)
      * @param updaterSettings the updater settings
-     * @param generalSettings the general settings used to obtain the route separator, to split string-based relocations and force copy routes
+     * @param generalSettings the general settings used to obtain the route separator, to split string-based relocations
+     *                        and ignored routes
      * @throws IOException an IO error
      */
     public static void update(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
@@ -84,12 +84,12 @@ public class Updater {
      *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
      *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
-     *     (see {@link Versioning#getFirstVersion()}). If provided, marks all blocks that should be kept
-     *     (determined by the set of routes, see {@link UpdaterSettings#getKeep(char)}).</li>
+     *     (see {@link Versioning#getFirstVersion()}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
      *     <li>If version IDs equal, does not proceed as well.</li>
      *     <li>Applies all relocations needed.</li>
+     *     <li>Marks all ignored blocks.</li>
      * </ol>
      *
      * @param userSection    the user section
@@ -130,19 +130,14 @@ public class Updater {
         if (compared == 0)
             return true;
 
-        // Keep routes
-        Set<Route> keepRoutes = settings.getKeep(separator).getOrDefault(user.asID(), null);
-        //If there are any keep routes
-        if (keepRoutes != null)
-            //Go through all keep routes
-            for (Route route : keepRoutes)
-                //Set
-                userSection.getOptionalBlock(route).ifPresent(block -> block.setKeep(true));
-
         //Initialize relocator
         Relocator relocator = new Relocator(userSection, user, def);
         //Apply all
-        relocator.apply(settings.getRelocations(separator));
+        relocator.apply(settings, separator);
+
+        //Ignored routes
+        for (Route route : settings.getIgnored(def.asID(), separator))
+            userSection.getOptionalBlock(route).ifPresent(block -> block.setIgnored(true));
         return false;
     }
 

@@ -57,7 +57,7 @@ class UpdaterSettingsTest {
     void getKeep() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .setKeepRoutes(new HashMap<String, Set<Route>>() {{
+                .setIgnoredRoutes(new HashMap<String, Set<Route>>() {{
                     put("1.2", new HashSet<Route>() {{
                         add(Route.from("a"));
                     }});
@@ -65,7 +65,7 @@ class UpdaterSettingsTest {
                         add(Route.from("c"));
                     }});
                 }})
-                .setStringKeepRoutes(new HashMap<String, Set<String>>() {{
+                .setIgnoredStringRoutes(new HashMap<String, Set<String>>() {{
                     put("1.2", new HashSet<String>() {{
                         add("b");
                     }});
@@ -73,30 +73,27 @@ class UpdaterSettingsTest {
                         add("d");
                     }});
                 }})
-                .setKeepRoutes("1.5", new HashSet<Route>() {{
+                .setIgnoredRoutes("1.5", new HashSet<Route>() {{
                     add(Route.from("e"));
                 }})
-                .setStringKeepRoutes("1.5", new HashSet<String>() {{
+                .setIgnoredStringRoutes("1.5", new HashSet<String>() {{
                     add("f");
                 }}).build();
-        // Map
-        Map<String, Set<Route>> routes = settings.getKeep('.');
         // Assert
         assertEquals(new HashSet<Route>() {{
             add(Route.from("a"));
             add(Route.from("b"));
-        }}, routes.get("1.2"));
+        }}, settings.getIgnored("1.2", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("c"));
-        }}, routes.get("1.3"));
+        }}, settings.getIgnored("1.3", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("d"));
-        }}, routes.get("1.4"));
+        }}, settings.getIgnored("1.4", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("e"));
             add(Route.from("f"));
-        }}, routes.get("1.5"));
-        assertEquals(4, routes.keySet().size());
+        }}, settings.getIgnored("1.5", '.'));
     }
 
     @Test
@@ -125,24 +122,21 @@ class UpdaterSettingsTest {
                 .setStringRelocations("1.5", new HashMap<String, String>() {{
                     put("f", "l");
                 }}).build();
-        // Map
-        Map<String, Map<Route, Route>> relocations = settings.getRelocations('.');
         // Assert
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("a"), Route.from("g"));
             put(Route.from("b"), Route.from("h"));
-        }}, relocations.get("1.2"));
+        }}, settings.getRelocations("1.2", '.'));
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("c"), Route.from("i"));
-        }}, relocations.get("1.3"));
+        }}, settings.getRelocations("1.3", '.'));
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("d"), Route.from("j"));
-        }}, relocations.get("1.4"));
+        }}, settings.getRelocations("1.4", '.'));
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("e"), Route.from("k"));
             put(Route.from("f"), Route.from("l"));
-        }}, relocations.get("1.5"));
-        assertEquals(4, relocations.keySet().size());
+        }}, settings.getRelocations("1.5", '.'));
     }
 
     @Test

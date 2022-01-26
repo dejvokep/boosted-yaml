@@ -61,7 +61,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Integer>> toIntList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toInt);
+        return construct(value, PrimitiveConversions::toInt);
     }
 
     /**
@@ -77,7 +77,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<BigInteger>> toBigIntList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toBigInt);
+        return construct(value, PrimitiveConversions::toBigInt);
     }
 
     /**
@@ -93,7 +93,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Byte>> toByteList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toByte);
+        return construct(value, PrimitiveConversions::toByte);
     }
 
     /**
@@ -109,7 +109,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Long>> toLongList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toLong);
+        return construct(value, PrimitiveConversions::toLong);
     }
 
     /**
@@ -125,7 +125,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Double>> toDoubleList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toDouble);
+        return construct(value, PrimitiveConversions::toDouble);
     }
 
     /**
@@ -141,7 +141,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Float>> toFloatList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toFloat);
+        return construct(value, PrimitiveConversions::toFloat);
     }
 
     /**
@@ -157,7 +157,7 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Short>> toShortList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toShort);
+        return construct(value, PrimitiveConversions::toShort);
     }
 
     /**

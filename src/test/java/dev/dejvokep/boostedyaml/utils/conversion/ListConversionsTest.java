@@ -90,7 +90,7 @@ class ListConversionsTest {
             assertEquals(NUMBER_LIST.size(), list.size());
             //Assert individual elements
             for (int i = 0; i < list.size(); i++)
-                assertEquals(NumericConversions.toBigInt(NUMBER_LIST.get(i)).orElse(BigInteger.TEN), list.get(i));
+                assertEquals(PrimitiveConversions.toBigInt(NUMBER_LIST.get(i)).orElse(BigInteger.TEN), list.get(i));
             //Return
             return list;
         }).isPresent());

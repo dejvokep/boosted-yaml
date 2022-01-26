@@ -17,8 +17,9 @@ package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
-import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.fvs.Version;
+import dev.dejvokep.boostedyaml.route.Route;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,45 +48,46 @@ public class Relocator {
     }
 
     /**
-     * Applies all the given relocations to the given section (in constructor), one by one using
-     * {@link #apply(Map, Iterator, Route)}.
+     * Applies all appropriate relocations to the given section (in constructor), one by one using {@link #apply(Map,
+     * Iterator, Route)}.
      * <p>
-     * More formally, iterates through all version IDs, starting from the just next version ID of the user file version ID,
-     * ending (inclusive) when the currently iterated version ID is equal to the version ID of the default file.
+     * More formally, iterates through all version IDs, starting from the just next version ID of the user file version
+     * ID, ending (inclusive) when the currently iterated version ID is equal to the version ID of the default file.
      *
-     * @param relocations the relocations to apply
+     * @param settings  settings used to get relocations
+     * @param separator separator used to split string routes
      * @see #apply(Map, Iterator, Route)
      */
-    public void apply(@NotNull Map<String, Map<Route, Route>> relocations) {
+    public void apply(@NotNull UpdaterSettings settings, char separator) {
         //Copy
         Version current = this.userVersion.copy();
         //Move to the next version
         current.next();
         //While not at the latest version
         while (current.compareTo(defVersion) <= 0) {
-            //Relocation
-            Map<Route, Route> relocation = relocations.get(current.asID());
+            //Relocations
+            Map<Route, Route> relocations = settings.getRelocations(current.asID(), separator);
             //Move to the next version
             current.next();
             //If there is not any
-            if (relocation == null || relocation.isEmpty())
+            if (relocations.isEmpty())
                 continue;
 
             //The iterator
-            Iterator<Route> iterator = relocation.keySet().iterator();
+            Iterator<Route> iterator = relocations.keySet().iterator();
             //Go through all entries
             while (iterator.hasNext())
                 //Apply
-                apply(relocation, iterator, iterator.next());
+                apply(relocations, iterator, iterator.next());
         }
     }
 
     /**
      * Applies a relocation from the given map, whose key is defined by <code>from</code> parameter.
      * <p>
-     * This method also checks if there are any relocations for the to (target) route and if yes, relocates that first.
-     * Cyclic relocations are also supported (<code>a > b</code> and <code>b > a</code> for example). If there is no
-     * element to relocate, nothing is changed.
+     * This method also checks if there are any relocations for the <code>to</code> (target) route and if yes, relocates
+     * that first. Cyclic relocations are also supported (<code>a > b</code> and <code>b > a</code> for example). If
+     * there is no block to relocate, nothing is changed.
      *
      * @param relocations all the relocations
      * @param keyIterator iterator used to remove applied relocation(s) - key set iterator of the given map

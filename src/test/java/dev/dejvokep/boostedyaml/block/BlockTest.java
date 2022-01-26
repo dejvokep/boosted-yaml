@@ -62,20 +62,6 @@ class BlockTest {
     }
 
     @Test
-    void setKeep() {
-        // Block
-        Block<?> block = new TerminatedBlock(null, null);
-        // Set keep
-        block.setKeep(true);
-        // Assert
-        assertTrue(block.isKeep());
-        // Set keep
-        block.setKeep(false);
-        // Assert
-        assertFalse(block.isKeep());
-    }
-
-    @Test
     void getKeyBlockComments() {
         // Block
         Block<?> block = new TerminatedBlock(null, null);

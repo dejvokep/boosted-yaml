@@ -118,6 +118,7 @@ public class DumperSettings {
     /**
      * Returns a new builder with the same configuration as the given settings.
      *
+     * @param settings preset settings
      * @return the new builder
      */
     public static Builder builder(DumperSettings settings) {

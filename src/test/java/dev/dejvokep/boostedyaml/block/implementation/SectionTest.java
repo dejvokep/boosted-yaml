@@ -385,8 +385,8 @@ class SectionTest {
         // Create file
         YamlFile file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
         // Assert
-        assertTrue(file.is("x", double.class));
-        assertTrue(file.is("x", Double.class));
+        assertTrue(file.is("x", int.class));
+        assertTrue(file.is("x", Integer.class));
         assertTrue(file.is("y", Block.class));
         assertTrue(file.is("y.a", boolean.class));
         assertTrue(file.is(Route.from(7), boolean.class));

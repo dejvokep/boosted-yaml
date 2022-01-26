@@ -44,7 +44,7 @@ class MergerTest {
                     GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UPDATER_SETTINGS);
 
             // Mark "p" to be kept
-            file.getOptionalBlock("p").orElseThrow(NullPointerException::new).setKeep(true);
+            file.getOptionalBlock("p").orElseThrow(NullPointerException::new).setIgnored(true);
             // Merge
             Merger.merge(file, file.getDefaults(), UPDATER_SETTINGS);
             // Verify all

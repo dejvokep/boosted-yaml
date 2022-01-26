@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  * To start using this library, it is recommended to take a look at the following methods:
  * <ul>
  *     <li>{@link Builder#setKeyMode(KeyMode)}</li>
+ *     <li>{@link Builder#setUseDefaults(boolean)}</li>
  * </ul>
  */
 @SuppressWarnings("unused")
@@ -354,6 +355,7 @@ public class GeneralSettings {
     /**
      * Returns a new builder with the same configuration as the given settings.
      *
+     * @param settings preset settings
      * @return the new builder
      */
     public static Builder builder(GeneralSettings settings) {

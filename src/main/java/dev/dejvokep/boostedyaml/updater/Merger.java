@@ -30,13 +30,12 @@ import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.representer.BaseRepresenter;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Class responsible for merging the user file with the default file. Merging is the final stage of the updating process.
+ * Class responsible for merging the user file with the default file. Merging is the final stage of the updating
+ * process.
  */
 public class Merger {
 
@@ -48,14 +47,14 @@ public class Merger {
     /**
      * Merges the given sections, with the result being the given user section.
      * <p>
-     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default block)
-     * outputs the preserved one (according to the merging rules) into the user section. If the preserved block is the
-     * default one, deep copies it (so it is isolated from the defaults). If both blocks represent sections, iterates
-     * through that pair of subsections recursively.
+     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default
+     * block) outputs the preserved one (according to the merging rules) into the user section. If the block is ignored,
+     * immediately continues without changing the block. If the preserved block is the default one, deep copies it (so
+     * it is isolated from the defaults). If both blocks represent sections, iterates through these pair of
+     * subsections.
      * <p>
      * Additionally, after iteration had finished, deletes all non-merged blocks (those which are not contained in the
-     * defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled, or they are marked as to
-     * be kept ({@link Block#isKeep()}).
+     * defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled.
      *
      * @param userSection the user section
      * @param defSection  the default section equivalent to the user section
@@ -69,14 +68,14 @@ public class Merger {
     /**
      * Merges the given sections into the user section.
      * <p>
-     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default block)
-     * outputs the preserved one (according to the merging rules) into the user section. If the preserved block is the
-     * default one, deep copies it (so it is isolated from the defaults). If both blocks represent sections, iterates
-     * through these pair of subsections.
+     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default
+     * block) outputs the preserved one (according to the merging rules) into the user section. If the block is ignored,
+     * immediately continues without changing the block. If the preserved block is the default one, deep copies it (so
+     * it is isolated from the defaults). If both blocks represent sections, iterates through these pair of
+     * subsections.
      * <p>
-     * Additionally, after iteration had finished, deletes all non-processed blocks (those ones which are not contained
-     * in the defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled or if they are
-     * marked as force copy ({@link Block#isKeep()}).
+     * Additionally, after iteration had finished, deletes all non-merged blocks (those which are not contained in the
+     * defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled.
      *
      * @param userSection the user section
      * @param defSection  the default section equivalent to the user section
@@ -97,6 +96,13 @@ public class Merger {
             Block<?> userBlock = userSection.getOptionalBlock(route).orElse(null), defBlock = entry.getValue();
             //If user block is present
             if (userBlock != null) {
+                //If ignored
+                if (userBlock.isIgnored()) {
+                    //Reset
+                    userBlock.setIgnored(false);
+                    continue;
+                }
+
                 //If are sections
                 boolean isUserBlockSection = userBlock instanceof Section, isDefBlockSection = defBlock instanceof Section;
                 //If both are sections
@@ -115,22 +121,14 @@ public class Merger {
             userSection.set(route, cloneBlock(defBlock, userSection));
         }
 
-        //If copy all is set to true
+        //If to keep all
         if (settings.isKeepAll())
             return;
 
         //Loop through all default keys
-        for (Object userKey : userKeys) {
-            //Route
-            Route route = Route.from(userKey);
-            //If present
-            userSection.getOptionalBlock(route).ifPresent(block -> {
-                //If force copy disabled
-                if (!block.isKeep())
-                    //Remove
-                    userSection.remove(route);
-            });
-        }
+        for (Object userKey : userKeys)
+            //Remove
+            userSection.remove(Route.fromSingleKey(userKey));
     }
 
     /**
@@ -142,17 +140,18 @@ public class Merger {
      * @param newParent new parent section of the block to clone
      * @return the cloned block (with relatives set already)
      * @see #cloneSection(Section, Section)
-     * @see #cloneTerminal(TerminatedBlock, Section)
+     * @see #cloneTerminated(TerminatedBlock, Section)
      */
     @NotNull
     private Block<?> cloneBlock(@NotNull Block<?> block, @NotNull Section newParent) {
-        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneTerminal((TerminatedBlock) block, newParent);
+        return block instanceof Section ? cloneSection((Section) block, newParent) : cloneTerminated((TerminatedBlock) block, newParent);
     }
 
     /**
      * Deep clones the given section.
      * <p>
-     * More formally, represents the underlying map of the section into nodes and then, constructs them back into Java map.
+     * More formally, represents the underlying map of the section into nodes and then, constructs them back into Java
+     * map.
      *
      * @param section   the section to clone
      * @param newParent new parent section of the section to clone
@@ -186,16 +185,16 @@ public class Merger {
     }
 
     /**
-     * Deep clones the given terminal block.
+     * Deep clones the given terminated block.
      * <p>
      * More formally, represents the value of the entry into nodes and then, constructs them back into a Java object.
      *
-     * @param entry   the entry to clone
+     * @param entry     the entry to clone
      * @param newParent new parent section of the entry to clone
      * @return the cloned entry (with relatives set already)
      */
     @NotNull
-    private TerminatedBlock cloneTerminal(@NotNull TerminatedBlock entry, @NotNull Section newParent) {
+    private TerminatedBlock cloneTerminated(@NotNull TerminatedBlock entry, @NotNull Section newParent) {
         //Root
         YamlFile root = newParent.getRoot();
         //General settings
