@@ -88,8 +88,8 @@ public class StandardSerializer implements YamlSerializer {
         aliases.put(alias, clazz);
     }
 
-    @Override
     @Nullable
+    @Override
     public Object deserialize(@NotNull Map<Object, Object> map) {
         //If not deserializable
         if (!map.containsKey(serializedTypeKey))
@@ -104,8 +104,8 @@ public class StandardSerializer implements YamlSerializer {
     }
 
     @SuppressWarnings("unchecked")
-    @Override
     @Nullable
+    @Override
     public <T> Map<Object, Object> serialize(@NotNull T object, @NotNull MapSupplier supplier) {
         //No adapter
         if (!adapters.containsKey(object.getClass()))

@@ -44,16 +44,19 @@ public class ManualVersioning implements Versioning {
         this.defSectionVersion = pattern.getVersion(defSectionVersionId);
     }
 
+    @Nullable
     @Override
     public Version getDefSectionVersion(@NotNull Section section) {
         return defSectionVersion;
     }
 
+    @Nullable
     @Override
     public Version getUserSectionVersion(@NotNull Section section) {
         return userSectionVersion;
     }
 
+    @NotNull
     @Override
     public Version getFirstVersion() {
         return defSectionVersion.getPattern().getFirstVersion();

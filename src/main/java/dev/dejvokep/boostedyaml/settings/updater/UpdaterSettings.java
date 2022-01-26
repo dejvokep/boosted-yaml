@@ -353,16 +353,14 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets which blocks (represented by their routes) to ignore (including their contents) while updating from that
-         * certain version ID (if the user's file has that version ID). If there already are routes defined for version
-         * ID, which is also present in the given map, they are overwritten.
+         * Sets which blocks (represented by their routes) to ignore (including their contents) while updating to a
+         * certain version ID. If there already are routes defined for version ID, which is also present in the given
+         * map, they are overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b>
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
+         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
          * <p>
-         * The given map should contain version ID (in string format) as the key, with corresponding set of routes to
-         * keep as value.
-         * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
          * @param routes routes to ignore, per version ID
          * @return the builder
@@ -374,16 +372,16 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets which blocks (represented by their routes) to ignore (including their contents) if user file that's
-         * being updated has the given version ID. If there already are routes defined for the given ID, they are
-         * overwritten.
+         * Sets which blocks (represented by their routes) to ignore (including their contents) while updating to the
+         * specified version ID. If there already are routes defined for the given ID, they are overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b>
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
+         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
          * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
-         * @param versionId the version ID string to set routes for
-         * @param routes    the set of routes representing blocks to ignore
+         * @param versionId the version ID
+         * @param routes    the set of routes representing blocks to ignore at the version ID
          * @return the builder
          */
         public Builder setIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
@@ -393,19 +391,13 @@ public class UpdaterSettings {
 
         /**
          * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
-         * updating from that certain version ID (if the user's file has that version ID). If there already are routes
-         * defined for version ID, which is also present in the given map, they are overwritten.
+         * updating to a certain version ID. If there already are routes defined for version ID, which is also present
+         * in the given map, they are overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b>
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
+         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
          * <p>
-         * The given map should contain version ID (in string format) as the key, with corresponding set of routes to
-         * keep as value.
-         * <p>
-         * <b>Please note</b> that string routes supplied via this and
-         * {@link #setIgnoredStringRoutes(String, Set)} method are cached differently from routes supplied via {@link
-         * Route}-based methods (e.g. {@link #setIgnoredRoutes(Map)}), they will be merged automatically when updating.
-         * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
          * @param routes <i>string</i> routes to ignore, per version ID
          * @return the builder
@@ -421,16 +413,13 @@ public class UpdaterSettings {
          * file that's being updated has the given version ID. If there already are routes defined for the given ID,
          * they are overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b>
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
+         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
          * <p>
-         * <b>Please note</b> that string routes supplied via this and
-         * {@link #setIgnoredStringRoutes(Map)} method are cached differently from routes supplied via {@link
-         * Route}-based methods (e.g. {@link #setIgnoredRoutes(Map)}), they will be merged automatically when updating.
-         * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
-         * @param versionId the version ID string to set routes for
-         * @param routes    the set of <i>string</i> routes representing blocks to ignore
+         * @param versionId the version ID
+         * @param routes    the set of <i>string</i> routes representing blocks to ignore at the version ID
          * @return the builder
          */
         public Builder setIgnoredStringRoutes(@NotNull String versionId, @NotNull Set<String> routes) {
@@ -439,22 +428,19 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) per version ID string. If there already are
-         * relocations defined for version ID which is also present in the given map, they are overwritten.
+         * Sets relocations (in <code>from route = to route</code> format) per version ID, at which they took place. If
+         * there already are relocations defined for version ID which is also present in the given map, they are
+         * overwritten.
          * <p>
          * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b>
+         * reproduce those steps without any content loss.</b> The ID at which a relocation took effect is equal to ID
+         * of the file which included the changes.
          * <p>
-         * The given version ID represents version, at which the relocations were made - at which they took effect. That
-         * means, if certain setting was at route <code>a</code> in config with version ID <code>2</code>, but you
-         * decided you want to move that setting to route <code>b</code> (and then released with version
-         * <code>3</code>), the relocation is considered to be made at version ID <code>3</code>.
-         * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
-         * @param relocations the relocations to add
+         * @param relocations the relocations, per version ID
          * @return the builder
-         * @see #setStringRelocations(String, Map)
+         * @see #setRelocations(String, Map)
          */
         public Builder setRelocations(@NotNull Map<String, Map<Route, Route>> relocations) {
             this.relocations.putAll(relocations);
@@ -462,21 +448,17 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) for the given version ID string. If there
-         * already are relocations defined for the version ID, they are overwritten.
+         * Sets relocations (in <code>from route = to route</code> format) that took effect at the given version ID. If
+         * there already are relocations defined for the version ID, they are overwritten.
          * <p>
          * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b>
+         * reproduce those steps without any content loss.</b>The ID at which a relocation took effect is equal to ID of
+         * the file which included the changes.
          * <p>
-         * The given version ID represents version, at which the relocations were made - at which they took effect. That
-         * means, if certain setting was at route <code>a</code> in config with version ID <code>2</code>, but you
-         * decided you want to move that setting to route <code>b</code> (and then released with version
-         * <code>3</code>), the relocation is considered to be made at version ID <code>3</code>.
-         * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
-         * @param versionId   the version ID to set relocations for
-         * @param relocations relocations to set
+         * @param versionId   the version ID
+         * @param relocations relocations that took effect at the version ID
          * @return the builder
          */
         public Builder setRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
@@ -485,26 +467,20 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) per version ID. If there already are
-         * string-based relocations defined for version ID which is also present in the given map, they are
+         * Sets relocations (in <code>from route = to route</code> format) per version ID, at which they took place. If
+         * there already are relocations defined for version ID which is also present in the given map, they are
          * overwritten.
          * <p>
          * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b>
+         * reproduce those steps without any content loss.</b>The ID at which a relocation took effect is equal to ID of
+         * the file which included the changes.
          * <p>
-         * The given version ID represents version, at which the relocations were made - at which they took effect. That
-         * means, if certain setting was at route <code>a</code> in config with version ID <code>2</code>, but you
-         * decided you want to move that setting to route <code>b</code> (and then released with version
-         * <code>3</code>), the relocation is considered to be made at version ID <code>3</code>.
+         * <b>Please note</b> that all relocations will be merged when updating, with {@link Route}-based relocations
+         * having higher priority.
          * <p>
-         * <b>Please note</b> that string relocations supplied via this and
-         * {@link #setStringRelocations(String, Map)} method are cached differently from routes supplied via {@link
-         * Route}-based methods (e.g. {@link #setRelocations(Map)}), they will be merged automatically when
-         * updating.<b>{@link Route}-based relocations have higher priority.</b>
-         * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
-         * @param relocations the relocations to add
+         * @param relocations the relocations, per version ID
          * @return the builder
          * @see #setStringRelocations(String, Map)
          */
@@ -514,27 +490,20 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) per version ID. If there already are
-         * string-based relocations defined for version ID which is also present in the given map, they are
-         * overwritten.
+         * Sets relocations (in <code>from route = to route</code> format) that took effect at the given version ID. If
+         * there already are relocations defined for the version ID, they are overwritten.
          * <p>
          * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b>
+         * reproduce those steps without any content loss.</b>The ID at which a relocation took effect is equal to ID of
+         * the file which included the changes.
          * <p>
-         * The given version ID represents version, at which the relocations were made - at which they took effect. That
-         * means, if certain setting was at route <code>a</code> in config with version ID <code>2</code>, but you
-         * decided you want to move that setting to route <code>b</code> (and then released with version
-         * <code>3</code>), the relocation is considered to be made at version ID <code>3</code>.
+         * <b>Please note</b> that all relocations will be merged when updating, with {@link Route}-based relocations
+         * having higher priority.
          * <p>
-         * <b>Please note</b> that string relocations supplied via this and
-         * {@link #setStringRelocations(Map)} method are cached differently from routes supplied via {@link Route}-based
-         * methods (e.g. {@link #setRelocations(Map)}), they will be merged automatically when updating.<b>{@link
-         * Route}-based relocations have higher priority.</b>
-         * <p>
-         * <b>YOU MUST SPECIFY A VERSIONING FOR THIS SETTING TO BE EFFECTIVE.</b>
+         * <b>You must specify a versioning for this setting to be effective.</b>
          *
-         * @param versionId   the version ID to set relocations for
-         * @param relocations relocations to set
+         * @param versionId   the version ID
+         * @param relocations relocations that took effect at the version ID
          * @return the builder
          */
         public Builder setStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {

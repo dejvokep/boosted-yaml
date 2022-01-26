@@ -20,6 +20,7 @@ import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.fvs.Pattern;
 import dev.dejvokep.boostedyaml.fvs.Version;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents automatically supplied versioning information.
@@ -58,16 +59,19 @@ public class AutomaticVersioning implements Versioning {
         this.strRoute = route;
     }
 
+    @Nullable
     @Override
     public Version getDefSectionVersion(@NotNull Section section) {
         return getId(section);
     }
 
+    @Nullable
     @Override
     public Version getUserSectionVersion(@NotNull Section section) {
         return getId(section);
     }
 
+    @NotNull
     @Override
     public Version getFirstVersion() {
         return pattern.getFirstVersion();
@@ -86,15 +90,13 @@ public class AutomaticVersioning implements Versioning {
     /**
      * Returns the parsed version from the given section, at the route and parsed using pattern given in the constructor.
      * <p>
-     * If not a string is present at the route, returns <code>null</code>. If the found ID cannot be parsed using the
-     * pattern, an {@link IllegalArgumentException} is thrown (see {@link Pattern#getVersion(String)}).
+     * If not a string is present at the route, or cannot be parsed, returns <code>null</code>.
      *
      * @param section the section to get the version from
-     * @return the version, or <code>null</code> if not found
-     * @throws IllegalArgumentException if failed to parse the ID
+     * @return the version, or <code>null</code> if not found or not parsable
      */
     @SuppressWarnings("ConstantConditions")
-    private Version getId(Section section) throws IllegalArgumentException {
+    private Version getId(Section section) {
         return (route != null ? section.getOptionalString(route) : section.getOptionalString(strRoute)).map(pattern::getVersion).orElse(null);
     }
 
