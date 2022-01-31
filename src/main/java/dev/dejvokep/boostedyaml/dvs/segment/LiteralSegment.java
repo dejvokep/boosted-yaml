@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.fvs.segment;
+package dev.dejvokep.boostedyaml.dvs.segment;
 
 /**
  * Represents an immutable segment constructed directly from an array of elements.

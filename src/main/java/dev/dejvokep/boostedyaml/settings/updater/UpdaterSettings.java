@@ -19,10 +19,10 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.route.RouteFactory;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
-import dev.dejvokep.boostedyaml.fvs.Pattern;
-import dev.dejvokep.boostedyaml.fvs.versioning.AutomaticVersioning;
-import dev.dejvokep.boostedyaml.fvs.versioning.ManualVersioning;
-import dev.dejvokep.boostedyaml.fvs.versioning.Versioning;
+import dev.dejvokep.boostedyaml.dvs.Pattern;
+import dev.dejvokep.boostedyaml.dvs.versioning.AutomaticVersioning;
+import dev.dejvokep.boostedyaml.dvs.versioning.ManualVersioning;
+import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

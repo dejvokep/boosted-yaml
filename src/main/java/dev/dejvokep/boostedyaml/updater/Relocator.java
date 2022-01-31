@@ -17,7 +17,7 @@ package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
-import dev.dejvokep.boostedyaml.fvs.Version;
+import dev.dejvokep.boostedyaml.dvs.Version;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;

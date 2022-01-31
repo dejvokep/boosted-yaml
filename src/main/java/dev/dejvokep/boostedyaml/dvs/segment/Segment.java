@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.fvs.segment;
+package dev.dejvokep.boostedyaml.dvs.segment;
 
-import dev.dejvokep.boostedyaml.fvs.Pattern;
+import dev.dejvokep.boostedyaml.dvs.Pattern;
 
 /**
  * Represents a segment (= part) in definition of a {@link Pattern}.

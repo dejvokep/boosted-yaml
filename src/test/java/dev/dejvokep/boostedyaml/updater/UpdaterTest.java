@@ -16,13 +16,13 @@
 package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import dev.dejvokep.boostedyaml.fvs.segment.Segment;
+import dev.dejvokep.boostedyaml.dvs.segment.Segment;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import dev.dejvokep.boostedyaml.fvs.Pattern;
+import dev.dejvokep.boostedyaml.dvs.Pattern;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;

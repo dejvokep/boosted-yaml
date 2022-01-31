@@ -16,8 +16,8 @@
 package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.block.implementation.Section;
-import dev.dejvokep.boostedyaml.fvs.Version;
-import dev.dejvokep.boostedyaml.fvs.versioning.Versioning;
+import dev.dejvokep.boostedyaml.dvs.Version;
+import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
