@@ -259,7 +259,7 @@ public class UpdaterSettings {
          * Sets if the file should automatically be saved using {@link YamlDocument#save()} after the updater has
          * finished updating (does not save if nothing's changed).
          * <p>
-         * Not effective if there is no {@link YamlDocument#getFile() associated file} with the document.
+         * Not effective if there is no {@link YamlDocument#getFile() file associated} with the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_AUTO_SAVE}
          *

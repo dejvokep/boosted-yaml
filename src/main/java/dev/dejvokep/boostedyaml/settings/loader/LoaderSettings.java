@@ -194,7 +194,7 @@ public class LoaderSettings {
         /**
          * Sets if to create a new file and save it if it does not exist automatically.
          * <p>
-         * Not effective if there is no {@link YamlDocument#getFile() associated file} with the document.
+         * Not effective if there is no {@link YamlDocument#getFile() file associated} with the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_CREATE_FILE_IF_ABSENT}
          *
@@ -209,7 +209,7 @@ public class LoaderSettings {
         /**
          * If enabled, automatically calls {@link YamlDocument#update()} after it has been loaded.
          * <p>
-         * Not effective if there are no defaults associated with the YamlFile that's being loaded.
+         * Not effective if there are no {@link YamlDocument#getDefaults() defaults associated} with the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_AUTO_UPDATE}
          *
