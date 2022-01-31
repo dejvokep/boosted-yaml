@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public interface TypeAdapter<T> {
      * <p>
      * The returned map does not need to (but may) contain the type identifier <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
      * Type identifier is one entry in the top-level map (the one returned), where the key is defined by the serializer
-     * (<code>==</code> for {@link StandardSerializer#defaultSerializer}) and the value identifies the serialized type - either by
+     * (<code>==</code> for {@link StandardSerializer#getDefault()}) and the value identifies the serialized type - either by
      * the full canonical classname (e.g. <code>me.name.project.objects.CustomObject</code>) or it's alias. <b>Both must
      * also be registered</b>.
      * <p>
