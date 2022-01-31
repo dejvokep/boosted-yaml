@@ -550,10 +550,13 @@ public class YamlDocument extends Section {
     //
 
     /**
-     * Returns the defaults associated with the file.
+     * Returns the defaults associated with the document, if any were given to <code>YamlDocument.create()</code> method.
+     * <p>
+     * If there are no defaults, returns <code>null</code>.
      *
-     * @return the defaults associated
+     * @return the associated defaults
      */
+    @Nullable
     public YamlDocument getDefaults() {
         return defaults;
     }
@@ -561,8 +564,9 @@ public class YamlDocument extends Section {
     /**
      * Returns the general settings associated with the file.
      *
-     * @return the general settings associated
+     * @return the associated general settings
      */
+    @NotNull
     public GeneralSettings getGeneralSettings() {
         return generalSettings;
     }
@@ -570,8 +574,9 @@ public class YamlDocument extends Section {
     /**
      * Returns the dumper settings associated with the file.
      *
-     * @return the dumper settings associated
+     * @return the associated dumper settings
      */
+    @NotNull
     public DumperSettings getDumperSettings() {
         return dumperSettings;
     }
@@ -579,8 +584,9 @@ public class YamlDocument extends Section {
     /**
      * Returns the updater settings associated with the file.
      *
-     * @return the updater settings associated
+     * @return the associated updater settings
      */
+    @NotNull
     public UpdaterSettings getUpdaterSettings() {
         return updaterSettings;
     }
@@ -588,17 +594,21 @@ public class YamlDocument extends Section {
     /**
      * Returns the loader settings associated with the file.
      *
-     * @return the loader settings associated
+     * @return the associated loader settings
      */
+    @NotNull
     public LoaderSettings getLoaderSettings() {
         return loaderSettings;
     }
 
     /**
-     * Returns the file associated with this document.
+     * Returns the file associated with this document, if any were given to <code>YamlDocument.create()</code> method.
+     * <p>
+     * If there are no defaults, returns <code>null</code>.
      *
      * @return the associated file
      */
+    @Nullable
     public File getFile() {
         return file;
     }
