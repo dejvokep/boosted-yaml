@@ -259,7 +259,7 @@ public class YamlDocument extends Section {
             if (composer.hasNext())
                 throw new InvalidObjectException("Multiple documents are not supported!");
             if (!(node instanceof MappingNode))
-                throw new IllegalArgumentException("Top level object is not a map!");
+                throw new IllegalArgumentException(String.format("Top level object is not a map! Parsed node: %s", node.toString()));
             //Construct
             constructor.constructSingleDocument(Optional.of(node));
 
