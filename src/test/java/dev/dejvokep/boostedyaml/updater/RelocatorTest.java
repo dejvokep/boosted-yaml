@@ -38,7 +38,7 @@ class RelocatorTest {
     // Pattern
     private static final Pattern PATTERN = new Pattern(Segment.range(1, Integer.MAX_VALUE), Segment.literal("."), Segment.range(0, 10));
     // Versions
-    private static final Version VERSION_USER = Objects.requireNonNull(PATTERN.getVersion("1.2")), VERSION_DEFAULT = Objects.requireNonNull(PATTERN.getVersion("2.3"));
+    private static final Version VERSION_DOCUMENT = Objects.requireNonNull(PATTERN.getVersion("1.2")), VERSION_DEFAULT = Objects.requireNonNull(PATTERN.getVersion("2.3"));
     // Settings
     private static final UpdaterSettings SETTINGS = UpdaterSettings.builder().setRelocations(new HashMap<String, Map<Route, Route>>(){{
         put("1.0", new HashMap<Route, Route>(){{
@@ -64,7 +64,7 @@ class RelocatorTest {
             // File
             YamlDocument file = YamlDocument.create(new ByteArrayInputStream("x: a\ny: b\nz:\n  a: 1\n  b: 10".getBytes(StandardCharsets.UTF_8)));
             // Create relocator
-            Relocator relocator = new Relocator(file, VERSION_USER, VERSION_DEFAULT);
+            Relocator relocator = new Relocator(file, VERSION_DOCUMENT, VERSION_DEFAULT);
             // Apply
             relocator.apply(SETTINGS, '.');
             // Assert

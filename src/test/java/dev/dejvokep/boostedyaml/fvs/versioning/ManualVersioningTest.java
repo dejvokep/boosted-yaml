@@ -34,13 +34,9 @@ class ManualVersioningTest {
     private static final ManualVersioning VERSIONING = new ManualVersioning(PATTERN, "1.2", "1.4");
 
     @Test
-    void getDefSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefaultsVersion(createFile()));
-    }
-
-    @Test
-    void getUserSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getDocumentVersion(createFile()));
+    void getDocumentVersion() throws IOException {
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDocumentVersion(createFile(), true));
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getDocumentVersion(createFile(), false));
     }
 
     @Test

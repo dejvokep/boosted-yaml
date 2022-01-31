@@ -23,37 +23,35 @@ import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
 public class Relocator {
 
-    //The file
-    private final Section file;
+    //The section
+    private final Section section;
     //Versions
-    private final Version userVersion, defVersion;
+    private final Version documentVersion, defaultsVersion;
 
     /**
-     * Initializes the relocator with the given file (user; to relocate contents in) and file versions.
+     * Initializes the relocator with the given section and document versions.
      *
-     * @param section     the (user) section
-     * @param userVersion version of the user file (parent of the given section)
-     * @param defVersion  version of the default file
+     * @param section         the section
+     * @param documentVersion version of the document that's updated (parent of the given section)
+     * @param defaultsVersion version of the defaults
      */
-    public Relocator(@NotNull Section section, @NotNull Version userVersion, @NotNull Version defVersion) {
-        this.file = section;
-        this.userVersion = userVersion;
-        this.defVersion = defVersion;
+    public Relocator(@NotNull Section section, @NotNull Version documentVersion, @NotNull Version defaultsVersion) {
+        this.section = section;
+        this.documentVersion = documentVersion;
+        this.defaultsVersion = defaultsVersion;
     }
 
     /**
      * Applies all appropriate relocations to the given section (in constructor), one by one using {@link #apply(Map,
      * Route)}.
      * <p>
-     * More formally, iterates through all version IDs, starting from the just next version ID of the user file version
-     * ID, ending (inclusive) when the currently iterated version ID is equal to the version ID of the default file.
+     * More formally, iterates through all version IDs, starting from the just next version ID of the document version
+     * ID, ending (inclusive) when the currently iterated version ID is equal to the version ID of the defaults.
      *
      * @param settings  settings used to get relocations
      * @param separator separator used to split string routes
@@ -61,9 +59,9 @@ public class Relocator {
      */
     public void apply(@NotNull UpdaterSettings settings, char separator) {
         //Copy
-        Version current = this.userVersion.copy();
+        Version current = this.documentVersion.copy();
         //While not at the latest version
-        while (current.compareTo(defVersion) <= 0) {
+        while (current.compareTo(defaultsVersion) <= 0) {
             //Move to the next version
             current.next();
             //Relocations
@@ -95,7 +93,7 @@ public class Relocator {
         if (from == null || !relocations.containsKey(from))
             return;
         //The parent section
-        Optional<Section> parent = file.getParent(from);
+        Optional<Section> parent = section.getParent(from);
         //If absent
         if (!parent.isPresent()) {
             relocations.remove(from);
@@ -124,7 +122,7 @@ public class Relocator {
         apply(relocations, to);
 
         //Relocate
-        file.set(to, block);
+        section.set(to, block);
     }
 
     /**

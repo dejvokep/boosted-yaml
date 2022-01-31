@@ -41,9 +41,9 @@ import org.snakeyaml.engine.v2.serializer.Serializer;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a YAML document.
@@ -595,9 +595,9 @@ public class YamlDocument extends Section {
     }
 
     /**
-     * Returns the user file associated with this file.
+     * Returns the file associated with this document.
      *
-     * @return the user file associated
+     * @return the associated file
      */
     public File getFile() {
         return file;

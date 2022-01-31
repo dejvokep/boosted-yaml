@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Class responsible for merging the user file with the default file. Merging is the final stage of the updating
+ * Class responsible for merging the document with the default file. Merging is the final stage of the updating
  * process.
  */
 public class Merger {
@@ -45,92 +45,92 @@ public class Merger {
     private static final Merger instance = new Merger();
 
     /**
-     * Merges the given sections, with the result being the given user section.
+     * Merges the given document with the defaults.
      * <p>
-     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default
-     * block) outputs the preserved one (according to the merging rules) into the user section. If the block is ignored,
+     * Merging algorithm consists of iterating through blocks in the defaults and for each pair (document+default block)
+     * outputs the preserved one (according to the merging rules) into the document. If the block is ignored,
      * immediately continues without changing the block. If the preserved block is the default one, deep copies it (so
      * it is isolated from the defaults). If both blocks represent sections, iterates through these pair of
      * subsections.
      * <p>
      * Additionally, after iteration had finished, deletes all non-merged blocks (those which are not contained in the
-     * defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled.
+     * defaults) from the document, unless {@link UpdaterSettings#isKeepAll()} is enabled.
      *
-     * @param userSection the user section
-     * @param defSection  the default section equivalent to the user section
-     * @param settings    updater settings used
+     * @param document the document
+     * @param defaults the default equivalent to the document
+     * @param settings updater settings to use
      * @see #iterate(Section, Section, UpdaterSettings)
      */
-    public static void merge(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings settings) {
-        instance.iterate(userSection, defSection, settings);
+    public static void merge(@NotNull Section document, @NotNull Section defaults, @NotNull UpdaterSettings settings) {
+        instance.iterate(document, defaults, settings);
     }
 
     /**
-     * Merges the given sections into the user section.
+     * Merges the given document with the defaults.
      * <p>
-     * Merging algorithm consists of iterating through blocks in the default section and for each pair (user-default
-     * block) outputs the preserved one (according to the merging rules) into the user section. If the block is ignored,
+     * Merging algorithm consists of iterating through blocks in the defaults and for each pair (document+default block)
+     * outputs the preserved one (according to the merging rules) into the document. If the block is ignored,
      * immediately continues without changing the block. If the preserved block is the default one, deep copies it (so
      * it is isolated from the defaults). If both blocks represent sections, iterates through these pair of
      * subsections.
      * <p>
      * Additionally, after iteration had finished, deletes all non-merged blocks (those which are not contained in the
-     * defaults) from the user section, unless {@link UpdaterSettings#isKeepAll()} is enabled.
+     * defaults) from the document, unless {@link UpdaterSettings#isKeepAll()} is enabled.
      *
-     * @param userSection the user section
-     * @param defSection  the default section equivalent to the user section
-     * @param settings    updater settings used
+     * @param document the document
+     * @param defaults the default equivalent to the document
+     * @param settings updater settings to use
      */
-    private void iterate(Section userSection, Section defSection, UpdaterSettings settings) {
+    private void iterate(Section document, Section defaults, UpdaterSettings settings) {
         //Keys
-        Set<Object> userKeys = new HashSet<>(userSection.getStoredValue().keySet());
+        Set<Object> documentKeys = new HashSet<>(document.getStoredValue().keySet());
 
         //Loop through all default entries
-        for (Map.Entry<Object, Block<?>> entry : defSection.getStoredValue().entrySet()) {
+        for (Map.Entry<Object, Block<?>> entry : defaults.getStoredValue().entrySet()) {
             //Key
             Object key = entry.getKey();
             Route route = Route.from(key);
             //Delete
-            userKeys.remove(key);
+            documentKeys.remove(key);
             //Blocks
-            Block<?> userBlock = userSection.getOptionalBlock(route).orElse(null), defBlock = entry.getValue();
-            //If user block is present
-            if (userBlock != null) {
+            Block<?> documentBlock = document.getOptionalBlock(route).orElse(null), defaultBlock = entry.getValue();
+            //If document block is present
+            if (documentBlock != null) {
                 //If ignored
-                if (userBlock.isIgnored()) {
+                if (documentBlock.isIgnored()) {
                     //Reset
-                    userBlock.setIgnored(false);
+                    documentBlock.setIgnored(false);
                     continue;
                 }
 
                 //If are sections
-                boolean isUserBlockSection = userBlock instanceof Section, isDefBlockSection = defBlock instanceof Section;
+                boolean isDocumentBlockSection = documentBlock instanceof Section, isDefaultBlockSection = defaultBlock instanceof Section;
                 //If both are sections
-                if (isDefBlockSection && isUserBlockSection) {
+                if (isDefaultBlockSection && isDocumentBlockSection) {
                     //Iterate
-                    iterate((Section) userBlock, (Section) defBlock, settings);
+                    iterate((Section) documentBlock, (Section) defaultBlock, settings);
                     continue;
                 }
 
                 //Set preserved value
-                userSection.set(route, getPreservedValue(settings.getMergeRules(), userBlock, () -> cloneBlock(defBlock, userSection), isUserBlockSection, isDefBlockSection));
+                document.set(route, getPreservedValue(settings.getMergeRules(), documentBlock, () -> cloneBlock(defaultBlock, document), isDocumentBlockSection, isDefaultBlockSection));
                 continue;
             }
 
             //Set cloned
-            userSection.set(route, cloneBlock(defBlock, userSection));
+            document.set(route, cloneBlock(defaultBlock, document));
         }
 
         //If to keep all
         if (settings.isKeepAll())
             return;
 
-        //Loop through all default keys
-        for (Object userKey : userKeys) {
+        //Loop through all document keys
+        for (Object key : documentKeys) {
             //Route
-            Route route = Route.fromSingleKey(userKey);
+            Route route = Route.fromSingleKey(key);
             //Block
-            Block<?> block = userSection.getOptionalBlock(route).orElse(null);
+            Block<?> block = document.getOptionalBlock(route).orElse(null);
             //If ignored
             if (block != null && block.isIgnored()) {
                 //Reset
@@ -139,7 +139,7 @@ public class Merger {
             }
 
             //Remove
-            userSection.remove(route);
+            document.remove(route);
         }
     }
 
@@ -232,16 +232,16 @@ public class Merger {
     /**
      * Returns the preserved block as defined by the given merge rules, blocks and information.
      *
-     * @param rules              the merge rules
-     * @param userBlock          block in the user file
-     * @param defBlock           block equivalent in the default file
-     * @param userBlockIsSection if user block is a section
-     * @param defBlockIsSection  if default block is a section
+     * @param rules                  the merge rules
+     * @param documentBlock          block in the document which is merged
+     * @param defaultBlock           block equivalent in the defaults
+     * @param documentBlockIsSection if block in the document is a section
+     * @param defaultBlockIsSection  if block in the defaults is a section
      * @return the preserved block
      */
     @NotNull
-    private Block<?> getPreservedValue(@NotNull Map<MergeRule, Boolean> rules, @NotNull Block<?> userBlock, @NotNull Supplier<Block<?>> defBlock, boolean userBlockIsSection, boolean defBlockIsSection) {
-        return rules.get(MergeRule.getFor(userBlockIsSection, defBlockIsSection)) ? userBlock : defBlock.get();
+    private Block<?> getPreservedValue(@NotNull Map<MergeRule, Boolean> rules, @NotNull Block<?> documentBlock, @NotNull Supplier<Block<?>> defaultBlock, boolean documentBlockIsSection, boolean defaultBlockIsSection) {
+        return rules.get(MergeRule.getFor(documentBlockIsSection, defaultBlockIsSection)) ? documentBlock : defaultBlock.get();
     }
 
 

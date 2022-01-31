@@ -49,7 +49,8 @@ public class UpdaterSettings {
      */
     public static final boolean DEFAULT_ENABLE_DOWNGRADING = true;
     /**
-     * If to keep all contents of the user file not contained in the default file by default.
+     * If to keep all non-merged content (present in the document, but not in the defaults) inside the document by
+     * default.
      */
     public static final boolean DEFAULT_KEEP_ALL = false;
     /**
@@ -74,7 +75,7 @@ public class UpdaterSettings {
     private final boolean autoSave;
     //Enable downgrading
     private final boolean enableDowngrading;
-    //Keep all user file contents
+    //Keep all contents
     private final boolean keepAll;
     //Merge rules
     private final Map<MergeRule, Boolean> mergeRules;
@@ -107,8 +108,8 @@ public class UpdaterSettings {
     /**
      * Returns merge preservation rules.
      * <p>
-     * The given map contains the merge rule as the key, with value representing if to preserve content from the user
-     * file instead of default.
+     * The given map contains the merge rule as the key, with value representing if to preserve content already in the
+     * document instead of the equivalent from defaults.
      *
      * @return the merge rules
      */
@@ -173,12 +174,6 @@ public class UpdaterSettings {
 
     /**
      * Returns if to enable downgrading.
-     * <p>
-     * Effective if and only the version ID of the user file represents newer file version than default file's version
-     * ID.
-     * <p>
-     * In this case, if this option is set to <code>true</code>, skips version-dependent operations (relocations)
-     * directly to merging. Throws an error otherwise.
      *
      * @return if to enable downgrading
      */
@@ -187,9 +182,9 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns if to keep all non-merged contents of the user file.
+     * Returns if to keep all non-merged contents of the document.
      *
-     * @return if to keep all non-merged user file contents
+     * @return if to keep all non-merged document contents
      */
     public boolean isKeepAll() {
         return keepAll;
@@ -241,7 +236,7 @@ public class UpdaterSettings {
         private boolean autoSave = DEFAULT_AUTO_SAVE;
         //Enable downgrading
         private boolean enableDowngrading = DEFAULT_ENABLE_DOWNGRADING;
-        //Keep all user file contents
+        //Keep all contents
         private boolean keepAll = DEFAULT_KEEP_ALL;
         //Merge rules
         private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
@@ -261,10 +256,10 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if the file should automatically be saved using {@link YamlDocument#save()} after the updater has finished
-         * updating (does not save if nothing's changed).
+         * Sets if the file should automatically be saved using {@link YamlDocument#save()} after the updater has
+         * finished updating (does not save if nothing's changed).
          * <p>
-         * Not effective if there is no user file associated with the YamlFile that's being loaded.
+         * Not effective if there is no {@link YamlDocument#getFile() associated file} with the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_AUTO_SAVE}
          *
@@ -282,16 +277,14 @@ public class UpdaterSettings {
          * <b>Downgrading is considered to be a situation:</b>
          * <ul>
          *     <li>when there are valid version IDs found for both files (supplied manually or automatically from files),</li>
-         *     <li>the version ID of the user file represents newer version than default file's version ID.</li>
+         *     <li>the version ID of the document represents newer version than version ID of the defaults.</li>
          * </ul>
          * Please note that by specification, the default file has to have a valid ID supplied/specified.
          * <p>
-         * That means, if no versioning is supplied, if the version ID of the user file was not found (automatic FVS) or
-         * not supplied (manual FVS), or the ID of the user file is not parsable by the given pattern, this method is not effective.
+         * That means, if no versioning is supplied, if the version ID of the updated document was not found (automatic DVS) or
+         * not supplied (manual DVS), or the ID of the document is not parsable by the given pattern, this setting is not effective.
          * <p>
-         * If enabled and the updater detects downgrading, the updater will skip keep routes and relocations, proceeding directly to merging. Throws an error otherwise (if disabled).
-         * <p>
-         * If disabled, throws an error if downgrading. If configured like so, you may also want to disable
+         * If enabled and the updater detects downgrading, the updater will skip relocations, proceeding directly to merging. If disabled, throws an error if downgrading. If configured like so, you may also want to disable
          * {@link LoaderSettings.Builder#setAutoUpdate(boolean)} (if an error is thrown, you won't be able to initialize the file - update manually).
          * <p>
          * <b>Default: </b>{@link #DEFAULT_ENABLE_DOWNGRADING}
@@ -305,11 +298,11 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if to keep all non-merged (they don't have equivalent in the default file) blocks of the user file.
+         * Sets if to keep all non-merged (they don't have equivalent in the defaults) blocks of the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_KEEP_ALL}
          *
-         * @param keepAll if to keep all user file blocks
+         * @param keepAll if to keep all non-merged blocks of the document
          * @return the builder
          */
         public Builder setKeepAll(boolean keepAll) {
@@ -321,8 +314,8 @@ public class UpdaterSettings {
          * Sets merge preservation rules. Overwrites only rules that are defined in the given map. You can learn more at
          * {@link MergeRule}.
          * <p>
-         * The given map should contain the merge rule as the key, with value representing if to preserve content from
-         * the user file instead of default.
+         * The given map should contain the merge rule as the key, with value representing if to preserve content
+         * already in the document instead of the equivalent from defaults.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_MERGE_RULES}
          *
@@ -341,13 +334,13 @@ public class UpdaterSettings {
          * <p>
          * <b>Default: </b>{@link #DEFAULT_MERGE_RULES}
          *
-         * @param rule         the rule to set
-         * @param preserveUser if to preserve contents from the user file instead of default contents when the given
-         *                     rule is met
+         * @param rule             the rule to set
+         * @param preserveDocument if to preserve content already in the document instead of the equivalent from
+         *                         defaults for this rule
          * @return the builder
          */
-        public Builder setMergeRule(@NotNull MergeRule rule, boolean preserveUser) {
-            this.mergeRules.put(rule, preserveUser);
+        public Builder setMergeRule(@NotNull MergeRule rule, boolean preserveDocument) {
+            this.mergeRules.put(rule, preserveDocument);
             return this;
         }
 
@@ -408,9 +401,9 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) if user
-         * file that's being updated has the given version ID. If there already are routes defined for the given ID,
-         * they are overwritten.
+         * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
+         * updating to a certain version ID. If there already are routes defined for the given ID, they are
+         * overwritten.
          * <p>
          * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
          * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
@@ -527,39 +520,36 @@ public class UpdaterSettings {
         /**
          * Sets versioning information manually. The given string version IDs must follow the given pattern.
          * <p>
-         * If the user file version ID is <code>null</code> (e.g. user file was created before your plugin started using
-         * this library/updater), keep routes are not effective, and it's version will be treated like the oldest one
-         * specified by the given pattern (which effectively means all relocations given will be applied to it).
+         * If the document version ID is <code>null</code> (e.g. underlying file was created before your plugin started
+         * using this library/updater) or it is not valid, it's version will be treated like the oldest one specified by
+         * the given pattern (which effectively means all relocations given will be applied to it).
          * <p>
-         * If any of the version IDs do not follow the given pattern (cannot be parsed), an {@link
-         * IllegalArgumentException} will be thrown now. Please read the documentation of {@link ManualVersioning}.
+         * If the ID of the defaults couldn't be parsed, expect a {@link NullPointerException} during runtime.
          * <p>
          * <i>You may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
-         * and rather update manually by calling {@link YamlDocument#update()} (because if an error is thrown, you won't be
-         * able to initialize the file).</i>
+         * and rather update manually by calling {@link YamlDocument#update()} (because if an error is thrown, you won't
+         * be able to initialize the file).</i>
          *
-         * @param pattern              the pattern
-         * @param userFileVersionId    version ID of the user file
-         * @param defaultFileVersionId version ID of the default file
+         * @param pattern           the pattern
+         * @param documentVersionId version ID of the document that's being updated
+         * @param defaultsVersionId version ID of the defaults
          * @return the builder
          * @see #setVersioning(Versioning)
          */
-        public Builder setVersioning(@NotNull Pattern pattern, @Nullable String userFileVersionId, @NotNull String defaultFileVersionId) {
-            return setVersioning(new ManualVersioning(pattern, userFileVersionId, defaultFileVersionId));
+        public Builder setVersioning(@NotNull Pattern pattern, @Nullable String documentVersionId, @NotNull String defaultsVersionId) {
+            return setVersioning(new ManualVersioning(pattern, documentVersionId, defaultsVersionId));
         }
 
         /**
-         * Sets versioning information to be obtained automatically (directly from the user and default file).
+         * Sets versioning information to be obtained automatically (directly from the documents and defaults).
          * <p>
-         * It must be guaranteed that version ID of the default file is present at the route and is valid (following the
-         * pattern), an {@link IllegalArgumentException} will be thrown during the updating process otherwise. If no
-         * version ID is found in the user file at the route, or is invalid, the updater will treat the user file
+         * It must be guaranteed that version ID of the defaults is present at the route and is valid (following the
+         * pattern), a {@link NullPointerException} will be thrown during the updating process otherwise. If no version
+         * ID is found in the document (that's being updated) at the route, or is invalid, the updater will treat its
          * version ID as the oldest specified by the given pattern.
-         * <p>
-         * Please read the documentation of {@link AutomaticVersioning}.
          *
          * @param pattern the pattern
-         * @param route   the route to version IDs (of both files) in both files
+         * @param route   the route to version IDs (of both files)
          * @return the builder
          */
         public Builder setVersioning(@NotNull Pattern pattern, @NotNull Route route) {
@@ -567,17 +557,15 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets versioning information to be obtained automatically (directly from the user and default file).
+         * Sets versioning information to be obtained automatically (directly from the documents and defaults).
          * <p>
-         * It must be guaranteed that version ID of the default file is present at the route and is valid (following the
-         * pattern), an {@link IllegalArgumentException} will be thrown during the updating process otherwise. If no
-         * version ID is found in the user file at the route, or is invalid, the updater will treat the user file
+         * It must be guaranteed that version ID of the defaults is present at the route and is valid (following the
+         * pattern), a {@link NullPointerException} will be thrown during the updating process otherwise. If no version
+         * ID is found in the document (that's being updated) at the route, or is invalid, the updater will treat its
          * version ID as the oldest specified by the given pattern.
-         * <p>
-         * Please read the documentation of {@link AutomaticVersioning}.
          *
          * @param pattern the pattern
-         * @param route   the route to version IDs (of both files) in both files
+         * @param route   the route to version IDs (of both files)
          * @return the builder
          */
         public Builder setVersioning(@NotNull Pattern pattern, @NotNull String route) {

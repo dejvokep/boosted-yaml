@@ -38,13 +38,9 @@ class AutomaticVersioningTest {
     private static final AutomaticVersioning VERSIONING = new AutomaticVersioning(PATTERN, "x");
 
     @Test
-    void getDefSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefaultsVersion(createFile().getDefaults()));
-    }
-
-    @Test
-    void getUserSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getDocumentVersion(createFile()));
+    void getDocumentVersion() throws IOException {
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDocumentVersion(createFile().getDefaults(), true));
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getDocumentVersion(createFile(), false));
     }
 
     @Test
@@ -55,11 +51,11 @@ class AutomaticVersioningTest {
     @Test
     void updateVersionID() throws IOException {
         // Recreate file
-        YamlDocument userFile = YamlDocument.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
         // Update
-        VERSIONING.updateVersionID(userFile, createFile().getDefaults());
+        VERSIONING.updateVersionID(document, createFile().getDefaults());
         // Assert
-        assertEquals("1.4", userFile.getString("x"));
+        assertEquals("1.4", document.getString("x"));
     }
 
     private YamlDocument createFile() throws IOException {

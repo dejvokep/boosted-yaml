@@ -192,11 +192,9 @@ public class LoaderSettings {
         }
 
         /**
-         * Sets if to create a new user file with default content if it does not exist (from the defaults) by saving it using {@link YamlDocument#save()}.
+         * Sets if to create a new file and save it if it does not exist automatically.
          * <p>
-         * If disabled, only loads the defaults, without modifying the user file contents - manual save is needed.
-         * <p>
-         * Not effective if there is no user file associated with the {@link YamlDocument} that's being loaded.
+         * Not effective if there is no {@link YamlDocument#getFile() associated file} with the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_CREATE_FILE_IF_ABSENT}
          *

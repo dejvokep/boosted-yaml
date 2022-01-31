@@ -31,8 +31,8 @@ import java.util.Objects;
  * <ol>
  *     <li>loading file version IDs,</li>
  *     <li>comparing IDs (to check if updating, downgrading...),</li>
- *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
- *     <li>marking ignored blocks in the user section,</li>
+ *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+ *     <li>marking ignored blocks in the document,</li>
  *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
  * </ol>
  */
@@ -44,60 +44,57 @@ public class Updater {
     private static final Updater instance = new Updater();
 
     /**
-     * Updates the given user section using the given default equivalent and settings; with the result reflected in the
-     * user section given. The process consists of:
+     * Updates the given document against the given defaults and settings. The process consists of:
      * <ol>
      *     <li>loading file version IDs,</li>
      *     <li>comparing IDs (to check if updating, downgrading...),</li>
-     *     <li>applying relocations to the user section (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
-     *     <li>marking ignored blocks in the user section,</li>
+     *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+     *     <li>marking ignored blocks in the document,</li>
      *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
      * </ol>
      *
-     * @param userSection     the user section to update
-     * @param defSection      section equivalent in the default file (to update against)
-     * @param updaterSettings the updater settings
-     * @param generalSettings the general settings used to obtain the route separator, to split string-based relocations
-     *                        and ignored routes
+     * @param document        the document section to update
+     * @param defaults        section equivalent in the defaults
+     * @param updaterSettings updater settings to use
+     * @param generalSettings general settings to use
      * @throws IOException an IO error
      */
-    public static void update(@NotNull Section userSection, @NotNull Section defSection, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
+    public static void update(@NotNull Section document, @NotNull Section defaults, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Apply versioning stuff
-        if (instance.runVersionDependent(userSection, defSection, updaterSettings, generalSettings.getSeparator()))
+        if (instance.runVersionDependent(document, defaults, updaterSettings, generalSettings.getSeparator()))
             return;
         //Merge
-        Merger.merge(userSection, defSection, updaterSettings);
+        Merger.merge(document, defaults, updaterSettings);
         //If present
         if (updaterSettings.getVersioning() != null)
             //Set the new ID
-            updaterSettings.getVersioning().updateVersionID(userSection, defSection);
+            updaterSettings.getVersioning().updateVersionID(document, defaults);
 
         //If auto save is enabled
         if (updaterSettings.isAutoSave())
-            userSection.getRoot().save();
+            document.getRoot().save();
     }
 
     /**
      * Runs version-dependent mechanics.
      * <ol>
      *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
-     *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
-     *     {@link Versioning#getDocumentVersion(Section)}), assigns the oldest version specified by the underlying pattern
+     *     <li>If the version of the document is not provided (is <code>null</code>), assigns the oldest version specified by the underlying pattern
      *     (see {@link Versioning#getFirstVersion()}).</li>
-     *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
+     *     <li>If downgrading and it is disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
-     *     <li>If version IDs equal, does not proceed as well.</li>
-     *     <li>Applies all relocations needed.</li>
+     *     <li>If version IDs equal, does not proceed.</li>
+     *     <li>If upgrading, applies all relocations needed.</li>
      *     <li>Marks all ignored blocks.</li>
      * </ol>
      *
-     * @param userSection    the user section
-     * @param defaultSection the default section equivalent
-     * @param settings       updater settings to use
-     * @param separator      the route separator, used to split string-based relocations and force copy routes
-     * @return if the files are up-to-date, <code>false</code> otherwise
+     * @param document  the document section that's being updated
+     * @param defaults  section equivalent in the defaults
+     * @param settings  updater settings to use
+     * @param separator the route separator, used to split string-based relocations and force copy routes
+     * @return if the document is already up-to-date, <code>false</code> otherwise
      */
-    private boolean runVersionDependent(@NotNull Section userSection, @NotNull Section defaultSection, @NotNull UpdaterSettings settings, char separator) {
+    private boolean runVersionDependent(@NotNull Section document, @NotNull Section defaults, @NotNull UpdaterSettings settings, char separator) {
         //Versioning
         Versioning versioning = settings.getVersioning();
         //If the versioning is not set
@@ -105,38 +102,36 @@ public class Updater {
             return false;
 
         //Versions
-        Version user = versioning.getDocumentVersion(userSection), def = versioning.getDefaultsVersion(defaultSection);
+        Version documentVersion = versioning.getDocumentVersion(document, false), defaultsVersion = versioning.getDocumentVersion(defaults, true);
         //Check default file version
-        Objects.requireNonNull(def, "Version ID of the default file cannot be null!");
-        //If user ID is null
-        if (user == null)
+        Objects.requireNonNull(defaultsVersion, "Version ID of the default file cannot be null! Is it malformed or not specified?");
+        //If document ID is null
+        if (documentVersion == null)
             //Set to the oldest (to go through all relocations supplied)
-            user = versioning.getFirstVersion();
+            documentVersion = versioning.getFirstVersion();
 
         //Compare
-        int compared = user.compareTo(def);
+        int compared = documentVersion.compareTo(defaultsVersion);
         //If downgrading
-        if (compared > 0) {
-            //If enabled
-            if (settings.isEnableDowngrading())
-                return false;
-
+        if (compared > 0 && !settings.isEnableDowngrading())
             //Throw an error
-            throw new UnsupportedOperationException(String.format("Downgrading is not enabled (%s > %s)!", def.asID(), user.asID()));
-        }
+            throw new UnsupportedOperationException(String.format("Downgrading is not enabled (%s > %s)!", defaultsVersion.asID(), documentVersion.asID()));
 
         //No update needed
         if (compared == 0)
             return true;
 
-        //Initialize relocator
-        Relocator relocator = new Relocator(userSection, user, def);
-        //Apply all
-        relocator.apply(settings, separator);
+        //If not downgrading
+        if (compared < 0) {
+            //Initialize relocator
+            Relocator relocator = new Relocator(document, documentVersion, defaultsVersion);
+            //Apply all
+            relocator.apply(settings, separator);
+        }
 
         //Ignored routes
-        for (Route route : settings.getIgnored(def.asID(), separator))
-            userSection.getOptionalBlock(route).ifPresent(block -> block.setIgnored(true));
+        for (Route route : settings.getIgnored(defaultsVersion.asID(), separator))
+            document.getOptionalBlock(route).ifPresent(block -> block.setIgnored(true));
         return false;
     }
 

@@ -151,12 +151,11 @@ class UpdaterSettingsTest {
             // Target version
             Version version = pattern.getVersion("1.2");
             // Assert
-            assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getDocumentVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getDocumentVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Route.from("a")).build().getVersioning().getDocumentVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getDocumentVersion(file));
-        } catch (
-                IOException ex) {
+            assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getDocumentVersion(file, false));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getDocumentVersion(file, false));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Route.from("a")).build().getVersioning().getDocumentVersion(file, false));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getDocumentVersion(file, false));
+        } catch (IOException ex) {
             fail(ex);
         }
     }
