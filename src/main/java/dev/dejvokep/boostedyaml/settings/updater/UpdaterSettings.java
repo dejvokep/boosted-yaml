@@ -121,6 +121,7 @@ public class UpdaterSettings {
      * Returns which blocks (represented by their routes) to ignore (including their contents) for the version ID.
      * Merges the string-based ignored routes.
      *
+     * @param versionId version for which to return the ignored routes
      * @param separator separator to split string based routes by
      * @return routes representing blocks to ignore, per version ID
      */
@@ -145,6 +146,7 @@ public class UpdaterSettings {
      * Returns relocations (in <code>from route = to route</code> format) for the version ID. Merges the string-based
      * relocations.
      *
+     * @param versionId version for which to return the relocations
      * @param separator separator to split string based relocation routes by
      * @return the relocations
      */
