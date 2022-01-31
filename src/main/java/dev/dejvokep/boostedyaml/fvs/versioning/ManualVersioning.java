@@ -21,44 +21,40 @@ import dev.dejvokep.boostedyaml.fvs.Version;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * Represents manually supplied versioning information.
  */
 public class ManualVersioning implements Versioning {
 
     //Versions
-    private final Version userSectionVersion;
-    private final Version defSectionVersion;
+    private final Version documentVersion;
+    private final Version defaultsVersion;
 
     /**
-     * Creates manually-supplied versioning information, which parses the given IDs using the pattern straight away, then
-     * supplies the (already) parsed versions to the implementing methods.
+     * Creates manually-supplied versioning information.
+     * <p>
+     * The given IDs are parsed immediately using the pattern; then supplied by the appropriate method implementations.
      *
-     * @param pattern              the pattern
-     * @param userSectionVersionId the version ID of the user section (file) matching the given pattern
-     * @param defSectionVersionId  the version ID of the default section (file) matching the given pattern
-     * @throws IllegalArgumentException if either of the given IDs do not match the given pattern (see {@link Pattern#getVersion(String)} for more information)
+     * @param pattern           the pattern
+     * @param documentVersionId the version ID of the document
+     * @param defaultsVersionId the version ID of the defaults
      */
-    public ManualVersioning(@NotNull Pattern pattern, @Nullable String userSectionVersionId, @NotNull String defSectionVersionId) throws IllegalArgumentException {
-        this.userSectionVersion = userSectionVersionId == null ? null : pattern.getVersion(userSectionVersionId);
-        this.defSectionVersion = pattern.getVersion(defSectionVersionId);
+    public ManualVersioning(@NotNull Pattern pattern, @Nullable String documentVersionId, @NotNull String defaultsVersionId) {
+        this.documentVersion = documentVersionId == null ? null : pattern.getVersion(documentVersionId);
+        this.defaultsVersion = pattern.getVersion(defaultsVersionId);
     }
 
     @Nullable
     @Override
-    public Version getDefSectionVersion(@NotNull Section section) {
-        return defSectionVersion;
-    }
-
-    @Nullable
-    @Override
-    public Version getUserSectionVersion(@NotNull Section section) {
-        return userSectionVersion;
+    public Version getDocumentVersion(@NotNull Section document, boolean defaults) {
+        return defaults ? defaultsVersion : documentVersion;
     }
 
     @NotNull
     @Override
     public Version getFirstVersion() {
-        return defSectionVersion.getPattern().getFirstVersion();
+        return defaultsVersion.getPattern().getFirstVersion();
     }
 }

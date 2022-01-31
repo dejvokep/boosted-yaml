@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.fvs.segment.Segment;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
@@ -51,7 +51,7 @@ class UpdaterTest {
     @Test
     void update() throws IOException {
         // File
-        YamlFile file = YamlFile.create(
+        YamlDocument file = YamlDocument.create(
                 new ByteArrayInputStream("a: 1.2\ny: true\nz:\n  a: 1\n  b: 15\no: \"a: b\"\np: 50".getBytes(StandardCharsets.UTF_8)),
                 new ByteArrayInputStream("a: 2.3\ny: false\ns:\n  a: 5\n  b: 10\nm: \"a: c\"\nr: 20\nt: 100".getBytes(StandardCharsets.UTF_8)),
                 GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UPDATER_SETTINGS);

@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.fvs.versioning;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.fvs.Pattern;
 import dev.dejvokep.boostedyaml.fvs.segment.Segment;
 import org.junit.jupiter.api.Test;
@@ -35,12 +35,12 @@ class ManualVersioningTest {
 
     @Test
     void getDefSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefSectionVersion(createFile()));
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefaultsVersion(createFile()));
     }
 
     @Test
     void getUserSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getUserSectionVersion(createFile()));
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getDocumentVersion(createFile()));
     }
 
     @Test
@@ -48,8 +48,8 @@ class ManualVersioningTest {
         assertEquals(PATTERN.getFirstVersion(), VERSIONING.getFirstVersion());
     }
 
-    private YamlFile createFile() throws IOException {
-        return YamlFile.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
+    private YamlDocument createFile() throws IOException {
+        return YamlDocument.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
     }
 
 }

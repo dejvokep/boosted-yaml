@@ -27,28 +27,17 @@ import org.jetbrains.annotations.Nullable;
 public interface Versioning {
 
     /**
-     * Returns version of the given user section (file; according to the implementation).
+     * Returns version of the given document (section).
      * <p>
-     * If the version ID (to parse from) could not be obtained or parsed, returns <code>null</code>.
+     * If obtaining version of the defaults (parameter is set to <code>true</code>), returning <code>null</code> is
+     * considered illegal and will throw an exception.
      *
-     * @param section the user section (file)
-     * @return the version of the user section (file)
+     * @param document the document
+     * @param defaults if getting version of the defaults
+     * @return the version corresponding to the document, or <code>null</code> if it could not be obtained/parsed
      */
     @Nullable
-    Version getUserSectionVersion(@NotNull Section section);
-
-    /**
-     * Returns version of the given default section (file; according to the implementation).
-     * <p>
-     * As this refers to default (unmodified, directly supplied by the developer) section, if returning
-     * <code>null</code>, the section is considered malformed (defaults must have their version IDs properly
-     * specified).
-     *
-     * @param section the default section (file)
-     * @return the version of the default section (file)
-     */
-    @Nullable
-    Version getDefSectionVersion(@NotNull Section section);
+    Version getDocumentVersion(@NotNull Section document, boolean defaults);
 
     /**
      * Returns the first version specified by the used pattern.

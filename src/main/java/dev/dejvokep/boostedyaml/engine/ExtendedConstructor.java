@@ -82,8 +82,9 @@ public class ExtendedConstructor extends StandardConstructor {
     }
 
     /**
-     * Clears all the (previously) constructed objects - therefore, freeing up the memory. It is always recommended
-     * calling this method after this instance of the constructor is done constructing.
+     * Clears all the (previously) constructed objects - therefore, freeing up the memory.
+     * <p>
+     * It is always recommended calling this method after this instance of the constructor is done constructing.
      */
     public void clear() {
         constructed.clear();

@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.engine;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.Comments;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
@@ -24,12 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
-import org.snakeyaml.engine.v2.common.FlowStyle;
 import org.snakeyaml.engine.v2.nodes.*;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,7 +54,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
         RepresentToNode representSection = new RepresentSection(), representSerializable = new RepresentSerializable();
         //Add representers
         super.representers.put(Section.class, representSection);
-        super.representers.put(YamlFile.class, representSection);
+        super.representers.put(YamlDocument.class, representSection);
         //Add all types
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedClasses())
             super.representers.put(clazz, representSerializable);

@@ -19,8 +19,8 @@ BoostedYAML is single of its kind, given the following advantages:
 8. **Settings for everything** - customize it to suite your needs just perfectly.
 9. **Performant and well documented** - just like a dream.
 10. **Open source** - if there's anything that can be improved, feel free to let me know, or contribute.
-11. **TDD (test driven development)** - don't worry about reliability, everything's tested automatically via more than
-    140 tests.
+11. **TDD (test driven development)** - don't worry about reliability, everything's verified automatically before
+    production by more than 140 tests.
 
 All of that with quick and kind support. Convinced? Let's get you onboard.
 

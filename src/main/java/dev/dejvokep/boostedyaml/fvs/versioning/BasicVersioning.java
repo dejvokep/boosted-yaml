@@ -20,7 +20,7 @@ import dev.dejvokep.boostedyaml.fvs.segment.Segment;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Basic automatic versioning.
+ * Basic implementation of automatic versioning.
  */
 public class BasicVersioning extends AutomaticVersioning {
 

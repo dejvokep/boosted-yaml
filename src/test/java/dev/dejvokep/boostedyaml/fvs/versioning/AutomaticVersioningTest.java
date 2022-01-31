@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.fvs.versioning;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.fvs.segment.Segment;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
@@ -39,12 +39,12 @@ class AutomaticVersioningTest {
 
     @Test
     void getDefSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefSectionVersion(createFile().getDefaults()));
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefaultsVersion(createFile().getDefaults()));
     }
 
     @Test
     void getUserSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getUserSectionVersion(createFile()));
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getDocumentVersion(createFile()));
     }
 
     @Test
@@ -55,15 +55,15 @@ class AutomaticVersioningTest {
     @Test
     void updateVersionID() throws IOException {
         // Recreate file
-        YamlFile userFile = YamlFile.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
+        YamlDocument userFile = YamlDocument.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
         // Update
         VERSIONING.updateVersionID(userFile, createFile().getDefaults());
         // Assert
         assertEquals("1.4", userFile.getString("x"));
     }
 
-    private YamlFile createFile() throws IOException {
-        return YamlFile.create(
+    private YamlDocument createFile() throws IOException {
+        return YamlDocument.create(
                 new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)),
                 new ByteArrayInputStream("x: 1.4\ny: false".getBytes(StandardCharsets.UTF_8)),
                 GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);

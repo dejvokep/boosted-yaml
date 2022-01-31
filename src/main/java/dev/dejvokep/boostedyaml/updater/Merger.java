@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
@@ -175,7 +175,7 @@ public class Merger {
         if (section.getRoute() == null)
             throw new IllegalArgumentException("Cannot clone the root!");
         //Root
-        YamlFile root = section.getRoot();
+        YamlDocument root = section.getRoot();
         //General settings
         GeneralSettings generalSettings = root.getGeneralSettings();
 
@@ -208,7 +208,7 @@ public class Merger {
     @NotNull
     private TerminatedBlock cloneTerminated(@NotNull TerminatedBlock entry, @NotNull Section newParent) {
         //Root
-        YamlFile root = newParent.getRoot();
+        YamlDocument root = newParent.getRoot();
         //General settings
         GeneralSettings generalSettings = root.getGeneralSettings();
 

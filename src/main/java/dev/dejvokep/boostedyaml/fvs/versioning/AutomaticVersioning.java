@@ -29,16 +29,17 @@ public class AutomaticVersioning implements Versioning {
 
     //Pattern
     private final Pattern pattern;
-    //Route
+    //Routes
     private final Route route;
     private final String strRoute;
 
     /**
-     * Creates automatically-supplied versioning information, which supplies versions (to the implementing methods)
-     * automatically (dynamically) from the given sections using the given route and pattern.
+     * Creates automatically-supplied versioning information.
+     * <p>
+     * The versions of the respective documents will be obtained and parsed at runtime.
      *
-     * @param pattern the pattern used to parse the IDs found in the sections dynamically
-     * @param route    the route to find the IDs at in the sections
+     * @param pattern the pattern used to parse the IDs
+     * @param route   the route at which the IDs are
      */
     public AutomaticVersioning(@NotNull Pattern pattern, @NotNull Route route) {
         this.pattern = pattern;
@@ -47,11 +48,12 @@ public class AutomaticVersioning implements Versioning {
     }
 
     /**
-     * Creates automatically-supplied versioning information, which supplies versions (to the implementing methods)
-     * automatically (dynamically) from the given sections using the given route and pattern.
+     * Creates automatically-supplied versioning information.
+     * <p>
+     * The versions of the respective documents will be obtained and parsed at runtime.
      *
-     * @param pattern the pattern used to parse the IDs found in the sections dynamically
-     * @param route    the route to find the IDs at in the sections
+     * @param pattern the pattern used to parse the IDs
+     * @param route   the route at which the IDs are
      */
     public AutomaticVersioning(@NotNull Pattern pattern, @NotNull String route) {
         this.pattern = pattern;
@@ -61,14 +63,10 @@ public class AutomaticVersioning implements Versioning {
 
     @Nullable
     @Override
-    public Version getDefSectionVersion(@NotNull Section section) {
-        return getId(section);
-    }
+    @SuppressWarnings("ConstantConditions")
+    public Version getDocumentVersion(@NotNull Section document, boolean defaults) {
+        return (route != null ? document.getOptionalString(route) : document.getOptionalString(strRoute)).map(pattern::getVersion).orElse(null);
 
-    @Nullable
-    @Override
-    public Version getUserSectionVersion(@NotNull Section section) {
-        return getId(section);
     }
 
     @NotNull
@@ -85,19 +83,6 @@ public class AutomaticVersioning implements Versioning {
             updated.set(route, def.getString(route));
         else
             updated.set(strRoute, def.getString(strRoute));
-    }
-
-    /**
-     * Returns the parsed version from the given section, at the route and parsed using pattern given in the constructor.
-     * <p>
-     * If not a string is present at the route, or cannot be parsed, returns <code>null</code>.
-     *
-     * @param section the section to get the version from
-     * @return the version, or <code>null</code> if not found or not parsable
-     */
-    @SuppressWarnings("ConstantConditions")
-    private Version getId(Section section) {
-        return (route != null ? section.getOptionalString(route) : section.getOptionalString(strRoute)).map(pattern::getVersion).orElse(null);
     }
 
 }

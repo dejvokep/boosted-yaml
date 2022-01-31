@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.block.implementation;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.engine.ExtendedConstructor;
 import dev.dejvokep.boostedyaml.route.Route;
@@ -75,7 +75,7 @@ import static dev.dejvokep.boostedyaml.utils.conversion.PrimitiveConversions.*;
 public class Section extends Block<Map<Object, Block<?>>> {
 
     //Root file
-    private YamlFile root;
+    private YamlDocument root;
     private Section defaults = null;
     //Parent section
     private Section parent;
@@ -97,7 +97,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *                    Java instances of the nodes
      * @see Block#Block(Node, Node, Object) superclass constructor used
      */
-    public Section(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
+    public Section(@NotNull YamlDocument root, @Nullable Section parent, @NotNull Route route, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass (value node is null because there can't be any value comments)
         super(keyNode, valueNode, root.getGeneralSettings().getDefaultMap());
         //Set
@@ -120,7 +120,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param mappings raw (containing Java values directly; no {@link Block} instances) content map
      * @see Block#Block(Block, Object) superclass constructor used
      */
-    public Section(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route, @Nullable Block<?> previous, @NotNull Map<?, ?> mappings) {
+    public Section(@NotNull YamlDocument root, @Nullable Section parent, @NotNull Route route, @Nullable Block<?> previous, @NotNull Map<?, ?> mappings) {
         //Call superclass
         super(previous, root.getGeneralSettings().getDefaultMap());
         //Set
@@ -143,8 +143,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Sets the root file, parent section, name and route to <code>null</code>.
      * <p>
-     * <b>This constructor is only used by {@link YamlFile the extending class}, where nodes are unknown at the time of
-     * initialization. It is needed to call {@link #init(YamlFile, Node, MappingNode, ExtendedConstructor)}
+     * <b>This constructor is only used by {@link YamlDocument the extending class}, where nodes are unknown at the time
+     * of
+     * initialization. It is needed to call {@link #init(YamlDocument, Node, MappingNode, ExtendedConstructor)}
      * afterwards.</b>
      *
      * @param defaultMap the content map
@@ -176,11 +177,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Initializes this section as an empty one.
      * <p>
-     * This method must only be called if {@link #isRoot()} returns <code>true</code>.
+     * This method must only be called if {@link #isRoot()} returns <code>true</code>. Expect an {@link
+     * IllegalStateException} otherwise.
      *
      * @param root the root file
      */
-    protected void initEmpty(@NotNull YamlFile root) {
+    protected void initEmpty(@NotNull YamlDocument root) {
         //Validate
         if (!root.isRoot())
             throw new IllegalStateException("Cannot init non-root section!");
@@ -201,7 +203,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param constructor constructor used to construct all the nodes contained within the root file, used to retrieve
      *                    Java instances of the nodes
      */
-    protected void init(@NotNull YamlFile root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
+    protected void init(@NotNull YamlDocument root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass
         super.init(keyNode, valueNode);
         //Set
@@ -274,7 +276,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the root file
      */
     @NotNull
-    public YamlFile getRoot() {
+    public YamlDocument getRoot() {
         return root;
     }
 
@@ -409,9 +411,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param root   new root file
      * @param parent new parent section
      * @param route  new absolute route to this section (from the new root)
-     * @see #adapt(YamlFile, Route)
+     * @see #adapt(YamlDocument, Route)
      */
-    private void adapt(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route) {
+    private void adapt(@NotNull YamlDocument root, @Nullable Section parent, @NotNull Route route) {
         //Delete from the previous parent
         if (this.parent != null && this.parent.getStoredValue().get(name) == this)
             this.parent.removeInternal(this.parent, name);
@@ -426,12 +428,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Recursively adapts this section (including sub-sections) to the new relatives. This method should initially be
-     * called after {@link #adapt(YamlFile, Section, Route)}.
+     * called after {@link #adapt(YamlDocument, Section, Route)}.
      *
      * @param root  new root file
      * @param route new absolute route to this section (from the new root)
      */
-    private void adapt(@NotNull YamlFile root, @NotNull Route route) {
+    private void adapt(@NotNull YamlDocument root, @NotNull Route route) {
         //Set
         this.root = root;
         this.route = route;
@@ -972,7 +974,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
-     *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
+     *     instances; please see {@link #Section(YamlDocument, Section, Route, Block, Map)} for more information),</li>
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
@@ -1020,7 +1022,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
-     *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
+     *     instances; please see {@link #Section(YamlDocument, Section, Route, Block, Map)} for more information),</li>
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
@@ -1541,8 +1543,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * actual value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
      * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
-     * {@link Double} - <code>double</code>) and also
-     * between two different numeric types (e.g. {@link Double} - <code>int</code>).
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1566,8 +1568,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * actual value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
      * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
-     * {@link Double} - <code>double</code>) and also
-     * between two different numeric types (e.g. {@link Double} - <code>int</code>).
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1590,8 +1592,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
      * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
-     * {@link Double} - <code>double</code>) and also
-     * between two different numeric types (e.g. {@link Double} - <code>int</code>).
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1611,8 +1613,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
      * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
-     * {@link Double} - <code>double</code>) and also
-     * between two different numeric types (e.g. {@link Double} - <code>int</code>).
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1631,8 +1633,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * actual value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
      * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
-     * {@link Double} - <code>double</code>) and also
-     * between two different numeric types (e.g. {@link Double} - <code>int</code>).
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1652,8 +1654,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * actual value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
      * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
-     * {@link Double} - <code>double</code>) and also
-     * between two different numeric types (e.g. {@link Double} - <code>int</code>).
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type

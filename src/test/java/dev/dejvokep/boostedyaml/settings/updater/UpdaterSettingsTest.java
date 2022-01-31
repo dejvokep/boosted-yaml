@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.fvs.segment.Segment;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
@@ -145,16 +145,16 @@ class UpdaterSettingsTest {
             // Pattern
             Pattern pattern = new Pattern(Segment.range(1, 100), Segment.literal("."), Segment.range(0, 10));
             // File
-            YamlFile file = YamlFile.create(
+            YamlDocument file = YamlDocument.create(
                     new ByteArrayInputStream("a: 1.2".getBytes(StandardCharsets.UTF_8)), new ByteArrayInputStream("a: 1.3".getBytes(StandardCharsets.UTF_8)),
                     GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
             // Target version
             Version version = pattern.getVersion("1.2");
             // Assert
-            assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getUserSectionVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getUserSectionVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Route.from("a")).build().getVersioning().getUserSectionVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getUserSectionVersion(file));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getDocumentVersion(file));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getDocumentVersion(file));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Route.from("a")).build().getVersioning().getDocumentVersion(file));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getDocumentVersion(file));
         } catch (
                 IOException ex) {
             fail(ex);

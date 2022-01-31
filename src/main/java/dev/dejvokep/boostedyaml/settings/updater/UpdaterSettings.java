@@ -15,8 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
-import dev.dejvokep.boostedyaml.fvs.Version;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.route.RouteFactory;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -262,7 +261,7 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if the file should automatically be saved using {@link YamlFile#save()} after the updater has finished
+         * Sets if the file should automatically be saved using {@link YamlDocument#save()} after the updater has finished
          * updating (does not save if nothing's changed).
          * <p>
          * Not effective if there is no user file associated with the YamlFile that's being loaded.
@@ -536,7 +535,7 @@ public class UpdaterSettings {
          * IllegalArgumentException} will be thrown now. Please read the documentation of {@link ManualVersioning}.
          * <p>
          * <i>You may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
-         * and rather update manually by calling {@link YamlFile#update()} (because if an error is thrown, you won't be
+         * and rather update manually by calling {@link YamlDocument#update()} (because if an error is thrown, you won't be
          * able to initialize the file).</i>
          *
          * @param pattern              the pattern

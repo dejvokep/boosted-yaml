@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.fvs.segment.Segment;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.fvs.Pattern;
@@ -62,7 +62,7 @@ class RelocatorTest {
     void apply() {
         try {
             // File
-            YamlFile file = YamlFile.create(new ByteArrayInputStream("x: a\ny: b\nz:\n  a: 1\n  b: 10".getBytes(StandardCharsets.UTF_8)));
+            YamlDocument file = YamlDocument.create(new ByteArrayInputStream("x: a\ny: b\nz:\n  a: 1\n  b: 10".getBytes(StandardCharsets.UTF_8)));
             // Create relocator
             Relocator relocator = new Relocator(file, VERSION_USER, VERSION_DEFAULT);
             // Apply

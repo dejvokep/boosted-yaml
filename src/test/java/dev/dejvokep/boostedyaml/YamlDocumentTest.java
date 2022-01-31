@@ -21,16 +21,13 @@ import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.snakeyaml.engine.v2.common.ScalarStyle;
-import org.snakeyaml.engine.v2.nodes.ScalarNode;
-import org.snakeyaml.engine.v2.nodes.Tag;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class YamlFileTest {
+class YamlDocumentTest {
 
     @Test
     void isRoot() throws IOException {
@@ -40,7 +37,7 @@ class YamlFileTest {
     @Test
     void load() throws IOException {
         // Create
-        YamlFile file = createFile();
+        YamlDocument file = createFile();
         // Load
         file.reload(createStream("m: 2\nn: x"));
         // Assert
@@ -51,16 +48,16 @@ class YamlFileTest {
 
     @Test
     void getDefaults() throws IOException {
-        assertNull(YamlFile.create(createStream("m: 2\nn: x")).getDefaults());
-        Assertions.assertEquals(4, YamlFile.create(createStream("m: 2\nn: x"), createStream("m: 4")).getDefaults().getInt("m"));
+        assertNull(YamlDocument.create(createStream("m: 2\nn: x")).getDefaults());
+        Assertions.assertEquals(4, YamlDocument.create(createStream("m: 2\nn: x"), createStream("m: 4")).getDefaults().getInt("m"));
     }
 
     @Test
     void update() throws IOException{
         // Assert
-        assertFalse(YamlFile.create(createStream("m: 2\nn: x")).update());
+        assertFalse(YamlDocument.create(createStream("m: 2\nn: x")).update());
         // Create
-        YamlFile file = YamlFile.create(createStream("n: x"), createStream("m: 4"));
+        YamlDocument file = YamlDocument.create(createStream("n: x"), createStream("m: 4"));
         // Assert
         assertTrue(file.update());
         Assertions.assertEquals(4, file.getInt("m"));
@@ -71,7 +68,7 @@ class YamlFileTest {
         // Settings
         GeneralSettings settings = GeneralSettings.builder().setDefaultNumber(3).build();
         // Assert
-        Assertions.assertEquals(settings, YamlFile.create(createStream("n: x"), settings, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT).getGeneralSettings());
+        Assertions.assertEquals(settings, YamlDocument.create(createStream("n: x"), settings, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT).getGeneralSettings());
     }
 
     @Test
@@ -79,7 +76,7 @@ class YamlFileTest {
         // Settings
         DumperSettings settings = DumperSettings.builder().setLineBreak("\n\n").build();
         // Assert
-        Assertions.assertEquals(settings, YamlFile.create(createStream("n: x"), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, settings, UpdaterSettings.DEFAULT).getDumperSettings());
+        Assertions.assertEquals(settings, YamlDocument.create(createStream("n: x"), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, settings, UpdaterSettings.DEFAULT).getDumperSettings());
     }
 
     @Test
@@ -87,7 +84,7 @@ class YamlFileTest {
         // Settings
         UpdaterSettings settings = UpdaterSettings.builder().setKeepAll(true).build();
         // Assert
-        Assertions.assertEquals(settings, YamlFile.create(createStream("n: x"), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, settings).getUpdaterSettings());
+        Assertions.assertEquals(settings, YamlDocument.create(createStream("n: x"), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, settings).getUpdaterSettings());
     }
 
     @Test
@@ -95,7 +92,7 @@ class YamlFileTest {
         // Settings
         LoaderSettings settings = LoaderSettings.builder().setAutoUpdate(true).build();
         // Assert
-        Assertions.assertEquals(settings, YamlFile.create(createStream("n: x"), GeneralSettings.DEFAULT, settings, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT).getLoaderSettings());
+        Assertions.assertEquals(settings, YamlDocument.create(createStream("n: x"), GeneralSettings.DEFAULT, settings, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT).getLoaderSettings());
     }
 
     @Test
@@ -103,13 +100,13 @@ class YamlFileTest {
         // File
         File file = new File("file.yml");
         // Assert
-        assertEquals(file, YamlFile.create(file, GeneralSettings.DEFAULT, LoaderSettings.builder().setCreateFileIfAbsent(false).build(), DumperSettings.DEFAULT, UpdaterSettings.DEFAULT).getFile());
+        assertEquals(file, YamlDocument.create(file, GeneralSettings.DEFAULT, LoaderSettings.builder().setCreateFileIfAbsent(false).build(), DumperSettings.DEFAULT, UpdaterSettings.DEFAULT).getFile());
     }
 
     @Test
     void save() throws IOException {
         // Create
-        YamlFile file = YamlFile.create(createStream("x: y\nb: 5"));
+        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
         // Steam
         OutputStream stream = new ByteArrayOutputStream();
         // Save
@@ -120,13 +117,13 @@ class YamlFileTest {
 
     @Test
     void dump() throws IOException {
-        assertEquals("x: y\nb: 5\n", YamlFile.create(createStream("x: y\nb: 5")).dump());
+        assertEquals("x: y\nb: 5\n", YamlDocument.create(createStream("x: y\nb: 5")).dump());
     }
 
     @Test
     void setLoaderSettings() throws IOException {
         // Create
-        YamlFile file = YamlFile.create(createStream("x: y\nb: 5"));
+        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
         // Settings
         LoaderSettings settings = LoaderSettings.builder().setAutoUpdate(true).build();
         // Set
@@ -138,7 +135,7 @@ class YamlFileTest {
     @Test
     void setDumperSettings() throws IOException {
         // Create
-        YamlFile file = YamlFile.create(createStream("x: y\nb: 5"));
+        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
         // Settings
         DumperSettings settings = DumperSettings.builder().setLineBreak("\n\n").build();
         // Set
@@ -150,7 +147,7 @@ class YamlFileTest {
     @Test
     void setGeneralSettings() throws IOException {
         // Create
-        YamlFile file = YamlFile.create(createStream("x: y\nb: 5"));
+        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
         // Settings
         GeneralSettings settings = GeneralSettings.builder().setDefaultNumber(3).build();
         // Set
@@ -162,7 +159,7 @@ class YamlFileTest {
     @Test
     void setUpdaterSettings() throws IOException {
         // Create
-        YamlFile file = YamlFile.create(createStream("x: y\nb: 5"));
+        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
         // Settings
         UpdaterSettings settings = UpdaterSettings.builder().setKeepAll(true).build();
         // Set
@@ -174,7 +171,7 @@ class YamlFileTest {
     @Test
     void create() throws IOException {
         // Create
-        YamlFile file = YamlFile.create(createStream("x: y\nb: 5"), createStream("m: 6"));
+        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"), createStream("m: 6"));
         // Assert
         Assertions.assertEquals(3, file.getRouteMappedValues(true).size());
         Assertions.assertEquals("y", file.getString("x"));
@@ -187,8 +184,8 @@ class YamlFileTest {
         return new BufferedInputStream(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private YamlFile createFile() throws IOException {
-        return YamlFile.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false".getBytes(StandardCharsets.UTF_8)));
+    private YamlDocument createFile() throws IOException {
+        return YamlDocument.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false".getBytes(StandardCharsets.UTF_8)));
     }
 
 }

@@ -82,7 +82,7 @@ public class Updater {
      * <ol>
      *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
      *     <li>If the version of the user (section, file) is not provided (is <code>null</code>;
-     *     {@link Versioning#getUserSectionVersion(Section)}), assigns the oldest version specified by the underlying pattern
+     *     {@link Versioning#getDocumentVersion(Section)}), assigns the oldest version specified by the underlying pattern
      *     (see {@link Versioning#getFirstVersion()}).</li>
      *     <li>If downgrading and it is enabled, does not proceed further. If disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
@@ -105,7 +105,7 @@ public class Updater {
             return false;
 
         //Versions
-        Version user = versioning.getUserSectionVersion(userSection), def = versioning.getDefSectionVersion(defaultSection);
+        Version user = versioning.getDocumentVersion(userSection), def = versioning.getDefaultsVersion(defaultSection);
         //Check default file version
         Objects.requireNonNull(def, "Version ID of the default file cannot be null!");
         //If user ID is null

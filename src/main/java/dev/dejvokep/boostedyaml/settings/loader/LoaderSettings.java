@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.loader;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
@@ -68,7 +68,7 @@ public class LoaderSettings {
     /**
      * Returns if to automatically attempt to update the file, after finished loading.
      * <p>
-     * Per the {@link YamlFile#update(UpdaterSettings)} specification, update is not possible, therefore this option
+     * Per the {@link YamlDocument#update(UpdaterSettings)} specification, update is not possible, therefore this option
      * has no effect, if no defaults (stream or file) have been given to the file instance, for which these settings
      * will be used.
      *
@@ -192,11 +192,11 @@ public class LoaderSettings {
         }
 
         /**
-         * Sets if to create a new user file with default content if it does not exist (from the defaults) by saving it using {@link YamlFile#save()}.
+         * Sets if to create a new user file with default content if it does not exist (from the defaults) by saving it using {@link YamlDocument#save()}.
          * <p>
          * If disabled, only loads the defaults, without modifying the user file contents - manual save is needed.
          * <p>
-         * Not effective if there is no user file associated with the {@link YamlFile} that's being loaded.
+         * Not effective if there is no user file associated with the {@link YamlDocument} that's being loaded.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_CREATE_FILE_IF_ABSENT}
          *
@@ -209,7 +209,7 @@ public class LoaderSettings {
         }
 
         /**
-         * If enabled, automatically calls {@link YamlFile#update()} after it has been loaded.
+         * If enabled, automatically calls {@link YamlDocument#update()} after it has been loaded.
          * <p>
          * Not effective if there are no defaults associated with the YamlFile that's being loaded.
          * <p>
