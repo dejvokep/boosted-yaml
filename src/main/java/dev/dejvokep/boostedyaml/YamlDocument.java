@@ -144,7 +144,7 @@ public class YamlDocument extends Section {
      * otherwise.
      * <p>
      * If the file does not exist, the document will be reloaded from a <b>copy</b> of the defaults (or empty if there
-     * are not any). If {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will
+     * are not any). Unless {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will
      * automatically be created and saved.
      *
      * @return if the operation was successful (see {@link #getFile()})
@@ -164,7 +164,7 @@ public class YamlDocument extends Section {
      * #getGeneralSettings() general} settings.
      * <p>
      * If the file does not exist, the document will be reloaded from a <b>copy</b> of the defaults (or empty if there
-     * are not any). If {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will
+     * are not any). Unless {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will
      * automatically be created and saved.
      *
      * @param file file to reload from
@@ -213,8 +213,8 @@ public class YamlDocument extends Section {
      * Reloads the contents from the given stream using the associated {@link #getLoaderSettings() loader} and {@link
      * #getGeneralSettings() general} settings.
      * <p>
-     * If there is any {@link #getFile() associated file} and it does not exist, if {@link
-     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created and
+     * If there is any {@link #getFile() associated file} and it does not exist, unless {@link
+     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created and
      * saved.
      *
      * @param inputStream file to reload from
@@ -228,8 +228,8 @@ public class YamlDocument extends Section {
      * Reloads the contents from the given stream using the given loader and associated {@link #getGeneralSettings()
      * general} settings.
      * <p>
-     * If there is any {@link #getFile() associated file} and it does not exist, if {@link
-     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created and
+     * If there is any {@link #getFile() associated file} and it does not exist, unless {@link
+     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created and
      * saved.
      *
      * @param inputStream    file to reload from
@@ -550,7 +550,8 @@ public class YamlDocument extends Section {
     //
 
     /**
-     * Returns the defaults associated with the document, if any were given to <code>YamlDocument.create()</code> method.
+     * Returns the defaults associated with the document, if any were given to <code>YamlDocument.create()</code>
+     * method.
      * <p>
      * If there are no defaults, returns <code>null</code>.
      *
@@ -717,8 +718,8 @@ public class YamlDocument extends Section {
      * {@link #reload()}. As you are not providing any defaults, you will need to provide them each time you're
      * updating.
      * <p>
-     * If the given {@link File} does not exist, the document will be empty. If {@link
-     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created and
+     * If the given {@link File} does not exist, the document will be empty. Unless {@link
+     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created and
      * saved.
      * <p>
      * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can {@link
@@ -744,8 +745,8 @@ public class YamlDocument extends Section {
      * and {@link #reload()}. As you are not providing any defaults, you will need to provide them each time you're
      * updating.
      * <p>
-     * If the given {@link File} does not exist, the document will be empty. If {@link
-     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created and
+     * If the given {@link File} does not exist, the document will be empty. Unless {@link
+     * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created and
      * saved.
      * <p>
      * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can {@link
