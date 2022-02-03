@@ -31,7 +31,7 @@ class GeneralSettingsTest {
 
     @Test
     void getKeyMode() {
-        assertEquals(GeneralSettings.KeyFormatting.OBJECT, GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build().getKeyFormatting());
+        assertEquals(GeneralSettings.KeyFormat.OBJECT, GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build().getKeyFormat());
     }
 
     @Test

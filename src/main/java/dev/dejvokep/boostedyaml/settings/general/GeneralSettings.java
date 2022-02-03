@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * <p>
  * To start using this library, it is recommended to take a look at the following methods:
  * <ul>
- *     <li>{@link Builder#setKeyFormatting(KeyFormatting)}</li>
+ *     <li>{@link Builder#setKeyFormat(KeyFormat)}</li>
  *     <li>{@link Builder#setUseDefaults(boolean)}</li>
  * </ul>
  */
@@ -41,9 +41,9 @@ import java.util.regex.Pattern;
 public class GeneralSettings {
 
     /**
-     * Key formatting for sections to use; specifies how the loaded/supplied keys should be converted them.
+     * Key format for sections to use; specifies how the loaded/supplied keys should be formatted.
      */
-    public enum KeyFormatting {
+    public enum KeyFormat {
 
         /**
          * Allows only strings as keys.
@@ -52,7 +52,7 @@ public class GeneralSettings {
          *     <li>String routes should only be used, as all keys are guaranteed to be strings. {@link Route Routes} can still be used, however, due to their capabilities, it is considered to be an overkill; all non-string keys supplied via those will internally be converted to strings (without modifying the route itself, they are immutable).</li>
          * </ul>
          * <p>
-         * <b>This key formatting ensures compatibility with Spigot/BungeeCord APIs.</b>
+         * <b>This key format ensures compatibility with Spigot/BungeeCord APIs.</b>
          */
         STRING,
 
@@ -75,9 +75,9 @@ public class GeneralSettings {
      */
     public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_SEPARATOR));
     /**
-     * Default key formatting.
+     * Default key format.
      */
-    public static final KeyFormatting DEFAULT_KEY_FORMATTING = KeyFormatting.STRING;
+    public static final KeyFormat DEFAULT_KEY_FORMATTING = KeyFormat.STRING;
     /**
      * Default serializer.
      */
@@ -124,8 +124,8 @@ public class GeneralSettings {
      */
     public static final GeneralSettings DEFAULT = builder().build();
 
-    //Key formatting
-    private final KeyFormatting keyFormatting;
+    //Key format
+    private final KeyFormat keyFormat;
     //Route separator
     private final char separator;
     //Escaped route separator
@@ -157,7 +157,7 @@ public class GeneralSettings {
      * @param builder the builder
      */
     private GeneralSettings(Builder builder) {
-        this.keyFormatting = builder.keyFormatting;
+        this.keyFormat = builder.keyFormat;
         this.separator = builder.separator;
         this.escapedSeparator = Pattern.quote(String.valueOf(separator));
         this.serializer = builder.serializer;
@@ -173,26 +173,26 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns the key formatting to use; please read more at your selected {@link KeyFormatting}.
+     * Returns the key format to use; please read more at your selected {@link KeyFormat}.
      *
-     * @return the key formatting to use
+     * @return the key format to use
      * @see #getSeparator()
      */
-    public KeyFormatting getKeyFormatting() {
-        return keyFormatting;
+    public KeyFormat getKeyFormat() {
+        return keyFormat;
     }
 
     /**
      * Returns route separator to use to separate individual keys inside a string route. Functionality compatible with
-     * Spigot/BungeeCord API. Unless requested explicitly, used only if key formatting is set to {@link
-     * KeyFormatting#STRING}.
+     * Spigot/BungeeCord API. Unless requested explicitly, used only if key format is set to {@link
+     * KeyFormat#STRING}.
      * <p>
      * Assuming separator <code>'.'</code>, route <code>a.b</code> represents object at key <code>b</code> in section at
      * key <code>a</code> in the root file (section).
      *
      * @return the separator to use
-     * @see #getKeyFormatting()
-     * @see KeyFormatting#STRING
+     * @see #getKeyFormat()
+     * @see KeyFormat#STRING
      */
     public char getSeparator() {
         return separator;
@@ -363,7 +363,7 @@ public class GeneralSettings {
      */
     public static Builder builder(GeneralSettings settings) {
         return builder()
-                .setKeyFormatting(settings.keyFormatting)
+                .setKeyFormat(settings.keyFormat)
                 .setSeparator(settings.separator)
                 .setSerializer(settings.serializer)
                 .setUseDefaults(settings.useDefaults)
@@ -381,8 +381,8 @@ public class GeneralSettings {
      * Builder for general settings.
      */
     public static class Builder {
-        //Key formatting
-        private KeyFormatting keyFormatting = DEFAULT_KEY_FORMATTING;
+        //Key format
+        private KeyFormat keyFormat = DEFAULT_KEY_FORMATTING;
         //Route separator
         private char separator = DEFAULT_SEPARATOR;
         //Serializer
@@ -413,30 +413,30 @@ public class GeneralSettings {
         }
 
         /**
-         * Sets the key formatting to use.
+         * Sets the key format to use.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_KEY_FORMATTING}
          *
-         * @param keyFormatting the key formatting to use
+         * @param keyFormat the key format to use
          * @return the builder
          * @see #setSeparator(char)
          */
-        public Builder setKeyFormatting(@NotNull KeyFormatting keyFormatting) {
-            this.keyFormatting = keyFormatting;
+        public Builder setKeyFormat(@NotNull KeyFormat keyFormat) {
+            this.keyFormat = keyFormat;
             return this;
         }
 
         /**
          * Sets route separator used to separate individual keys inside a string route. Functionality compatible with
-         * Spigot/BungeeCord API. Unless requested explicitly, used only if key formatting is set to {@link
-         * KeyFormatting#STRING}.
+         * Spigot/BungeeCord API. Unless requested explicitly, used only if key format is set to {@link
+         * KeyFormat#STRING}.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_SEPARATOR}
          *
          * @param separator the separator to use
          * @return the builder
-         * @see #setKeyFormatting(KeyFormatting)
-         * @see KeyFormatting#STRING
+         * @see #setKeyFormat(KeyFormat)
+         * @see KeyFormat#STRING
          */
         public Builder setSeparator(char separator) {
             this.separator = separator;

@@ -133,7 +133,7 @@ public class StandardSerializer implements YamlSerializer {
     }
 
     /**
-     * Returns the default serializer.
+     * Returns the default serializer, which uses {@link #DEFAULT_SERIALIZED_TYPE_KEY}.
      *
      * @return the default serializer
      */
