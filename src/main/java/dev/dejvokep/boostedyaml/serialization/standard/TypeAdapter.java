@@ -54,7 +54,7 @@ public interface TypeAdapter<T> {
      * <p>
      * The given map is a raw object map; there are no {@link Block} instances, just native Java objects themselves.
      * <p>
-     * Use {@link #toStringKeyMap(Map)} to convert the map.
+     * Use {@link #toStringKeyedMap(Map)} to convert the map.
      *
      * @param map the raw map to deserialize
      * @return the deserialized object
@@ -63,20 +63,20 @@ public interface TypeAdapter<T> {
     T deserialize(@NotNull Map<Object, Object> map);
 
     /**
-     * Converts this map (including all sub-maps) to string=value {@link HashMap}.
+     * Converts this map (including all sub-maps) to {@link String}=value {@link HashMap}.
      *
      * @param map the map to convert
      * @return the converted map
      */
     @NotNull
-    default Map<String, Object> toStringKeyMap(@NotNull Map<?, ?> map) {
+    default Map<String, Object> toStringKeyedMap(@NotNull Map<?, ?> map) {
         // New map
         Map<String, Object> newMap = new HashMap<>();
         // Iterate
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             // If the value is a map
             if (entry.getValue() instanceof Map)
-                newMap.put(entry.getKey().toString(), toStringKeyMap((Map<?, ?>) entry.getValue()));
+                newMap.put(entry.getKey().toString(), toStringKeyedMap((Map<?, ?>) entry.getValue()));
             else
                 newMap.put(entry.getKey().toString(), entry.getValue());
         }
