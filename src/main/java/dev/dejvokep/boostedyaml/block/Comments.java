@@ -29,8 +29,8 @@ import java.util.Optional;
  * Block}.
  * <p>
  * <b>Please note</b> that the methods provided here add possibilities for all implemented {@link Position positions}.
- * However, using positions other than {@link Position#BEFORE} might lead to comment de-alignment. Please read more
- * information at the enum constants.
+ * However, using positions other than {@link Position#BEFORE} might lead to comment de-alignment and errors. Please
+ * read more information at the enum constants.
  */
 public class Comments {
 
@@ -46,18 +46,16 @@ public class Comments {
         /**
          * Puts the comments inline with the node.
          * <p>
-         * <b>Please note</b> that such comments will be dumped after the node. That means, after they are loaded
-         * again, they will be attached to the <b>next</b> node in the document (leading to de-alignment of the comments
-         * - they will no longer be part of the same mapping). Therefore, you should <b>never</b> use this position.
+         * <b>Please note this method may de-align comments to other nodes when reloaded; errors might be thrown in
+         * some cases. It is advised to never use this position.</b>
          */
         INLINE,
 
         /**
          * Puts the comments after the node.
          * <p>
-         * <b>Please note</b> that such, after they are loaded again, will be attached to the <b>next</b> node in the
-         * document (leading to de-alignment of the comments - they will no longer be part of the same mapping).
-         * Therefore, you should <b>never</b> use this position.
+         * <b>Please note this method may de-align comments to other nodes when reloaded; errors might be thrown in
+         * some cases. It is advised to never use this position.</b>
          */
         AFTER
     }
