@@ -20,7 +20,7 @@ import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.engine.ExtendedConstructor;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings.KeyMode;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings.KeyFormatting;
 import dev.dejvokep.boostedyaml.utils.conversion.PrimitiveConversions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,10 +29,7 @@ import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 import static dev.dejvokep.boostedyaml.utils.conversion.ListConversions.*;
@@ -447,9 +444,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Adapts the given key, as defined by the key mode currently in use ({@link GeneralSettings#getKeyMode()}).
+     * Adapts the given key, as defined by the key formatting currently in use ({@link GeneralSettings#getKeyFormatting()}).
      * <p>
-     * More formally, if key mode is {@link KeyMode#STRING STRING}, returns the result of {@link Object#toString()} on
+     * More formally, if key formatting is {@link KeyFormatting#STRING STRING}, returns the result of {@link Object#toString()} on
      * the given key object, the key object given otherwise.
      *
      * @param key the key object to adapt
@@ -457,7 +454,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @NotNull
     public Object adaptKey(@NotNull Object key) {
-        return root.getGeneralSettings().getKeyMode() == KeyMode.OBJECT ? key : key.toString();
+        //Validate
+        Objects.requireNonNull(key, "Sections cannot contain null keys!");
+        return root.getGeneralSettings().getKeyFormatting() == KeyFormatting.OBJECT ? key : key.toString();
     }
 
     /**
@@ -982,7 +981,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
      * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
-     * between two different files with different key modes will result in such exception.</b>
+     * between two different files with different key formattings will result in such exception.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -1030,7 +1029,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
      * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
-     * between two different files with different key modes will result in such exception.</b>
+     * between two different files with different key formattings will result in such exception.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -1076,9 +1075,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //If is the root
             if (section.isRoot())
                 throw new IllegalArgumentException("Cannot set root section as the value!");
-            //Different key modes
-            if (section.getRoot().getGeneralSettings().getKeyMode() != getRoot().getGeneralSettings().getKeyMode())
-                throw new IllegalArgumentException("Cannot move sections between files with different key modes!");
+            //Different key formattings
+            if (section.getRoot().getGeneralSettings().getKeyFormatting() != getRoot().getGeneralSettings().getKeyFormatting())
+                throw new IllegalArgumentException("Cannot move sections between files with different key formattings!");
             //Set
             getStoredValue().put(key, section);
 
@@ -1192,7 +1191,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>Functionality notes:</b> When individual elements (keys) of the given route are traversed, they are (without
-     * modifying the route object given - it is immutable) adapted to the current key mode setting (see {@link
+     * modifying the route object given - it is immutable) adapted to the current key formatting setting (see {@link
      * #adaptKey(Object)}).
      * <p>
      * <b>This is one of the fundamental methods, upon which the functionality of other methods in this class is
@@ -1253,8 +1252,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * constructor {@link Route#fromString(String, char)} (which effectively splits the given string route into separate
      * string keys according to the separator).
      * <p>
-     * This method works independently of the root's {@link GeneralSettings#getKeyMode()}. However, as the given route
-     * contains individual <b>string</b> keys, if set to {@link KeyMode#OBJECT}, you will only be able to access data at
+     * This method works independently of the root's {@link GeneralSettings#getKeyFormatting()}. However, as the given route
+     * contains individual <b>string</b> keys, if set to {@link KeyFormatting#OBJECT}, you will only be able to access data at
      * routes containing only keys parsed as strings (no integer, boolean... or <code>null</code> keys) by SnakeYAML
      * Engine. If such functionality is needed, use {@link #getOptionalBlock(Route)} instead.
      * <p>

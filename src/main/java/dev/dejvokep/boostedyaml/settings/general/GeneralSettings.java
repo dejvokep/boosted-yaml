@@ -29,11 +29,11 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * General settings cover all options related to files.
+ * General settings cover all options related to documents.
  * <p>
  * To start using this library, it is recommended to take a look at the following methods:
  * <ul>
- *     <li>{@link Builder#setKeyMode(KeyMode)}</li>
+ *     <li>{@link Builder#setKeyFormatting(KeyFormatting)}</li>
  *     <li>{@link Builder#setUseDefaults(boolean)}</li>
  * </ul>
  */
@@ -41,25 +41,27 @@ import java.util.regex.Pattern;
 public class GeneralSettings {
 
     /**
-     * Key mode for sections to use, specifies how the loaded/supplied keys should be treated and how to convert them.
-     * <p>
-     * It highly recommended to read {@link Section#getOptionalBlock(Route)} and {@link
-     * Section#getOptionalBlock(String)} documentation.
+     * Key formatting for sections to use; specifies how the loaded/supplied keys should be converted them.
      */
-    public enum KeyMode {
+    public enum KeyFormatting {
 
         /**
-         * Converts all section keys to strings when loading. If any of the keys in {@link Route} objects used in
-         * get/set/remove... methods is not a string, convert it to one (internally, will not modify the routes). Routes
-         * with non-string keys will be rendered useless, as the sections contain string keys only.
+         * Allows only strings as keys.
+         * <ul>
+         *     <li>All keys loaded are converted to strings via {@link Object#toString()} (e.g. <code>5</code> -> <code>"5"</code>), except <code>null</code> keys, which are considered illegal and will throw a {@link NullPointerException}.</li>
+         *     <li>String routes should only be used, as all keys are guaranteed to be strings. {@link Route Routes} can still be used, however, due to their capabilities, it is considered to be an overkill; all non-string keys supplied via those will internally be converted to strings (without modifying the route itself, they are immutable).</li>
+         * </ul>
          * <p>
-         * <b>This key mode ensures compatibility with Spigot/BungeeCord APIs.</b>
+         * <b>This key formatting ensures compatibility with Spigot/BungeeCord APIs.</b>
          */
         STRING,
 
         /**
-         * Does not convert any keys - leaves them as loaded/supplied using methods. If string routes are used, they
-         * will only be able to refer to values whose route is constructed only from {@link String} keys.
+         * Allows anything as the key per the YAML specification (that is, integers, strings, doubles...).
+         * <ul>
+         *     <li>Preserves keys as they were loaded by SnakeYAML Engine (YAML processor), or supplied.</li>
+         *     <li>Note that the only way to refer to data at routes that contain non-string keys is using {@link Route}. String routes can still be used, however, only to the extent of their limitations.</li>
+         * </ul>
          */
         OBJECT
     }
@@ -73,9 +75,9 @@ public class GeneralSettings {
      */
     public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_SEPARATOR));
     /**
-     * Default key mode.
+     * Default key formatting.
      */
-    public static final KeyMode DEFAULT_KEY_MODE = KeyMode.STRING;
+    public static final KeyFormatting DEFAULT_KEY_FORMATTING = KeyFormatting.STRING;
     /**
      * Default serializer.
      */
@@ -122,8 +124,8 @@ public class GeneralSettings {
      */
     public static final GeneralSettings DEFAULT = builder().build();
 
-    //Key mode
-    private final KeyMode keyMode;
+    //Key formatting
+    private final KeyFormatting keyFormatting;
     //Route separator
     private final char separator;
     //Escaped route separator
@@ -155,7 +157,7 @@ public class GeneralSettings {
      * @param builder the builder
      */
     private GeneralSettings(Builder builder) {
-        this.keyMode = builder.keyMode;
+        this.keyFormatting = builder.keyFormatting;
         this.separator = builder.separator;
         this.escapedSeparator = Pattern.quote(String.valueOf(separator));
         this.serializer = builder.serializer;
@@ -171,25 +173,26 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns the key mode to use; please read more at your selected {@link KeyMode}.
+     * Returns the key formatting to use; please read more at your selected {@link KeyFormatting}.
      *
-     * @return the key mode to use
+     * @return the key formatting to use
      * @see #getSeparator()
      */
-    public KeyMode getKeyMode() {
-        return keyMode;
+    public KeyFormatting getKeyFormatting() {
+        return keyFormatting;
     }
 
     /**
      * Returns route separator to use to separate individual keys inside a string route. Functionality compatible with
-     * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
+     * Spigot/BungeeCord API. Unless requested explicitly, used only if key formatting is set to {@link
+     * KeyFormatting#STRING}.
      * <p>
      * Assuming separator <code>'.'</code>, route <code>a.b</code> represents object at key <code>b</code> in section at
      * key <code>a</code> in the root file (section).
      *
      * @return the separator to use
-     * @see #getKeyMode()
-     * @see KeyMode#STRING
+     * @see #getKeyFormatting()
+     * @see KeyFormatting#STRING
      */
     public char getSeparator() {
         return separator;
@@ -360,7 +363,7 @@ public class GeneralSettings {
      */
     public static Builder builder(GeneralSettings settings) {
         return builder()
-                .setKeyMode(settings.keyMode)
+                .setKeyFormatting(settings.keyFormatting)
                 .setSeparator(settings.separator)
                 .setSerializer(settings.serializer)
                 .setUseDefaults(settings.useDefaults)
@@ -378,8 +381,8 @@ public class GeneralSettings {
      * Builder for general settings.
      */
     public static class Builder {
-        //key mode
-        private KeyMode keyMode = DEFAULT_KEY_MODE;
+        //Key formatting
+        private KeyFormatting keyFormatting = DEFAULT_KEY_FORMATTING;
         //Route separator
         private char separator = DEFAULT_SEPARATOR;
         //Serializer
@@ -410,32 +413,30 @@ public class GeneralSettings {
         }
 
         /**
-         * Sets the key mode to use. Please read more at your selected {@link KeyMode}.
+         * Sets the key formatting to use.
          * <p>
-         * <b>Default: </b>{@link #DEFAULT_KEY_MODE}
+         * <b>Default: </b>{@link #DEFAULT_KEY_FORMATTING}
          *
-         * @param keyMode the key mode to use
+         * @param keyFormatting the key formatting to use
          * @return the builder
          * @see #setSeparator(char)
          */
-        public Builder setKeyMode(@NotNull KeyMode keyMode) {
-            this.keyMode = keyMode;
+        public Builder setKeyFormatting(@NotNull KeyFormatting keyFormatting) {
+            this.keyFormatting = keyFormatting;
             return this;
         }
 
         /**
          * Sets route separator used to separate individual keys inside a string route. Functionality compatible with
-         * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
-         * <p>
-         * Assuming separator <code>'.'</code>, route <code>"a.b"</code> represents object at key <code>"b"</code> in
-         * section at key <code>"a"</code> in the root file (section).
+         * Spigot/BungeeCord API. Unless requested explicitly, used only if key formatting is set to {@link
+         * KeyFormatting#STRING}.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_SEPARATOR}
          *
          * @param separator the separator to use
          * @return the builder
-         * @see #setKeyMode(KeyMode)
-         * @see KeyMode#STRING
+         * @see #setKeyFormatting(KeyFormatting)
+         * @see KeyFormatting#STRING
          */
         public Builder setSeparator(char separator) {
             this.separator = separator;
@@ -465,7 +466,7 @@ public class GeneralSettings {
          *         content from the file, but also from the equivalent section in the defaults.
          *     </li>
          *     <li>
-         *         Value getters with signature <code>getX(route)</code> will search the defaults as described in the
+         *         Value getters with signature <code>getX(route)</code> will search the defaults as documented. You can also view the behaviour in the
          *         call stack below:
          *         <ol>
          *             <li>

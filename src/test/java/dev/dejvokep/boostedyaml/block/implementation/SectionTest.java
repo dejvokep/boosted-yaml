@@ -103,14 +103,14 @@ class SectionTest {
 
     @Test
     void adaptKey() throws IOException {
-        assertEquals(7, createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build()).adaptKey(7));
-        assertEquals("true", createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.STRING).build()).adaptKey(true));
+        assertEquals(7, createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build()).adaptKey(7));
+        assertEquals("true", createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.STRING).build()).adaptKey(true));
     }
 
     @Test
     void getPaths() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(new HashSet<Route>() {{
             add(Route.from("x"));
@@ -148,7 +148,7 @@ class SectionTest {
     @Test
     void getKeys() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(new HashSet<Object>() {{
             add("x");
@@ -177,7 +177,7 @@ class SectionTest {
     @Test
     void getValues() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(new HashMap<Route, Object>() {{
             put(Route.from("x"), 5);
@@ -215,7 +215,7 @@ class SectionTest {
     @Test
     void getBlocks() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(new HashMap<Route, Block<?>>() {{
             put(Route.from("x"), file.getStoredValue().get("x"));
@@ -268,7 +268,7 @@ class SectionTest {
     @Test
     void createSection() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Create sections
         Section s1 = file.createSection("z.c"), s2 = file.createSection(Route.from(true, "d"));
         // Assert
@@ -283,7 +283,7 @@ class SectionTest {
     @Test
     void set() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Set
         file.set("z.c", true);
         file.set(Route.from(4, 6), 9);
@@ -297,7 +297,7 @@ class SectionTest {
     @Test
     void remove() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Remove
         file.remove("y.b");
         // Assert
@@ -311,7 +311,7 @@ class SectionTest {
     @Test
     void getBlockSafe() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(file.getStoredValue().get("x"), file.getOptionalBlock("x").orElse(null));
         assertEquals(file.getStoredValue().get("y"), file.getOptionalBlock("y").orElse(null));
@@ -323,7 +323,7 @@ class SectionTest {
     @Test
     void getParentOfPath() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(file.getSection("y"), file.getParent("y.a").orElse(null));
         assertEquals(file, file.getParent(Route.from(7)).orElse(null));
@@ -332,7 +332,7 @@ class SectionTest {
     @Test
     void getSafe() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(5, file.getOptional("x").orElse(null));
         assertEquals(file.getStoredValue().get("y"), file.getOptional("y").orElse(null));
@@ -344,7 +344,7 @@ class SectionTest {
     @Test
     void get() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(5, file.get("x"));
         assertEquals(file.get("y"), file.getStoredValue().get("y"));
@@ -357,7 +357,7 @@ class SectionTest {
     @Test
     void getAsSafe() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(5D, file.getAsOptional("x", double.class).orElse(null));
         assertEquals(file.getStoredValue().get("y"), file.getAsOptional("y", Section.class).orElse(null));
@@ -370,7 +370,7 @@ class SectionTest {
     @Test
     void getAs() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertEquals(5D, file.getAs("x", double.class));
         assertEquals(file.getStoredValue().get("y"), file.getAs("y", Block.class));
@@ -383,7 +383,7 @@ class SectionTest {
     @Test
     void is() throws IOException {
         // Create file
-        YamlDocument file = createFile(GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build());
+        YamlDocument file = createFile(GeneralSettings.builder().setKeyFormatting(GeneralSettings.KeyFormatting.OBJECT).build());
         // Assert
         assertTrue(file.is("x", int.class));
         assertTrue(file.is("x", Integer.class));

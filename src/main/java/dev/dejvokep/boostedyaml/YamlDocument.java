@@ -512,7 +512,7 @@ public class YamlDocument extends Section {
      * <p>
      * <b>WARNING!</b>
      * <ul>
-     *     <li>Never change the key mode! Such attempts will result in an {@link IllegalArgumentException}.</li>
+     *     <li>Never change the key formatting! Such attempts will result in an {@link IllegalArgumentException}.</li>
      *     <li>If the default {@link GeneralSettings#getDefaultList() list}, {@link GeneralSettings#getDefaultMap() map}
      *     or {@link GeneralSettings#getDefaultSet() set} was changed, already existing instances will not be changed.
      *     Reload to take effect.</li>
@@ -522,8 +522,8 @@ public class YamlDocument extends Section {
      */
     public void setGeneralSettings(@NotNull GeneralSettings generalSettings) {
         //Validate
-        if (generalSettings.getKeyMode() != this.generalSettings.getKeyMode())
-            throw new IllegalArgumentException("Cannot change key mode! Recreate the file if needed to do so.");
+        if (generalSettings.getKeyFormatting() != this.generalSettings.getKeyFormatting())
+            throw new IllegalArgumentException("Cannot change key formatting! Recreate the file if needed to do so.");
         //Set
         this.generalSettings = generalSettings;
     }

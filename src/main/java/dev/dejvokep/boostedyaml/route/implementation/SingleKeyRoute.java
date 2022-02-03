@@ -40,10 +40,7 @@ public class SingleKeyRoute implements Route {
      * @param key the single element in the route
      */
     public SingleKeyRoute(@NotNull Object key) {
-        //Validate
-        Objects.requireNonNull(key, "Route cannot contain null keys!");
-        //Set
-        this.key = key;
+        this.key = Objects.requireNonNull(key, "Route cannot contain null keys!");
     }
 
     @Override
