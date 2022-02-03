@@ -36,12 +36,12 @@ class GeneralSettingsTest {
 
     @Test
     void getSeparator() {
-        assertEquals(',', GeneralSettings.builder().setSeparator(',').build().getSeparator());
+        assertEquals(',', GeneralSettings.builder().setRouteSeparator(',').build().getRouteSeparator());
     }
 
     @Test
     void getEscapedSeparator() {
-        assertEquals(Pattern.quote(","), GeneralSettings.builder().setSeparator(',').build().getEscapedSeparator());
+        assertEquals(Pattern.quote(","), GeneralSettings.builder().setRouteSeparator(',').build().getEscapedSeparator());
     }
 
     @Test

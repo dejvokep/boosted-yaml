@@ -61,7 +61,7 @@ public class Updater {
      */
     public static void update(@NotNull Section document, @NotNull Section defaults, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Apply versioning stuff
-        if (instance.runVersionDependent(document, defaults, updaterSettings, generalSettings.getSeparator()))
+        if (instance.runVersionDependent(document, defaults, updaterSettings, generalSettings.getRouteSeparator()))
             return;
         //Merge
         Merger.merge(document, defaults, updaterSettings);

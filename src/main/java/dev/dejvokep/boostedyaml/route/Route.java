@@ -114,7 +114,7 @@ public interface Route {
     }
 
     /**
-     * Constructs a route from the given string route, by splitting it by {@link GeneralSettings#DEFAULT_SEPARATOR}.
+     * Constructs a route from the given string route, by splitting it by {@link GeneralSettings#DEFAULT_ROUTE_SEPARATOR}.
      * <p>
      * To split using a custom separator, please use {@link #fromString(String, char)}.
      * <p>
@@ -135,7 +135,7 @@ public interface Route {
      */
     @NotNull
     static Route fromString(@NotNull String route) {
-        return fromString(route, GeneralSettings.DEFAULT_SEPARATOR);
+        return fromString(route, GeneralSettings.DEFAULT_ROUTE_SEPARATOR);
     }
 
     /**

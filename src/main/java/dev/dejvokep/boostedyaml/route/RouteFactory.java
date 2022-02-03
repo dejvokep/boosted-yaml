@@ -39,7 +39,7 @@ public class RouteFactory {
      * @param generalSettings settings from which to get the separator
      */
     public RouteFactory(@NotNull GeneralSettings generalSettings) {
-        this.separator = generalSettings.getSeparator();
+        this.separator = generalSettings.getRouteSeparator();
         this.escapedSeparator = generalSettings.getEscapedSeparator();
     }
 
@@ -55,11 +55,11 @@ public class RouteFactory {
 
 
     /**
-     * Creates a factory with the defaults specified by {@link GeneralSettings#DEFAULT_SEPARATOR} and {@link
+     * Creates a factory with the defaults specified by {@link GeneralSettings#DEFAULT_ROUTE_SEPARATOR} and {@link
      * GeneralSettings#DEFAULT_ESCAPED_SEPARATOR}.
      */
     public RouteFactory() {
-        this.separator = GeneralSettings.DEFAULT_SEPARATOR;
+        this.separator = GeneralSettings.DEFAULT_ROUTE_SEPARATOR;
         this.escapedSeparator = GeneralSettings.DEFAULT_ESCAPED_SEPARATOR;
     }
 

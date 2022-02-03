@@ -362,7 +362,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @Nullable
     public String getRouteAsString() {
-        return route == null ? null : route.join(root.getGeneralSettings().getSeparator());
+        return route == null ? null : route.join(root.getGeneralSettings().getRouteSeparator());
     }
 
     /**
@@ -532,7 +532,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * within this section.
      * <p>
      * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getSeparator()}).
+     * GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #contains(String)} with any route from the returned set will return
      * <code>true</code> (unless modified in between).
@@ -551,7 +551,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         if (canUseDefaults())
             keys.addAll(defaults.getRoutesAsStrings(deep));
         //Add
-        addData((route, entry) -> keys.add(route), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        addData((route, entry) -> keys.add(route), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return
         return keys;
     }
@@ -641,7 +641,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <i>route=value</i> pairs within this section.
      * <p>
      * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getSeparator()}).
+     * GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #get(String)} with any route from the returned map will return the value
      * assigned to that route in the returned map (unless modified in between).
@@ -660,7 +660,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         if (canUseDefaults())
             values.putAll(defaults.getStringMappedValues(deep));
         //Add
-        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return
         return values;
     }
@@ -724,7 +724,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <i>route=block</i> pairs within this section.
      * <p>
      * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getSeparator()}).
+     * GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #getBlock(String)} with any route from the returned map will return the
      * block assigned to that route in the returned map (unless modified in between).
@@ -743,7 +743,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         if (canUseDefaults())
             blocks.putAll(defaults.getStringMappedBlocks(deep));
         //Add
-        addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return
         return blocks;
     }
@@ -908,7 +908,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = route.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
+            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
             //If found
             if (nextSeparator != -1)
                 //Create section
@@ -1043,7 +1043,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = route.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
+            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
             //If found
             if (nextSeparator != -1) {
                 //Create section
@@ -1141,7 +1141,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return if anything was removed
      */
     public boolean remove(@NotNull String route) {
-        return removeInternal(getParent(route).orElse(null), route.substring(route.lastIndexOf(root.getGeneralSettings().getSeparator()) + 1));
+        return removeInternal(getParent(route).orElse(null), route.substring(route.lastIndexOf(root.getGeneralSettings().getRouteSeparator()) + 1));
     }
 
     /**
@@ -1237,7 +1237,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>Functionality notes:</b> The given route must contain individual keys separated using the separator character
-     * configured using {@link GeneralSettings.Builder#setSeparator(char)}.
+     * configured using {@link GeneralSettings.Builder#setRouteSeparator(char)}.
      * <p>
      * If the given string route does not contain the separator character (is only one key), the route refers to content
      * in this section.
@@ -1267,7 +1267,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return block at the given route encapsulated in an optional
      */
     public Optional<Block<?>> getOptionalBlock(@NotNull String route) {
-        return route.indexOf(root.getGeneralSettings().getSeparator()) != -1 ? getBlockInternalString(route, false) : getDirectOptionalBlock(route);
+        return route.indexOf(root.getGeneralSettings().getRouteSeparator()) != -1 ? getBlockInternalString(route, false) : getDirectOptionalBlock(route);
     }
 
     /**
@@ -1329,7 +1329,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = route.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
+            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
             //If not found
             if (nextSeparator == -1)
                 break;

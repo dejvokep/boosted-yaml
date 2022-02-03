@@ -48,7 +48,7 @@ public class GeneralSettings {
         /**
          * Allows only strings as keys.
          * <ul>
-         *     <li>All keys loaded are converted to strings via {@link Object#toString()} (e.g. <code>5</code> -> <code>"5"</code>), except <code>null</code> keys, which are considered illegal and will throw a {@link NullPointerException}.</li>
+         *     <li>All keys loaded are converted to strings via {@link Object#toString()} (e.g. <code>5</code> -> <code>"5"</code>), except <code>null</code> keys, which are considered illegal and will throw a {@link NullPointerException}. Please note that such conversion is irrevocable upon saving.</li>
          *     <li>String routes should only be used, as all keys are guaranteed to be strings. {@link Route Routes} can still be used, however, due to their capabilities, it is considered to be an overkill; all non-string keys supplied via those will internally be converted to strings (without modifying the route itself, they are immutable).</li>
          * </ul>
          * <p>
@@ -69,11 +69,11 @@ public class GeneralSettings {
     /**
      * The default string route separator.
      */
-    public static final char DEFAULT_SEPARATOR = '.';
+    public static final char DEFAULT_ROUTE_SEPARATOR = '.';
     /**
      * Escaped version of the default separator.
      */
-    public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_SEPARATOR));
+    public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_ROUTE_SEPARATOR));
     /**
      * Default key format.
      */
@@ -158,7 +158,7 @@ public class GeneralSettings {
      */
     private GeneralSettings(Builder builder) {
         this.keyFormat = builder.keyFormat;
-        this.separator = builder.separator;
+        this.separator = builder.routeSeparator;
         this.escapedSeparator = Pattern.quote(String.valueOf(separator));
         this.serializer = builder.serializer;
         this.defaultObject = builder.defaultObject;
@@ -176,25 +176,18 @@ public class GeneralSettings {
      * Returns the key format to use; please read more at your selected {@link KeyFormat}.
      *
      * @return the key format to use
-     * @see #getSeparator()
+     * @see #getRouteSeparator()
      */
     public KeyFormat getKeyFormat() {
         return keyFormat;
     }
 
     /**
-     * Returns route separator to use to separate individual keys inside a string route. Functionality compatible with
-     * Spigot/BungeeCord API. Unless requested explicitly, used only if key format is set to {@link
-     * KeyFormat#STRING}.
-     * <p>
-     * Assuming separator <code>'.'</code>, route <code>a.b</code> represents object at key <code>b</code> in section at
-     * key <code>a</code> in the root file (section).
+     * Sets route separator used to separate individual keys inside a string route and vice-versa.
      *
      * @return the separator to use
-     * @see #getKeyFormat()
-     * @see KeyFormat#STRING
      */
-    public char getSeparator() {
+    public char getRouteSeparator() {
         return separator;
     }
 
@@ -202,7 +195,7 @@ public class GeneralSettings {
      * Returns escaped route separator.
      *
      * @return the escaped route separator
-     * @see #getSeparator()
+     * @see #getRouteSeparator()
      */
     public String getEscapedSeparator() {
         return escapedSeparator;
@@ -364,7 +357,7 @@ public class GeneralSettings {
     public static Builder builder(GeneralSettings settings) {
         return builder()
                 .setKeyFormat(settings.keyFormat)
-                .setSeparator(settings.separator)
+                .setRouteSeparator(settings.separator)
                 .setSerializer(settings.serializer)
                 .setUseDefaults(settings.useDefaults)
                 .setDefaultObject(settings.defaultObject)
@@ -384,7 +377,7 @@ public class GeneralSettings {
         //Key format
         private KeyFormat keyFormat = DEFAULT_KEY_FORMATTING;
         //Route separator
-        private char separator = DEFAULT_SEPARATOR;
+        private char routeSeparator = DEFAULT_ROUTE_SEPARATOR;
         //Serializer
         private YamlSerializer serializer = DEFAULT_SERIALIZER;
         //Use defaults
@@ -419,7 +412,7 @@ public class GeneralSettings {
          *
          * @param keyFormat the key format to use
          * @return the builder
-         * @see #setSeparator(char)
+         * @see #setRouteSeparator(char)
          */
         public Builder setKeyFormat(@NotNull KeyFormat keyFormat) {
             this.keyFormat = keyFormat;
@@ -427,19 +420,15 @@ public class GeneralSettings {
         }
 
         /**
-         * Sets route separator used to separate individual keys inside a string route. Functionality compatible with
-         * Spigot/BungeeCord API. Unless requested explicitly, used only if key format is set to {@link
-         * KeyFormat#STRING}.
+         * Sets route separator used to separate individual keys inside a string route and vice-versa.
          * <p>
-         * <b>Default: </b>{@link #DEFAULT_SEPARATOR}
+         * <b>Default: </b>{@link #DEFAULT_ROUTE_SEPARATOR}
          *
          * @param separator the separator to use
          * @return the builder
-         * @see #setKeyFormat(KeyFormat)
-         * @see KeyFormat#STRING
          */
-        public Builder setSeparator(char separator) {
-            this.separator = separator;
+        public Builder setRouteSeparator(char separator) {
+            this.routeSeparator = separator;
             return this;
         }
 
