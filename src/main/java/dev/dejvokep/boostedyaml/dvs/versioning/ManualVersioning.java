@@ -59,4 +59,12 @@ public class ManualVersioning implements Versioning {
     public Version getFirstVersion() {
         return defaultsVersion.getPattern().getFirstVersion();
     }
+
+    @Override
+    public String toString() {
+        return "ManualVersioning{" +
+                "documentVersion=" + documentVersion +
+                ", defaultsVersion=" + defaultsVersion +
+                '}';
+    }
 }

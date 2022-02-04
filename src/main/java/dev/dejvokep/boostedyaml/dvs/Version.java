@@ -175,4 +175,13 @@ public class Version implements Comparable<Version> {
         result = 31 * result + Arrays.hashCode(cursors);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Version{" +
+                "pattern=" + pattern +
+                ", cursors=" + Arrays.toString(cursors) +
+                ", id='" + id + '\'' +
+                '}';
+    }
 }

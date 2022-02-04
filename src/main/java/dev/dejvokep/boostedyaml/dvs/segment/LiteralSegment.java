@@ -15,6 +15,8 @@
  */
 package dev.dejvokep.boostedyaml.dvs.segment;
 
+import java.util.Arrays;
+
 /**
  * Represents an immutable segment constructed directly from an array of elements.
  */
@@ -59,5 +61,12 @@ public class LiteralSegment implements Segment {
     @Override
     public int length() {
         return elements.length;
+    }
+
+    @Override
+    public String toString() {
+        return "LiteralSegment{" +
+                "elements=" + Arrays.toString(elements) +
+                '}';
     }
 }

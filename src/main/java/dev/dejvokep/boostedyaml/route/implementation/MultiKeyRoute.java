@@ -56,10 +56,8 @@ public class MultiKeyRoute implements Route {
      * @param route the route array
      */
     public MultiKeyRoute(@NotNull Object... route) {
-        //Validate
-        Objects.requireNonNull(route, "Route array cannot be null!");
         //If empty
-        if (route.length == 0)
+        if (Objects.requireNonNull(route, "Route array cannot be null!").length == 0)
             throw new IllegalArgumentException("Empty routes are not allowed!");
         //Validate
         for (Object key : route)
@@ -95,12 +93,10 @@ public class MultiKeyRoute implements Route {
     @Override
     @NotNull
     public Route add(@NotNull Object key) {
-        //Validate
-        Objects.requireNonNull(key, "Route cannot contain null keys!");
         //New route
         Object[] route = Arrays.copyOf(this.route, this.route.length + 1);
         //Set
-        route[route.length - 1] = key;
+        route[route.length - 1] = Objects.requireNonNull(key, "Route cannot contain null keys!");
         //Return
         return new MultiKeyRoute(route);
     }

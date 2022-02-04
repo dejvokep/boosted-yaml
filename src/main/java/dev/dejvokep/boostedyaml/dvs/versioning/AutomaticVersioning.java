@@ -89,4 +89,11 @@ public class AutomaticVersioning implements Versioning {
             updated.set(strRoute, def.getString(strRoute));
     }
 
+    @Override
+    public String toString() {
+        return "AutomaticVersioning{" +
+                "pattern=" + pattern +
+                ", route='" + (route == null ? strRoute : route) + '\'' +
+                '}';
+    }
 }

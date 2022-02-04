@@ -63,10 +63,8 @@ public interface Route {
      */
     @NotNull
     static Route from(@NotNull Object... route) {
-        // Validate
-        Objects.requireNonNull(route, "Route array cannot be null!");
         // If empty
-        if (route.length == 0)
+        if (Objects.requireNonNull(route, "Route array cannot be null!").length == 0)
             throw new IllegalArgumentException("Empty routes are not allowed!");
         // Create
         return route.length == 1 ? new SingleKeyRoute(route[0]) : new MultiKeyRoute(route);

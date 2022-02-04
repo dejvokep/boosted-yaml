@@ -171,12 +171,10 @@ public class YamlDocument extends Section {
      * @throws IOException an IO error
      */
     private void reload(@NotNull File file) throws IOException {
-        //Validate
-        Objects.requireNonNull(file, "File cannot be null!");
         //Clear
         clear();
         //If exists
-        if (file.exists()) {
+        if (Objects.requireNonNull(file, "File cannot be null!").exists()) {
             //Load from the file
             reload(new BufferedInputStream(new FileInputStream(file)));
             return;
@@ -237,18 +235,15 @@ public class YamlDocument extends Section {
      * @throws IOException an IO error
      */
     public void reload(@NotNull InputStream inputStream, @NotNull LoaderSettings loaderSettings) throws IOException {
-        //Validate
-        Objects.requireNonNull(inputStream, "Input stream cannot be null!");
-        Objects.requireNonNull(loaderSettings, "Loader settings cannot be null!");
         //Clear
         clear();
 
         //Create the settings
-        LoadSettings settings = loaderSettings.buildEngineSettings(generalSettings);
+        LoadSettings settings = Objects.requireNonNull(loaderSettings, "Loader settings cannot be null!").buildEngineSettings(generalSettings);
         //Create the constructor
         ExtendedConstructor constructor = new ExtendedConstructor(settings, generalSettings.getSerializer());
         //Create the parser and composer
-        Parser parser = new ParserImpl(settings, new StreamReader(settings, new YamlUnicodeReader(inputStream)));
+        Parser parser = new ParserImpl(settings, new StreamReader(settings, new YamlUnicodeReader(Objects.requireNonNull(inputStream, "Input stream cannot be null!"))));
         Composer composer = new Composer(settings, parser);
 
         //If there's no next document (also drops stream start)
@@ -328,10 +323,8 @@ public class YamlDocument extends Section {
         //If there are no defaults
         if (defaults == null)
             return false;
-        //Validate
-        Objects.requireNonNull(updaterSettings, "Updater settings cannot be null!");
         //Update
-        Updater.update(this, defaults, updaterSettings, generalSettings);
+        Updater.update(this, defaults, Objects.requireNonNull(updaterSettings, "Updater settings cannot be null!"), generalSettings);
         return true;
     }
 
@@ -363,11 +356,7 @@ public class YamlDocument extends Section {
      * @throws IOException an IO error
      */
     public void update(@NotNull InputStream defaults, @NotNull UpdaterSettings updaterSettings) throws IOException {
-        //Validate
-        Objects.requireNonNull(defaults, "Defaults cannot be null!");
-        Objects.requireNonNull(updaterSettings, "Updater settings cannot be null!");
-        //Update
-        Updater.update(this, YamlDocument.create(defaults, generalSettings, loaderSettings, dumperSettings, UpdaterSettings.DEFAULT), updaterSettings, generalSettings);
+        Updater.update(this, YamlDocument.create(Objects.requireNonNull(defaults, "Defaults cannot be null!"), generalSettings, loaderSettings, dumperSettings, UpdaterSettings.DEFAULT), Objects.requireNonNull(updaterSettings, "Updater settings cannot be null!"), generalSettings);
     }
 
     //

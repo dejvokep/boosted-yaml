@@ -315,4 +315,15 @@ public class RangeSegment implements Segment {
     public int length() {
         return length;
     }
+
+    @Override
+    public String toString() {
+        return "RangeSegment{" +
+                "start=" + start +
+                ", end=" + end +
+                ", step=" + step +
+                ", fill=" + fill +
+                ", length=" + length +
+                '}';
+    }
 }

@@ -102,9 +102,7 @@ public class Updater {
             return false;
 
         //Versions
-        Version documentVersion = versioning.getDocumentVersion(document, false), defaultsVersion = versioning.getDocumentVersion(defaults, true);
-        //Check version of the defaults
-        Objects.requireNonNull(defaultsVersion, "Version ID of the defaults cannot be null! Is it malformed or not specified?");
+        Version documentVersion = versioning.getDocumentVersion(document, false), defaultsVersion = Objects.requireNonNull(versioning.getDocumentVersion(defaults, true), "Version ID of the defaults cannot be null! Is it malformed or not specified?");
         //If document ID is null
         if (documentVersion == null)
             //Set to the oldest (to go through all relocations supplied)

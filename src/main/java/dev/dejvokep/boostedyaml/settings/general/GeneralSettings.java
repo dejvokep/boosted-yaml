@@ -46,7 +46,7 @@ public class GeneralSettings {
         /**
          * Allows only strings as keys.
          * <ul>
-         *     <li>All keys loaded are converted to strings via {@link Object#toString()} (e.g. <code>5</code> -> <code>"5"</code>), except <code>null</code> keys, which are considered illegal and will throw a {@link NullPointerException}. Please note that such conversion is irrevocable upon saving.</li>
+         *     <li>All keys loaded are converted to strings via {@link Object#toString()} (e.g. <code>5</code> -&gt; <code>"5"</code>), except <code>null</code> keys, which are considered illegal and will throw a {@link NullPointerException}. Please note that such conversion is irrevocable upon saving.</li>
          *     <li>String routes should only be used, as all keys are guaranteed to be strings. {@link Route Routes} can still be used, however, due to their capabilities, it is considered to be an overkill; all non-string keys supplied via those will internally be converted to strings (without modifying the route itself, they are immutable).</li>
          * </ul>
          * <p>
