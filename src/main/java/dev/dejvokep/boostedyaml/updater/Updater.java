@@ -130,7 +130,7 @@ public class Updater {
         }
 
         //Ignored routes
-        for (Route route : settings.getIgnored(defaultsVersion.asID(), separator))
+        for (Route route : settings.getIgnoredRoutes(defaultsVersion.asID(), separator))
             document.getOptionalBlock(route).ifPresent(block -> block.setIgnored(true));
         return false;
     }

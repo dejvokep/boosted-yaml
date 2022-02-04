@@ -54,7 +54,7 @@ class UpdaterSettingsTest {
     }
 
     @Test
-    void getKeep() {
+    void getIgnoredRoutes() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
                 .setIgnoredRoutes(new HashMap<String, Set<Route>>() {{
@@ -83,17 +83,17 @@ class UpdaterSettingsTest {
         assertEquals(new HashSet<Route>() {{
             add(Route.from("a"));
             add(Route.from("b"));
-        }}, settings.getIgnored("1.2", '.'));
+        }}, settings.getIgnoredRoutes("1.2", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("c"));
-        }}, settings.getIgnored("1.3", '.'));
+        }}, settings.getIgnoredRoutes("1.3", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("d"));
-        }}, settings.getIgnored("1.4", '.'));
+        }}, settings.getIgnoredRoutes("1.4", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("e"));
             add(Route.from("f"));
-        }}, settings.getIgnored("1.5", '.'));
+        }}, settings.getIgnoredRoutes("1.5", '.'));
     }
 
     @Test

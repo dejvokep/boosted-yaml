@@ -31,7 +31,7 @@ import java.util.*;
 /**
  * Updater settings cover all options related explicitly (only) to file updating.
  * <p>
- * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * Settings introduced by BoostedYAML follow builder design pattern, e.g. you may build your own settings using
  * <code>UpdaterSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings("unused")
@@ -105,8 +105,8 @@ public class UpdaterSettings {
     /**
      * Returns merge preservation rules.
      * <p>
-     * The given map contains the merge rule as the key, with value representing if to preserve content already in the
-     * document instead of the equivalent from the defaults.
+     * The given map contains the merge rule as the key, with the value representing if to preserve content already in
+     * the document instead of the equivalent from the defaults.
      *
      * @return the merge rules
      */
@@ -115,14 +115,14 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns which blocks (represented by their routes) to ignore (including their contents) for the version ID.
-     * Merges the string-based ignored routes.
+     * Returns which blocks (represented by their routes) to ignore (including their contents) while updating to the
+     * specified version ID.
      *
-     * @param versionId version for which to return the ignored routes
-     * @param separator separator to split string based routes by
-     * @return routes representing blocks to ignore, per version ID
+     * @param versionId version for which to return the routes
+     * @param separator separator to split string routes by
+     * @return the set of routes representing blocks to ignore at the version ID
      */
-    public Set<Route> getIgnored(@NotNull String versionId, char separator) {
+    public Set<Route> getIgnoredRoutes(@NotNull String versionId, char separator) {
         //Set
         Set<Route> ignored = new HashSet<>(this.ignored.getOrDefault(versionId, Collections.emptySet()));
 
@@ -140,12 +140,11 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns relocations (in <code>from route = to route</code> format) for the version ID. Merges the string-based
-     * relocations.
+     * Returns relocations (in <code>from route = to route</code> format) that took effect at the given version ID.
      *
      * @param versionId version for which to return the relocations
-     * @param separator separator to split string based relocation routes by
-     * @return the relocations
+     * @param separator separator to split string route relocations by
+     * @return the relocations that took effect at the version ID
      */
     public Map<Route, Route> getRelocations(@NotNull String versionId, char separator) {
         //Map
@@ -163,7 +162,7 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns versioning information.
+     * Returns the versioning.
      *
      * @return the versioning
      */
@@ -181,18 +180,19 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns if to keep all non-merged contents of the document.
+     * Returns if to keep all non-merged (they don't have equivalent in the defaults) blocks in the document.
      *
-     * @return if to keep all non-merged document contents
+     * @return if to keep all non-merged blocks
      */
     public boolean isKeepAll() {
         return keepAll;
     }
 
     /**
-     * Returns if the file should automatically be saved after finished updating (does not save if nothing's changed).
+     * Sets if the file should automatically be saved using {@link YamlDocument#save()} after the updater has
+     * finished updating (does not save if nothing's changed).
      *
-     * @return if to save automatically after update
+     * @return if the file should automatically be saved
      */
     public boolean isAutoSave() {
         return autoSave;
@@ -297,11 +297,11 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if to keep all non-merged (they don't have equivalent in the defaults) blocks of the document.
+         * Sets if to keep all non-merged (they don't have equivalent in the defaults) blocks in the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_KEEP_ALL}
          *
-         * @param keepAll if to keep all non-merged blocks of the document
+         * @param keepAll if to keep all non-merged blocks in the document
          * @return the builder
          */
         public Builder setKeepAll(boolean keepAll) {

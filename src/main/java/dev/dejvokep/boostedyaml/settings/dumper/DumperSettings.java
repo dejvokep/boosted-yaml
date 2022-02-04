@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 /**
  * Dumper settings cover all options related explicitly (only) to file dumping.
  * <p>
- * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * Settings introduced by BoostedYAML follow builder design pattern, e.g. you may build your own settings using
  * <code>DumperSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
@@ -56,6 +56,7 @@ public class DumperSettings {
 
         /**
          * Returns <code>true</code> if the encoding represented is Unicode; <code>false</code> otherwise.
+         *
          * @return if the represented encoding is Unicode
          */
         boolean isUnicode() {
@@ -84,7 +85,7 @@ public class DumperSettings {
     }
 
     /**
-     * Builds new SnakeYAML engine settings using the configured generator supplier.
+     * Builds the SnakeYAML Engine settings.
      *
      * @return the new settings
      */
@@ -240,7 +241,8 @@ public class DumperSettings {
          * <b>Default: </b> {@link #DEFAULT_ANCHOR_GENERATOR}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setAnchorGenerator(AnchorGenerator)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setAnchorGenerator(org.snakeyaml.engine.v2.serializer.AnchorGenerator)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#3222-anchors-and-aliases">anchors and aliases</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#3222-anchors-and-aliases">anchors
+         * and aliases</a>
          *
          * @param generator the new anchor generator supplier
          * @return the builder
@@ -253,9 +255,6 @@ public class DumperSettings {
 
         /**
          * Sets flow style to use. Flow styles determine style of the dumped document.
-         * <p>
-         * If using {@link FlowStyle#FLOW FLOW}, you may also want to dump the contents in multiline style for better
-         * readability - please use {@link #setMultilineStyle(boolean)} to do that.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -281,7 +280,9 @@ public class DumperSettings {
          * <b>Default: </b> {@link #DEFAULT_SCALAR_STYLE}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultScalarStyle(org.snakeyaml.engine.v2.common.ScalarStyle)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#81-block-scalar-styles">for <code>BLOCK</code> flow style</a>, <a href="https://yaml.org/spec/1.2.2/#73-flow-scalar-styles">for <code>FLOW</code> flow style</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#81-block-scalar-styles">for
+         * <code>BLOCK</code> flow style</a>, <a href="https://yaml.org/spec/1.2.2/#73-flow-scalar-styles">for
+         * <code>FLOW</code> flow style</a>
          *
          * @param scalarStyle the scalar style to use
          * @return the builder
@@ -293,15 +294,16 @@ public class DumperSettings {
         }
 
         /**
-         * Sets if to forcefully add document start marker (<code>---</code>). If there are any directives to be
-         * dumped, it is added automatically.
+         * Sets if to forcefully add document start marker (<code>---</code>). If there are any directives to be dumped,
+         * it is added automatically.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_START_MARKER}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setExplicitStart(boolean)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setExplicitStart(boolean)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#document-markers">document markers</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#document-markers">document
+         * markers</a>
          *
          * @param startMarker if to forcefully add document start marker
          * @return the builder
@@ -320,7 +322,8 @@ public class DumperSettings {
          * <b>Default: </b> {@link #DEFAULT_END_MARKER}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setExplicitEnd(boolean)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setExplicitEnd(boolean)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#document-markers">document markers</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#document-markers">document
+         * markers</a>
          *
          * @param endMarker if to forcefully add document end marker
          * @return the builder
@@ -339,7 +342,8 @@ public class DumperSettings {
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setScalarResolver(ScalarResolver)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setScalarResolver(org.snakeyaml.engine.v2.resolver.ScalarResolver)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a
+         * href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
          *
          * @param resolver the resolver to set
          * @return the builder
@@ -358,14 +362,15 @@ public class DumperSettings {
          * occur otherwise (the given tag is <b>not</b> validated).
          * <p>
          * If <code>null</code>, does not dump any tag for the root section (which will make the resolver resolve it
-         * automatically on next load).
+         * automatically when the document's loaded next time).
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_ROOT_TAG}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setExplicitRootTag(Optional)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setExplicitRootTag(java.util.Optional)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a
+         * href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
          *
          * @param rootTag the root section tag (type)
          * @return the builder
@@ -378,15 +383,19 @@ public class DumperSettings {
 
         /**
          * Sets the version (<code>%YAML</code>) directive. If <code>null</code>, does not dump any explicit version
-         * directive. SnakeYAML Engine supports YAML v1.2 only, however, per the Engine specification, most of the older
-         * YAML can be processed.
+         * directive.
+         * <p>
+         * SnakeYAML Engine supports YAML v1.2 only, however, per the Engine specification, most of the older YAML can
+         * be processed. Always refer to the <a href="https://bitbucket.org/asomov/snakeyaml-engine/wiki/Documentation">Engine's
+         * documentation</a> for more information. To avoid problems, update to 1.2 for full support, please.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setYamlDirective(Optional)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setYamlDirective(java.util.Optional)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#681-yaml-directives">YAML directives</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#681-yaml-directives">YAML
+         * directives</a>
          *
          * @param directive the version directive
          * @return the builder
@@ -398,8 +407,8 @@ public class DumperSettings {
         }
 
         /**
-         * Sets the given tag (<code>%TAG</code>) directives in form of a map, where key is the <i>!handle!</i> (including
-         * the exclamation marks) and value the <i>prefix</i> (per the YAML spec).
+         * Sets the given tag (<code>%TAG</code>) directives in form of a map, where key is the <i>!handle!</i>
+         * (including the exclamation marks) and value the <i>prefix</i> (per the YAML spec).
          * <p>
          * If there were any tag directives set previously, they are <b>all</b> overwritten.
          * <p>
@@ -408,7 +417,8 @@ public class DumperSettings {
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setTagDirective(Map)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setTagDirective(java.util.Map)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#682-tag-directives">TAG directives</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#682-tag-directives">TAG
+         * directives</a>
          *
          * @param directives the tag directives
          * @return the builder
@@ -472,12 +482,14 @@ public class DumperSettings {
         /**
          * Sets the encoding to use.
          * <p>
-         * For additional information regarding this option and charsets, please refer to documentation of the parent method listed below.
+         * For additional information regarding this option and charsets, please refer to documentation of the parent
+         * method listed below.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_ENCODING}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setUseUnicodeEncoding(boolean)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setUseUnicodeEncoding(boolean)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character sets</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character
+         * sets</a>
          *
          * @param encoding the encoding to use
          * @return the builder
@@ -501,7 +513,8 @@ public class DumperSettings {
          * @param spaces amount of spaces per one indentation level
          * @return the builder
          * @see DumpSettingsBuilder#setUseUnicodeEncoding(boolean)
-         * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setIndent(int)">docs for the wrapped method</a>
+         * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setIndent(int)">docs
+         * for the wrapped method</a>
          */
         public Builder setIndentation(int spaces) {
             builder.setIndent(spaces);
@@ -512,17 +525,20 @@ public class DumperSettings {
          * Sets how many spaces to use per one indentation level for indicators. If the given value is less than or
          * equal to <code>0</code>, disables indicator indentation.
          * <p>
-         * For additional information regarding this option and indicators, please refer to documentation of the parent method listed below.
+         * For additional information regarding this option and indicators, please refer to documentation of the parent
+         * method listed below.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_INDICATOR_INDENTATION}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setIndent(int)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setIndicatorIndent(int)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#61-indentation-spaces">indentation</a>, <a href="https://yaml.org/spec/1.2.2/#indicator-characters">indicators</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#61-indentation-spaces">indentation</a>,
+         * <a href="https://yaml.org/spec/1.2.2/#indicator-characters">indicators</a>
          *
          * @param spaces amount of spaces to use to indent indicators
          * @return the builder
          * @see DumpSettingsBuilder#setIndicatorIndent(int)
-         * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setIndicatorIndent(int)">docs for the wrapped method</a>
+         * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setIndicatorIndent(int)">docs
+         * for the wrapped method</a>
          */
         public Builder setIndicatorIndentation(int spaces) {
             builder.setIndentWithIndicator(spaces > 0);
@@ -547,7 +563,8 @@ public class DumperSettings {
          * @param width preferred line width
          * @return the builder
          * @see DumpSettingsBuilder#setWidth(int)
-         * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setWidth(int)">docs for the wrapped method</a>
+         * @see <a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setWidth(int)">docs
+         * for the wrapped method</a>
          */
         public Builder setLineWidth(int width) {
             builder.setWidth(width <= 0 ? Integer.MAX_VALUE : width);
@@ -578,16 +595,17 @@ public class DumperSettings {
          * printed in simple format (without the explicit key indicator <code>?</code>).
          * <p>
          * If the given value is less than or equal to <code>0</code>, disables the limit and therefore, allows for keys
-         * of length up to <code>1024</code> (limit enforced by the YAML spec). If any value greater than <code>1018</code>
-         * is given, an {@link IllegalArgumentException} will be thrown (not a typo - the limit here is lower as there
-         * is some "processing").
+         * of length up to <code>1024</code> (limit enforced by the YAML spec). If any value greater than
+         * <code>1018</code> is given, an {@link IllegalArgumentException} will be thrown (not a typo - the limit here
+         * is lower as there is some "processing").
          * <p>
          * For additional information, please refer to documentation of the parent method listed below.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_MAX_SIMPLE_KEY_LENGTH}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setMaxSimpleKeyLength(int)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setMaxSimpleKeyLength(int)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#example-explicit-block-mapping-entries">explicit keys</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#example-explicit-block-mapping-entries">explicit
+         * keys</a>
          *
          * @param length maximum length for simple key format
          * @return the builder
@@ -595,7 +613,7 @@ public class DumperSettings {
          */
         public Builder setMaxSimpleKeyLength(int length) {
             // Check the limit
-            if (length >= 1018)
+            if (length > 1018)
                 throw new IllegalArgumentException("Maximum simple key length is limited to 1018!");
 
             // Set
@@ -612,7 +630,8 @@ public class DumperSettings {
          * <b>Default: </b> {@link #DEFAULT_ESCAPE_UNPRINTABLE}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setNonPrintableStyle(NonPrintableStyle)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setNonPrintableStyle(org.snakeyaml.engine.v2.common.NonPrintableStyle)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character sets</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character
+         * sets</a>
          *
          * @param escape if to escape rather than dumping as binary
          * @return the builder
@@ -632,7 +651,8 @@ public class DumperSettings {
          * <b>Alias method: </b>{@link #setEscapeUnprintable(boolean)}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setNonPrintableStyle(NonPrintableStyle)}<br>
          * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setNonPrintableStyle(org.snakeyaml.engine.v2.common.NonPrintableStyle)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character sets</a>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#51-character-set">character
+         * sets</a>
          *
          * @param style style to use
          * @return the builder

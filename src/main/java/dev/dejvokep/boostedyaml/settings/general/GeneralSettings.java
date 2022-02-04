@@ -15,6 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.general;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.serialization.YamlSerializer;
@@ -31,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * General settings cover all options related to documents in general.
  * <p>
- * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * Settings introduced by BoostedYAML follow builder design pattern, e.g. you may build your own settings using
  * <code>GeneralSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings("unused")
@@ -170,10 +171,10 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns the key format to use; please read more at your selected {@link KeyFormat}.
+     * Returns the key format to use.
      *
      * @return the key format to use
-     * @see #getRouteSeparator()
+     * @see Builder#setKeyFormat(KeyFormat)
      */
     public KeyFormat getKeyFormat() {
         return keyFormat;
@@ -182,14 +183,14 @@ public class GeneralSettings {
     /**
      * Sets route separator used to separate individual keys inside a string route and vice-versa.
      *
-     * @return the separator to use
+     * @return separator the separator to use
      */
     public char getRouteSeparator() {
         return separator;
     }
 
     /**
-     * Returns escaped route separator.
+     * Returns the escaped route separator.
      *
      * @return the escaped route separator
      * @see #getRouteSeparator()
@@ -208,7 +209,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns if to use defaults in {@link Section} methods.
+     * Returns if to enable use of the defaults by {@link Section} methods (if any are present).
      *
      * @return if to use defaults
      */
@@ -217,7 +218,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default object to use by section getters if the return type is object.
+     * Returns default object to use by {@link Section} getters if the return type is object.
      *
      * @return the default object
      */
@@ -226,7 +227,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default string to use by section getters if the return type is string.
+     * Returns default string to use by {@link Section} getters if the return type is string.
      *
      * @return the default string
      */
@@ -235,7 +236,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default char to use by section getters if the return type is char.
+     * Returns default char to use by {@link Section} getters if the return type is char.
      *
      * @return the default char
      */
@@ -244,7 +245,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default number to use by section getters if the return type is a number - integer, float, byte,
+     * Returns default number to use by {@link Section} getters if the return type is a number - integer, float, byte,
      * biginteger... (per the getter documentation).
      *
      * @return the default number
@@ -254,7 +255,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default boolean to use by section getters if the return type is boolean.
+     * Returns default boolean to use by {@link Section} getters if the return type is boolean.
      *
      * @return the default boolean
      */
@@ -263,7 +264,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default list of the given size, using the default list supplier.
+     * Returns default list of the given size.
      *
      * @param size initial size (if supported)
      * @param <T>  content type
@@ -274,17 +275,17 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default empty list using the default list supplier.
+     * Returns an empty default list.
      *
      * @param <T> content type
-     * @return the default empty list
+     * @return the empty default list
      */
     public <T> List<T> getDefaultList() {
         return getDefaultList(0);
     }
 
     /**
-     * Returns default set of the given size, using the default set supplier.
+     * Returns default set of the given size.
      *
      * @param size initial size (if supported)
      * @param <T>  content type
@@ -295,33 +296,33 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default empty set using the default set supplier.
+     * Returns an empty default set.
      *
      * @param <T> content type
-     * @return the default empty set
+     * @return the empty default set
      */
     public <T> Set<T> getDefaultSet() {
         return getDefaultSet(0);
     }
 
     /**
-     * Returns default map of the given size, using the default map supplier.
+     * Returns default map of the given size.
      *
      * @param size initial size (if supported)
      * @param <K>  key type
      * @param <V>  value type
-     * @return the default empty size
+     * @return the default map of the given size
      */
     public <K, V> Map<K, V> getDefaultMap(int size) {
         return defaultMap.supply(size);
     }
 
     /**
-     * Returns default empty map using the default map supplier.
+     * Returns an empty default map.
      *
      * @param <K> key type
      * @param <V> value type
-     * @return the default map of the given size
+     * @return the empty default map
      */
     public <K, V> Map<K, V> getDefaultMap() {
         return getDefaultMap(0);
@@ -443,12 +444,14 @@ public class GeneralSettings {
         }
 
         /**
-         * Sets if to enable usage of the defaults by {@link Section} methods (if any are present).
+         * Sets if to enable use of the defaults by {@link Section} methods (if any are present).
+         * <p>
+         * Not effective if there are no {@link YamlDocument#getDefaults() defaults associated} with the document.
          * <p>
          * <b>If enabled (<code>true</code>):</b>
          * <ul>
          *     <li>
-         *         Bulk getter methods (return a set/map of all keys, routes, values, blocks) will not only include
+         *         Bulk getter methods (which return a set/map of all keys, routes, values, blocks) will not only include
          *         content from the file, but also from the equivalent section in the defaults.
          *     </li>
          *     <li>
@@ -490,7 +493,7 @@ public class GeneralSettings {
          *     </li>
          *     <li>
          *         This is recommended if you would like to handle all value absences (present in the defaults, but not
-         *         in the file) manually - e.g. notifying the user and then using the default value defined within
+         *         in the file) and invalid values manually - e.g. notifying the user and then using the default value defined within
          *         <code>final</code> fields, or obtained via {@link Section#getDefaults()}.
          *     </li>
          * </ul>

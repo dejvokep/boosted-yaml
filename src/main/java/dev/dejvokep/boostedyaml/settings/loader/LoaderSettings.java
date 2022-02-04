@@ -35,7 +35,7 @@ import java.util.Optional;
 /**
  * Loader settings cover all options related explicitly (only) to file loading.
  * <p>
- * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * Settings introduced by BoostedYAML follow builder design pattern, e.g. you may build your own settings using
  * <code>LoaderSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
@@ -63,25 +63,16 @@ public class LoaderSettings {
     }
 
     /**
-     * Returns if to automatically attempt to update the file, after finished loading.
-     * <p>
-     * Per the {@link YamlDocument#update(UpdaterSettings)} specification, update is not possible, therefore this option
-     * has no effect, if no defaults (stream or file) have been given to the file instance, for which these settings
-     * will be used.
+     * Returns if to automatically call {@link YamlDocument#update()} after the document has been loaded.
      *
-     * @return if to automatically update after loading
+     * @return if to automatically update after the document has been loaded
      */
     public boolean isAutoUpdate() {
         return autoUpdate;
     }
 
     /**
-     * Returns if to create a new file with default content if it does not exist (defaults will be dumped and saved using
-     * {@link DumperSettings} given to the file instance, for which these settings will be used). If disabled, only
-     * loads the defaults, without modifying the disk contents - manual save is needed.
-     * <p>
-     * This setting is not effective if no defaults (stream or file) have been given to the file instance, for which
-     * these settings will be used.
+     * Returns if to create a new file and save it if it does not exist automatically.
      *
      * @return if to create a new file if absent
      */
@@ -90,8 +81,7 @@ public class LoaderSettings {
     }
 
     /**
-     * Builds new SnakeYAML engine settings. If the underlying builder was changed somehow, just in case, resets all
-     * settings (those which should not be modified).
+     * Builds the SnakeYAML Engine settings.
      *
      * @param generalSettings settings used to get defaults (list, set, map) from
      * @return the new settings
@@ -204,7 +194,7 @@ public class LoaderSettings {
         }
 
         /**
-         * If enabled, automatically calls {@link YamlDocument#update()} after it has been loaded.
+         * If enabled, automatically calls {@link YamlDocument#update()} after the document has been loaded.
          * <p>
          * Not effective if there are no {@link YamlDocument#getDefaults() defaults associated} with the document.
          * <p>
