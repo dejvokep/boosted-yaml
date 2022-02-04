@@ -35,11 +35,8 @@ import java.util.Optional;
 /**
  * Loader settings cover all options related explicitly (only) to file loading.
  * <p>
- * To start using this library, it is recommended to take a look at the following methods:
- * <ul>
- *     <li>{@link Builder#setCreateFileIfAbsent(boolean)}</li>
- *     <li>{@link Builder#setAutoUpdate(boolean)}</li>
- * </ul>
+ * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * <code>LoaderSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class LoaderSettings {

@@ -31,11 +31,8 @@ import java.util.*;
 /**
  * Updater settings cover all options related explicitly (only) to file updating.
  * <p>
- * To start using this library, it is recommended to take a look at the following methods:
- * <ul>
- *     <li>{@link Builder#setAutoSave(boolean)}</li>
- *     <li>{@link Builder#setVersioning(Versioning)}</li>
- * </ul>
+ * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * <code>UpdaterSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings("unused")
 public class UpdaterSettings {
@@ -109,7 +106,7 @@ public class UpdaterSettings {
      * Returns merge preservation rules.
      * <p>
      * The given map contains the merge rule as the key, with value representing if to preserve content already in the
-     * document instead of the equivalent from defaults.
+     * document instead of the equivalent from the defaults.
      *
      * @return the merge rules
      */

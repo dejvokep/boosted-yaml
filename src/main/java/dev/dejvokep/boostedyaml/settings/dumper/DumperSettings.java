@@ -15,7 +15,6 @@
  */
 package dev.dejvokep.boostedyaml.settings.dumper;
 
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -35,6 +34,9 @@ import java.util.function.Supplier;
 
 /**
  * Dumper settings cover all options related explicitly (only) to file dumping.
+ * <p>
+ * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * <code>DumperSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class DumperSettings {

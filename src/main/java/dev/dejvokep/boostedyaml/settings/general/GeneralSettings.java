@@ -29,13 +29,10 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * General settings cover all options related to documents.
+ * General settings cover all options related to documents in general.
  * <p>
- * To start using this library, it is recommended to take a look at the following methods:
- * <ul>
- *     <li>{@link Builder#setKeyFormat(KeyFormat)}</li>
- *     <li>{@link Builder#setUseDefaults(boolean)}</li>
- * </ul>
+ * Settings introduced by BoostedYAML are follow builder design pattern, e.g. you may build your own settings using
+ * <code>GeneralSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings("unused")
 public class GeneralSettings {
