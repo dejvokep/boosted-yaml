@@ -653,12 +653,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the complete map of <i>string route=value</i> pairs, including sections
      */
     @NotNull
-    public Map<String, Object> getStringMappedValues(boolean deep) {
+    public Map<String, Object> getStringRouteMappedValues(boolean deep) {
         //Create a map
         Map<String, Object> values = root.getGeneralSettings().getDefaultMap();
         //Add defaults
         if (canUseDefaults())
-            values.putAll(defaults.getStringMappedValues(deep));
+            values.putAll(defaults.getStringRouteMappedValues(deep));
         //Add
         addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return
@@ -736,12 +736,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the complete map of <i>route=block</i> pairs
      */
     @NotNull
-    public Map<String, Block<?>> getStringMappedBlocks(boolean deep) {
+    public Map<String, Block<?>> getStringRouteMappedBlocks(boolean deep) {
         //Create map
         Map<String, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
         //Add defaults
         if (canUseDefaults())
-            blocks.putAll(defaults.getStringMappedBlocks(deep));
+            blocks.putAll(defaults.getStringRouteMappedBlocks(deep));
         //Add
         addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return

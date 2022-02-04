@@ -84,7 +84,7 @@ class SectionTest {
     }
 
     @Test
-    void getPath() throws IOException {
+    void getRoute() throws IOException {
         // Create file
         YamlDocument file = createFile(GeneralSettings.DEFAULT);
         // Assert
@@ -93,7 +93,7 @@ class SectionTest {
     }
 
     @Test
-    void getSubPath() throws IOException {
+    void getSubRoute() throws IOException {
         // Create file
         YamlDocument file = createFile(GeneralSettings.DEFAULT);
         // Assert
@@ -108,7 +108,7 @@ class SectionTest {
     }
 
     @Test
-    void getPaths() throws IOException {
+    void getRoutes() throws IOException {
         // Create file
         YamlDocument file = createFile(GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build());
         // Assert
@@ -127,7 +127,7 @@ class SectionTest {
     }
 
     @Test
-    void getStrPaths() throws IOException {
+    void getRoutesAsStrings() throws IOException {
         // Create file
         YamlDocument file = createFile(GeneralSettings.DEFAULT);
         // Assert
@@ -194,7 +194,7 @@ class SectionTest {
     }
 
     @Test
-    void getStrPathValues() throws IOException {
+    void getStringRouteMappedValues() throws IOException {
         // Create file
         YamlDocument file = createFile(GeneralSettings.DEFAULT);
         // Assert
@@ -202,14 +202,14 @@ class SectionTest {
             put("x", 5);
             put("y", file.getSection("y"));
             put("7", false);
-        }}, file.getStringMappedValues(false));
+        }}, file.getStringRouteMappedValues(false));
         assertEquals(new HashMap<String, Object>() {{
             put("x", 5);
             put("y", file.getSection("y"));
             put("y.a", true);
             put("y.b", "abc");
             put("7", false);
-        }}, file.getStringMappedValues(true));
+        }}, file.getStringRouteMappedValues(true));
     }
 
     @Test
@@ -232,7 +232,7 @@ class SectionTest {
     }
 
     @Test
-    void getStrPathBlocks() throws IOException {
+    void getStringRouteMappedBlocks() throws IOException {
         // Create file
         YamlDocument file = createFile(GeneralSettings.DEFAULT);
         // Assert
@@ -240,14 +240,14 @@ class SectionTest {
             put("x", file.getStoredValue().get("x"));
             put("y", file.getSection("y"));
             put("7", file.getStoredValue().get("7"));
-        }}, file.getStringMappedBlocks(false));
+        }}, file.getStringRouteMappedBlocks(false));
         assertEquals(new HashMap<String, Block<?>>() {{
             put("x", file.getStoredValue().get("x"));
             put("y", file.getSection("y"));
             put("y.a", file.getSection("y").getStoredValue().get("a"));
             put("y.b", file.getSection("y").getStoredValue().get("b"));
             put("7", file.getStoredValue().get("7"));
-        }}, file.getStringMappedBlocks(true));
+        }}, file.getStringRouteMappedBlocks(true));
     }
 
     @Test
