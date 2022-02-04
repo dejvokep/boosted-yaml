@@ -180,7 +180,7 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns if to keep all non-merged (they don't have equivalent in the defaults) blocks in the document.
+     * Returns if to keep all non-merged (that don't have an equivalent in the defaults) blocks in the document.
      *
      * @return if to keep all non-merged blocks
      */
@@ -189,8 +189,8 @@ public class UpdaterSettings {
     }
 
     /**
-     * Sets if the file should automatically be saved using {@link YamlDocument#save()} after the updater has
-     * finished updating (does not save if nothing's changed).
+     * Sets if the file should automatically be saved using {@link YamlDocument#save()} after the updater has finished
+     * updating (does not save if nothing's changed).
      *
      * @return if the file should automatically be saved
      */
@@ -278,13 +278,14 @@ public class UpdaterSettings {
          *     <li>when there are valid version IDs found for both files (supplied manually or automatically from files),</li>
          *     <li>the version ID of the document represents newer version than version ID of the defaults.</li>
          * </ul>
-         * Please note that by specification, the default file has to have a valid ID supplied/specified.
+         * Please note that by specification, the defaults must have a valid ID supplied/specified.
          * <p>
-         * That means, if no versioning is supplied, if the version ID of the updated document was not found (automatic DVS) or
-         * not supplied (manual DVS), or the ID of the document is not parsable by the given pattern, this setting is not effective.
+         * If the updater detects downgrading, and it is enabled, the updater will skip relocations, proceeding directly
+         * to merging; throws an error otherwise. If configured like so, you may also want to disable
+         * {@link LoaderSettings.Builder#setAutoUpdate(boolean)} (if an error is thrown, you won't be able to create
+         * the document).
          * <p>
-         * If enabled and the updater detects downgrading, the updater will skip relocations, proceeding directly to merging. If disabled, throws an error if downgrading. If configured like so, you may also want to disable
-         * {@link LoaderSettings.Builder#setAutoUpdate(boolean)} (if an error is thrown, you won't be able to initialize the file - update manually).
+         * <b>Effective if and only a versioning is specified.</b>
          * <p>
          * <b>Default: </b>{@link #DEFAULT_ENABLE_DOWNGRADING}
          *
@@ -297,7 +298,8 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets if to keep all non-merged (they don't have equivalent in the defaults) blocks in the document.
+         * Sets if to keep all non-merged (that don't have an equivalent in the defaults) blocks in the document instead
+         * of deleting them.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_KEEP_ALL}
          *
@@ -348,10 +350,11 @@ public class UpdaterSettings {
          * certain version ID. If there already are routes defined for version ID, which is also present in the given
          * map, they are overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
-         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
+         * you should specify a version ID of the document and routes of such sections (which were in the document with
+         * the ID).
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param routes routes to ignore, per version ID
          * @return the builder
@@ -366,10 +369,11 @@ public class UpdaterSettings {
          * Sets which blocks (represented by their routes) to ignore (including their contents) while updating to the
          * specified version ID. If there already are routes defined for the given ID, they are overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
-         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
+         * you should specify a version ID of the document and routes of such sections (which were in the document with
+         * the ID).
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param versionId the version ID
          * @param routes    the set of routes representing blocks to ignore at the version ID
@@ -382,13 +386,14 @@ public class UpdaterSettings {
 
         /**
          * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
-         * updating to a certain version ID. If there already are routes defined for version ID, which is also present
+         * updating to a certain version ID. If there already are <i>string</i> routes defined for version ID, which is also present
          * in the given map, they are overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
-         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
+         * you should specify a version ID of the document and routes of such sections (which were in the document with
+         * the ID).
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param routes <i>string</i> routes to ignore, per version ID
          * @return the builder
@@ -401,13 +406,14 @@ public class UpdaterSettings {
 
         /**
          * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
-         * updating to a certain version ID. If there already are routes defined for the given ID, they are
+         * updating to a certain version ID. If there already are <i>string</i> routes defined for the given ID, they are
          * overwritten.
          * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense we can say that
-         * you should specify a version ID of the file and routes of such sections which were in the file with the ID.
+         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
+         * you should specify a version ID of the document and routes of such sections (which were in the document with
+         * the ID).
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param versionId the version ID
          * @param routes    the set of <i>string</i> routes representing blocks to ignore at the version ID
@@ -427,7 +433,7 @@ public class UpdaterSettings {
          * reproduce those steps without any content loss.</b> The ID at which a relocation took effect is equal to ID
          * of the file which included the changes.
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param relocations the relocations, per version ID
          * @return the builder
@@ -446,7 +452,7 @@ public class UpdaterSettings {
          * reproduce those steps without any content loss.</b>The ID at which a relocation took effect is equal to ID of
          * the file which included the changes.
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param versionId   the version ID
          * @param relocations relocations that took effect at the version ID
@@ -469,7 +475,7 @@ public class UpdaterSettings {
          * <b>Please note</b> that all relocations will be merged when updating, with {@link Route}-based relocations
          * having higher priority.
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param relocations the relocations, per version ID
          * @return the builder
@@ -491,7 +497,7 @@ public class UpdaterSettings {
          * <b>Please note</b> that all relocations will be merged when updating, with {@link Route}-based relocations
          * having higher priority.
          * <p>
-         * <b>You must specify a versioning for this setting to be effective.</b>
+         * <b>Effective if and only a versioning is specified.</b>
          *
          * @param versionId   the version ID
          * @param relocations relocations that took effect at the version ID
@@ -503,8 +509,11 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets versioning information. An {@link IllegalArgumentException} might be thrown during updating process in
-         * certain cases (always make sure to read the documentation of the object you are giving).
+         * Sets versioning information.
+         * <p>
+         * If the version ID of the defaults supplied by the versioning is <code>null</code>, it is considered illegal
+         * and will throw a {@link NullPointerException}. If such value is returned for the document itself, the updater
+         * will assign {@link Versioning#getFirstVersion()} to it. Please see the implementation documentation.
          *
          * @param versioning the versioning
          * @return the builder
@@ -517,17 +526,7 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets versioning information manually. The given string version IDs must follow the given pattern.
-         * <p>
-         * If the document version ID is <code>null</code> (e.g. underlying file was created before your plugin started
-         * using this library/updater) or it is not valid, it's version will be treated like the oldest one specified by
-         * the given pattern (which effectively means all relocations given will be applied to it).
-         * <p>
-         * If the ID of the defaults couldn't be parsed, expect a {@link NullPointerException} during runtime.
-         * <p>
-         * <i>You may want to disable {@link LoaderSettings.Builder#setAutoUpdate(boolean)}
-         * and rather update manually by calling {@link YamlDocument#update()} (because if an error is thrown, you won't
-         * be able to initialize the file).</i>
+         * Sets versioning information. Please see {@link ManualVersioning#ManualVersioning(Pattern, String, String)}.
          *
          * @param pattern           the pattern
          * @param documentVersionId version ID of the document that's being updated
@@ -540,12 +539,7 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets versioning information to be obtained automatically (directly from the documents and defaults).
-         * <p>
-         * It must be guaranteed that version ID of the defaults is present at the route and is valid (following the
-         * pattern), a {@link NullPointerException} will be thrown during the updating process otherwise. If no version
-         * ID is found in the document (that's being updated) at the route, or is invalid, the updater will treat its
-         * version ID as the oldest specified by the given pattern.
+         * Sets versioning information. Please see {@link AutomaticVersioning#AutomaticVersioning(Pattern, Route)}.
          *
          * @param pattern the pattern
          * @param route   the route to version IDs (of both files)
@@ -556,12 +550,7 @@ public class UpdaterSettings {
         }
 
         /**
-         * Sets versioning information to be obtained automatically (directly from the documents and defaults).
-         * <p>
-         * It must be guaranteed that version ID of the defaults is present at the route and is valid (following the
-         * pattern), a {@link NullPointerException} will be thrown during the updating process otherwise. If no version
-         * ID is found in the document (that's being updated) at the route, or is invalid, the updater will treat its
-         * version ID as the oldest specified by the given pattern.
+         * Sets versioning information. Please see {@link AutomaticVersioning#AutomaticVersioning(Pattern, String)}.
          *
          * @param pattern the pattern
          * @param route   the route to version IDs (of both files)

@@ -34,8 +34,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Class responsible for merging the document with the default file. Merging is the final stage of the updating
- * process.
+ * Class responsible for merging the document with the defaults. Merging is the final stage of the updating process.
  */
 public class Merger {
 
@@ -100,6 +99,9 @@ public class Merger {
                 if (documentBlock.isIgnored()) {
                     //Reset
                     documentBlock.setIgnored(false);
+                    //If a section
+                    if (documentBlock instanceof Section)
+                        resetIgnored((Section) documentBlock);
                     continue;
                 }
 
@@ -135,12 +137,31 @@ public class Merger {
             if (block != null && block.isIgnored()) {
                 //Reset
                 block.setIgnored(false);
+                //If a section
+                if (block instanceof Section)
+                    resetIgnored((Section) block);
                 continue;
             }
 
             //Remove
             document.remove(route);
         }
+    }
+
+    /**
+     * Resets ignored setting for sub-blocks of the given section
+     *
+     * @param section the section
+     */
+    private void resetIgnored(@NotNull Section section) {
+        //Iterate
+        section.getStoredValue().values().forEach(block -> {
+            //Reset
+            block.setIgnored(false);
+            //If a section
+            if (block instanceof Section)
+                resetIgnored((Section) block);
+        });
     }
 
     /**

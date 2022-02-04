@@ -34,9 +34,11 @@ public class AutomaticVersioning implements Versioning {
     private final String strRoute;
 
     /**
-     * Creates automatically-supplied versioning information.
+     * Creates automatically supplied versioning information.
      * <p>
-     * The versions of the respective documents will be obtained and parsed at runtime.
+     * The versions of the respective documents will be obtained and parsed at runtime. Please note that version ID of
+     * the defaults must be present and valid, otherwise, a {@link NullPointerException} will be thrown. For the
+     * document itself, if the version ID is missing or invalid, the updater assigns {@link #getFirstVersion()} to it.
      *
      * @param pattern the pattern used to parse the IDs
      * @param route   the route at which the IDs are
@@ -48,9 +50,11 @@ public class AutomaticVersioning implements Versioning {
     }
 
     /**
-     * Creates automatically-supplied versioning information.
+     * Creates automatically supplied versioning information.
      * <p>
-     * The versions of the respective documents will be obtained and parsed at runtime.
+     * The versions of the respective documents will be obtained and parsed at runtime. Please note that version ID of
+     * the defaults must be present and valid, otherwise, a {@link NullPointerException} will be thrown. For the
+     * document itself, if the version ID is missing or invalid, the updater assigns {@link #getFirstVersion()} to it.
      *
      * @param pattern the pattern used to parse the IDs
      * @param route   the route at which the IDs are

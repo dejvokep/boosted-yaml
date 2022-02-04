@@ -30,7 +30,8 @@ public interface Versioning {
      * Returns version of the given document (section).
      * <p>
      * If obtaining version of the defaults (parameter is set to <code>true</code>), returning <code>null</code> is
-     * considered illegal and will throw an exception.
+     * considered illegal and will throw a {@link NullPointerException}. Otherwise, for the document itself, if the
+     * version returned is <code>null</code>, the updater assigns {@link #getFirstVersion()} to it.
      *
      * @param document the document
      * @param defaults if getting version of the defaults

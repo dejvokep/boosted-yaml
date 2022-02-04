@@ -29,8 +29,8 @@ import java.util.Objects;
 /**
  * Updater class responsible for executing the whole process:
  * <ol>
- *     <li>loading file version IDs,</li>
- *     <li>comparing IDs (to check if updating, downgrading...),</li>
+ *     <li>loading version IDs of the document and defaults,</li>
+ *     <li>comparing the IDs (to check if updating, downgrading...),</li>
  *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
  *     <li>marking ignored blocks in the document,</li>
  *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
@@ -47,7 +47,7 @@ public class Updater {
      * Updates the given document against the given defaults and settings. The process consists of:
      * <ol>
      *     <li>loading file version IDs,</li>
-     *     <li>comparing IDs (to check if updating, downgrading...),</li>
+     *     <li>comparing the IDs (to check if updating, downgrading...),</li>
      *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
      *     <li>marking ignored blocks in the document,</li>
      *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
@@ -103,8 +103,8 @@ public class Updater {
 
         //Versions
         Version documentVersion = versioning.getDocumentVersion(document, false), defaultsVersion = versioning.getDocumentVersion(defaults, true);
-        //Check default file version
-        Objects.requireNonNull(defaultsVersion, "Version ID of the default file cannot be null! Is it malformed or not specified?");
+        //Check version of the defaults
+        Objects.requireNonNull(defaultsVersion, "Version ID of the defaults cannot be null! Is it malformed or not specified?");
         //If document ID is null
         if (documentVersion == null)
             //Set to the oldest (to go through all relocations supplied)

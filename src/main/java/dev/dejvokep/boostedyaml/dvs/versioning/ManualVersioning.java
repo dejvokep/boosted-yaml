@@ -31,9 +31,13 @@ public class ManualVersioning implements Versioning {
     private final Version defaultsVersion;
 
     /**
-     * Creates manually-supplied versioning information.
+     * Creates manually supplied versioning information.
      * <p>
      * The given IDs are parsed immediately using the pattern; then supplied by the appropriate method implementations.
+     * <p>
+     * If the version ID of the defaults is invalid, it is considered illegal and will throw a {@link
+     * NullPointerException}. For the document itself, if the version returned is <code>null</code>, the updater
+     * assigns {@link #getFirstVersion()} to it.
      *
      * @param pattern           the pattern
      * @param documentVersionId the version ID of the document

@@ -1,8 +1,8 @@
 # 🔼 BoostedYAML
 
-A simple-to-use standalone Java library delivering boosted experience while working with YAML files. Work on this
-project started on Apr 8, 2021 with the target to build advanced, hence still easy-to-use API which would enable
-developers to manage files with ease.
+A simple-to-use standalone Java library delivering boosted experience while working with YAML documents. Work on this
+project started on Apr 8, 2021 with the target to build advanced, hence still easy-to-use library which would enable
+developers to manage documents and files with ease.
 
 # ❓ Why to use BoostedYAML over other libraries?
 
