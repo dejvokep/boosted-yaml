@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.fvs.versioning;
+package dev.dejvokep.boostedyaml.dvs.versioning;
 
-import dev.dejvokep.boostedyaml.fvs.Pattern;
-import dev.dejvokep.boostedyaml.fvs.segment.Segment;
+import dev.dejvokep.boostedyaml.dvs.Pattern;
+import dev.dejvokep.boostedyaml.dvs.segment.Segment;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Basic automatic versioning.
+ * Basic implementation of automatic versioning.
  */
 public class BasicVersioning extends AutomaticVersioning {
 

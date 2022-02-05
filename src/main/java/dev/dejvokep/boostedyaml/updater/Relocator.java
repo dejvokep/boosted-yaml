@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,109 +17,112 @@ package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.dvs.Version;
 import dev.dejvokep.boostedyaml.route.Route;
-import dev.dejvokep.boostedyaml.fvs.Version;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
 public class Relocator {
 
-    //The file
-    private final Section file;
+    //The section
+    private final Section section;
     //Versions
-    private final Version userVersion, defVersion;
+    private final Version documentVersion, defaultsVersion;
 
     /**
-     * Initializes the relocator with the given file (user; to relocate contents in) and file versions.
+     * Initializes the relocator with the given section and document versions.
      *
-     * @param section     the (user) section
-     * @param userVersion version of the user file (parent of the given section)
-     * @param defVersion  version of the default file
+     * @param section         the section
+     * @param documentVersion version of the document that's updated (parent of the given section)
+     * @param defaultsVersion version of the defaults
      */
-    public Relocator(@NotNull Section section, @NotNull Version userVersion, @NotNull Version defVersion) {
-        this.file = section;
-        this.userVersion = userVersion;
-        this.defVersion = defVersion;
+    public Relocator(@NotNull Section section, @NotNull Version documentVersion, @NotNull Version defaultsVersion) {
+        this.section = section;
+        this.documentVersion = documentVersion;
+        this.defaultsVersion = defaultsVersion;
     }
 
     /**
-     * Applies all the given relocations to the given section (in constructor), one by one using
-     * {@link #apply(Map, Iterator, Route)}.
+     * Applies all appropriate relocations to the given section (in constructor), one by one using {@link #apply(Map,
+     * Route)}.
      * <p>
-     * More formally, iterates through all version IDs, starting from the just next version ID of the user file version ID,
-     * ending (inclusive) when the currently iterated version ID is equal to the version ID of the default file.
+     * More formally, iterates through all version IDs, starting from the just next version ID of the document version
+     * ID, ending (inclusive) when the currently iterated version ID is equal to the version ID of the defaults.
      *
-     * @param relocations the relocations to apply
-     * @see #apply(Map, Iterator, Route)
+     * @param settings  settings used to get relocations
+     * @param separator separator used to split string routes
+     * @see #apply(Map, Route)
      */
-    public void apply(@NotNull Map<String, Map<Route, Route>> relocations) {
+    public void apply(@NotNull UpdaterSettings settings, char separator) {
         //Copy
-        Version current = this.userVersion.copy();
-        //Move to the next version
-        current.next();
+        Version current = this.documentVersion.copy();
         //While not at the latest version
-        while (current.compareTo(defVersion) <= 0) {
-            //Relocation
-            Map<Route, Route> relocation = relocations.get(current.asID());
+        while (current.compareTo(defaultsVersion) <= 0) {
             //Move to the next version
             current.next();
+            //Relocations
+            Map<Route, Route> relocations = settings.getRelocations(current.asID(), separator);
             //If there is not any
-            if (relocation == null || relocation.isEmpty())
+            if (relocations.isEmpty())
                 continue;
 
-            //The iterator
-            Iterator<Route> iterator = relocation.keySet().iterator();
             //Go through all entries
-            while (iterator.hasNext())
+            while (relocations.size() > 0)
                 //Apply
-                apply(relocation, iterator, iterator.next());
+                apply(relocations, relocations.keySet().iterator().next());
         }
     }
 
     /**
-     * Applies a relocation from the given map, whose key is defined by <code>from</code> parameter.
+     * Applies a relocation from the given map, whose key is defined by <code>from</code> parameter; removes the
+     * relocation from the map.
      * <p>
-     * This method also checks if there are any relocations for the to (target) route and if yes, relocates that first.
-     * Cyclic relocations are also supported (<code>a > b</code> and <code>b > a</code> for example). If there is no
-     * element to relocate, nothing is changed.
+     * This method also checks if there are any relocations for the <code>to</code> (target) route and if yes, relocates
+     * that first. Cyclic relocations are also supported (<code>a > b</code> and <code>b > a</code> for example). If
+     * there is no block to relocate, nothing is changed.
      *
      * @param relocations all the relocations
-     * @param keyIterator iterator used to remove applied relocation(s) - key set iterator of the given map
      * @param from        from where to relocate
      */
-    private void apply(@NotNull Map<Route, Route> relocations, @NotNull Iterator<Route> keyIterator, @Nullable Route from) {
+    private void apply(@NotNull Map<Route, Route> relocations, @Nullable Route from) {
         //If there is no relocation
         if (from == null || !relocations.containsKey(from))
             return;
         //The parent section
-        Optional<Section> parent = file.getParent(from);
+        Optional<Section> parent = section.getParent(from);
         //If absent
-        if (!parent.isPresent())
+        if (!parent.isPresent()) {
+            relocations.remove(from);
             return;
+        }
+
         // Last key
         Object lastKey = from.get(from.length() - 1);
         //The block
         Block<?> block = parent.get().getStoredValue().get(lastKey);
         //If absent
-        if (block == null)
+        if (block == null) {
+            relocations.remove(from);
             return;
+        }
+
         //To
         Route to = relocations.get(from);
 
         //Remove
-        keyIterator.remove();
+        relocations.remove(from);
         parent.get().getStoredValue().remove(lastKey);
         removeParents(parent.get());
 
         //Relocate to
-        apply(relocations, keyIterator, to);
+        apply(relocations, to);
 
         //Relocate
-        file.set(to, block);
+        section.set(to, block);
     }
 
     /**

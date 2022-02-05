@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public class MultiKeyRoute implements Route {
      * The given array cannot contain <code>null</code> keys.
      * <p>
      * Empty array is considered illegal and will throw an {@link IllegalArgumentException}. Call with <code>null</code>
-     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) is will throw a {@link
+     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) will throw a {@link
      * NullPointerException}.
      * <p>
      * The given keys are traversed in order as they were specified - just like folders: assuming route <code>["x",
@@ -56,10 +56,8 @@ public class MultiKeyRoute implements Route {
      * @param route the route array
      */
     public MultiKeyRoute(@NotNull Object... route) {
-        //Validate
-        Objects.requireNonNull(route, "Route array cannot be null!");
         //If empty
-        if (route.length == 0)
+        if (Objects.requireNonNull(route, "Route array cannot be null!").length == 0)
             throw new IllegalArgumentException("Empty routes are not allowed!");
         //Validate
         for (Object key : route)
@@ -95,12 +93,10 @@ public class MultiKeyRoute implements Route {
     @Override
     @NotNull
     public Route add(@NotNull Object key) {
-        //Validate
-        Objects.requireNonNull(key, "Route cannot contain null keys!");
         //New route
         Object[] route = Arrays.copyOf(this.route, this.route.length + 1);
         //Set
-        route[route.length - 1] = key;
+        route[route.length - 1] = Objects.requireNonNull(key, "Route cannot contain null keys!");
         //Return
         return new MultiKeyRoute(route);
     }

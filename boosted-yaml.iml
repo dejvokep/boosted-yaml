@@ -12,7 +12,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.snakeyaml:snakeyaml-engine:2.3" level="project" />
+    <orderEntry type="library" name="Maven: org.snakeyaml:snakeyaml-engine:2.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains:annotations-java5:22.0.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter:5.8.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-api:5.8.2" level="project" />

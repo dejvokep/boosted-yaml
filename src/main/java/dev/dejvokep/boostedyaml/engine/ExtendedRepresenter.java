@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.engine;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.Comments;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
@@ -24,12 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
-import org.snakeyaml.engine.v2.common.FlowStyle;
 import org.snakeyaml.engine.v2.nodes.*;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,7 +54,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
         RepresentToNode representSection = new RepresentSection(), representSerializable = new RepresentSerializable();
         //Add representers
         super.representers.put(Section.class, representSection);
-        super.representers.put(YamlFile.class, representSection);
+        super.representers.put(YamlDocument.class, representSection);
         //Add all types
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedClasses())
             super.representers.put(clazz, representSerializable);
@@ -136,38 +133,14 @@ public class ExtendedRepresenter extends StandardRepresenter {
     }
 
     @Override
-    protected Node representMapping(Tag tag, Map<?, ?> mapping, FlowStyle flowStyle) {
-        //Best flow style for this object
-        FlowStyle bestStyle = FlowStyle.FLOW;
-
-        //List of mappings
-        List<NodeTuple> mappings = new ArrayList<>(mapping.size());
-        //Create a node
-        MappingNode node = new MappingNode(tag, mappings, flowStyle);
-        //Add
-        representedObjects.put(objectToRepresent, node);
-
-        //All mappings
-        for (Map.Entry<?, ?> entry : mapping.entrySet()) {
-            //Block
-            Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
-            //Represent nodes
-            Node key = applyKeyComments(block, representData(entry.getKey()));
-            Node value = applyValueComments(block, representData(block == null ? entry.getValue() : block.getStoredValue()));
-            //If a scalar and plain, set to block
-            if (!(key instanceof ScalarNode && ((ScalarNode) key).isPlain()) || !(value instanceof ScalarNode && ((ScalarNode) value).isPlain()))
-                bestStyle = FlowStyle.BLOCK;
-
-            //Add the value
-            mappings.add(new NodeTuple(key, value));
-        }
-
-        //If target flow style is automatic
-        if (flowStyle == FlowStyle.AUTO)
-            //Set to default if not auto, or picked
-            node.setFlowStyle(defaultFlowStyle != FlowStyle.AUTO ? defaultFlowStyle : bestStyle);
-
-        //Return
-        return node;
+    protected NodeTuple representMappingEntry(Map.Entry<?, ?> entry) {
+        //Block
+        Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
+        //Represent nodes
+        Node key = applyKeyComments(block, representData(entry.getKey()));
+        Node value = applyValueComments(block, representData(block == null ? entry.getValue() : block.getStoredValue()));
+        //Create
+        return new NodeTuple(key, value);
     }
+
 }

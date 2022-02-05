@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package dev.dejvokep.boostedyaml.block;
 
-import dev.dejvokep.boostedyaml.block.implementation.TerminalBlock;
+import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
+import org.snakeyaml.engine.v2.comments.CommentType;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
@@ -37,11 +38,11 @@ import java.util.stream.Collectors;
 public abstract class Block<T> {
 
     //Comments
-    List<CommentLine> beforeKeyComments, inlineKeyComments, afterKeyComments, beforeValueComments, inlineValueComments, afterValueComments;
+    List<CommentLine> beforeKeyComments = new ArrayList<>(0), inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
     //Value
     private final T value;
-    //Keep (updater)
-    private boolean keep = false;
+    //If to ignore
+    private boolean ignored;
 
     /**
      * Creates a block using the given parameters; while storing references to comments from the given nodes.
@@ -102,9 +103,12 @@ public abstract class Block<T> {
         //If not null
         if (key != null) {
             // Set
-            beforeKeyComments = key.getBlockComments();
-            inlineKeyComments = key.getInLineComments();
-            afterKeyComments = key.getEndComments();
+            beforeKeyComments = key.getBlockComments() == null ? new ArrayList<>(0) : key.getBlockComments();
+            // Manage comments
+            if (key.getInLineComments() != null)
+                beforeKeyComments.addAll(toBlockComments(key.getInLineComments()));
+            if (key.getEndComments() != null)
+                beforeKeyComments.addAll(toBlockComments(key.getEndComments()));
             // Collect
             collectComments(key, true);
         }
@@ -113,8 +117,14 @@ public abstract class Block<T> {
         if (value != null) {
             // Set
             beforeValueComments = value.getBlockComments();
-            inlineValueComments = value.getInLineComments();
-            afterValueComments = value.getEndComments();
+            // Verify
+            if (beforeKeyComments == null)
+                beforeKeyComments = new ArrayList<>(0);
+            // Manage comments
+            if (value.getInLineComments() != null)
+                beforeKeyComments.addAll(toBlockComments(value.getInLineComments()));
+            if (value.getEndComments() != null)
+                beforeKeyComments.addAll(toBlockComments(value.getEndComments()));
             // Collect
             collectComments(value, true);
         }
@@ -131,11 +141,11 @@ public abstract class Block<T> {
         // Add
         if (!initial) {
             if (node.getBlockComments() != null)
-                beforeKeyComments.addAll(node.getBlockComments());
+                beforeKeyComments.addAll(toBlockComments(node.getBlockComments()));
             if (node.getInLineComments() != null)
-                beforeKeyComments.addAll(node.getInLineComments());
+                beforeKeyComments.addAll(toBlockComments(node.getInLineComments()));
             if (node.getEndComments() != null)
-                beforeKeyComments.addAll(node.getEndComments());
+                beforeKeyComments.addAll(toBlockComments(node.getEndComments()));
         } else {
             // Ensure not null
             if (beforeKeyComments == null)
@@ -150,7 +160,7 @@ public abstract class Block<T> {
             for (Node sub : sequenceNode.getValue())
                 // Collect
                 collectComments(sub, false);
-        } else if (node instanceof MappingNode) {
+        } else if (!initial && node instanceof MappingNode) {
             // The node
             MappingNode mappingNode = (MappingNode) node;
             // Iterate
@@ -162,6 +172,13 @@ public abstract class Block<T> {
         }
     }
 
+    private List<CommentLine> toBlockComments(@NotNull List<CommentLine> commentLines) {
+        int i = -1;
+        for (CommentLine commentLine : commentLines)
+            commentLines.set(++i, commentLine.getCommentType() != CommentType.IN_LINE ? commentLine : new CommentLine(commentLine.getStartMark(), commentLine.getEndMark(), commentLine.getValue(), CommentType.BLOCK));
+        return commentLines;
+    }
+
     /**
      * Returns comments at the given position.
      * <p>
@@ -169,13 +186,12 @@ public abstract class Block<T> {
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      *
-     * @param node node from which to retrieve comments
      * @return the comments
      */
     @Nullable
-    public List<String> getComments(@NotNull Comments.NodeType node) {
+    public List<String> getComments() {
         // Comments
-        List<CommentLine> comments = Comments.get(this, node, Comments.Position.BEFORE);
+        List<CommentLine> comments = Comments.get(this, Comments.NodeType.KEY, Comments.Position.BEFORE);
         // If null
         if (comments == null)
             return null;
@@ -187,27 +203,24 @@ public abstract class Block<T> {
     /**
      * Sets the given comments at the given node.
      * <p>
-     * To remove comments, use {@link #remove(Comments.NodeType)} instead. Alternatively, pass either
+     * To remove comments, use {@link #removeComments()} instead. Alternatively, pass either
      * <code>null</code> or an empty {@link List} as the parameter.
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      *
-     * @param node     node to attach to
      * @param comments the comments to set
      */
-    public void setComments(@NotNull Comments.NodeType node, @Nullable List<String> comments) {
-        Comments.set(this, node, Comments.Position.BEFORE, comments == null ? null : comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
+    public void setComments(@Nullable List<String> comments) {
+        Comments.set(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments == null ? null : comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
      * Removes all comments at the given node.
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
-     *
-     * @param node node to which the comments are attached
      */
-    public void remove(@NotNull Comments.NodeType node) {
-        Comments.remove(this, node, Comments.Position.BEFORE);
+    public void removeComments() {
+        Comments.remove(this, Comments.NodeType.KEY, Comments.Position.BEFORE);
     }
 
     /**
@@ -215,11 +228,10 @@ public abstract class Block<T> {
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      *
-     * @param node     node to which the comments should be added
      * @param comments the comments to add
      */
-    public void addComments(@NotNull Comments.NodeType node, @NotNull List<String> comments) {
-        Comments.add(this, node, Comments.Position.BEFORE, comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
+    public void addComments(@NotNull List<String> comments) {
+        Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
@@ -227,43 +239,42 @@ public abstract class Block<T> {
      * <p>
      * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      *
-     * @param node    node to which the comments should be added
      * @param comment the comment to add
      */
-    public void addComment(@NotNull Comments.NodeType node, @NotNull String comment) {
-        Comments.add(this, node, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
+    public void addComment(@NotNull String comment) {
+        Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
     }
 
     /**
-     * Returns if the value is a {@link Section section}.
+     * Sets if to ignore this block. Used only internally while updating.
      *
-     * @return if the value is a {@link Section section}
+     * @param ignored if to ignore this block
+     */
+    public void setIgnored(boolean ignored) {
+        this.ignored = ignored;
+    }
+
+    /**
+     * Returns if this block is ignored. Used only internally while updating.
+     *
+     * @return if this block is ignored
+     */
+    public boolean isIgnored() {
+        return ignored;
+    }
+
+    /**
+     * Returns if this block represents a {@link Section section}.
+     *
+     * @return if this block represents a {@link Section section}
      */
     public abstract boolean isSection();
 
     /**
-     * Sets whether to keep this block. Used only internally during updating.
-     *
-     * @param keep if to keep
-     */
-    public void setKeep(boolean keep) {
-        this.keep = keep;
-    }
-
-    /**
-     * Returns whether to keep this block. Used only internally during updating.
-     *
-     * @return if to keep this block
-     */
-    public boolean isKeep() {
-        return keep;
-    }
-
-    /**
      * Returns the stored value.
      * <p>
-     * For {@link Section sections}, this is a {@link java.util.Map}; for {@link TerminalBlock entries} an {@link
-     * Object}.
+     * For {@link Section sections}, this is a {@link java.util.Map}; for {@link TerminatedBlock terminated blocks} an
+     * {@link Object}.
      *
      * @return the stored value
      */

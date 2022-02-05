@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ public enum MergeRule {
     /**
      * Represents a situation where block at a certain route in:
      * <ul>
-     *     <li>user file is a section</li>
-     *     <li>default file is a mapping</li>
+     *     <li>document is a section</li>
+     *     <li>defaults is a mapping</li>
      * </ul>
      * This situation is, during merging, also referred to as <i>section at mapping</i>.
      */
@@ -33,15 +33,15 @@ public enum MergeRule {
     /**
      * Represents a situation where block at a certain route in:
      * <ul>
-     *     <li>user file is a mapping</li>
-     *     <li>default file is a section</li>
+     *     <li>document is a mapping</li>
+     *     <li>defaults is a section</li>
      * </ul>
      * This situation is, during merging, also referred to as <i>mapping at section</i>.
      */
     MAPPING_AT_SECTION,
 
     /**
-     * Represents a situation where block at a certain route is a mapping in both files.
+     * Represents a situation where block at a certain route is a mapping in both the document and defaults.
      * <p>
      * This situation is, during merging, also referred to as <i>mapping at mapping</i>.
      */
@@ -50,12 +50,12 @@ public enum MergeRule {
     /**
      * Returns merge rule representing the given information.
      *
-     * @param userValueIsSection    if the user value is a section (not a mapping)
-     * @param defaultValueIsSection if the default value is a section (not a mapping)
+     * @param documentBlockIsSection if the document block is a section
+     * @param defaultBlockIsSection  if the default block is a section
      * @return the merge rule
      */
-    public static MergeRule getFor(boolean userValueIsSection, boolean defaultValueIsSection) {
-        return userValueIsSection ? defaultValueIsSection ? null : SECTION_AT_MAPPING : defaultValueIsSection ? MAPPING_AT_SECTION : MAPPINGS;
+    public static MergeRule getFor(boolean documentBlockIsSection, boolean defaultBlockIsSection) {
+        return documentBlockIsSection ? defaultBlockIsSection ? null : SECTION_AT_MAPPING : defaultBlockIsSection ? MAPPING_AT_SECTION : MAPPINGS;
     }
 
 }

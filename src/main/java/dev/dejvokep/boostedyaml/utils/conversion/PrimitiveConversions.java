@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package dev.dejvokep.boostedyaml.utils.conversion;
 
-import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,39 +22,45 @@ import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Utility class used to convert number optionals (or objects) into numbers of target types.
- * <p>
- * Optionals are used as parameters only for sole simplification, as {@link Section} class is built upon optionals -
- * therefore, warnings of this type are suppressed.
+ * Utility class for primitives.
  */
-public class NumericConversions {
+public class PrimitiveConversions {
 
     /**
-     * All numerical primitives and their corresponding non-primitive representations.
+     * All numeric primitives and their corresponding non-primitive representations.
      */
-    public static final Map<Class<?>, Class<?>> NUMERICAL_PRIMITIVES = new HashMap<Class<?>, Class<?>>() {{
+    public static final Map<Class<?>, Class<?>> NUMERIC_PRIMITIVES = Collections.unmodifiableMap(new HashMap<Class<?>, Class<?>>() {{
         put(int.class, Integer.class);
         put(byte.class, Byte.class);
         put(short.class, Short.class);
         put(long.class, Long.class);
         put(float.class, Float.class);
         put(double.class, Double.class);
-    }};
+    }});
 
     /**
-     * All non-numerical primitives and their corresponding non-primitive representations; vice-versa.
+     * All primitives mapped to their object representations.
      */
-    public static final Map<Class<?>, Class<?>> NON_NUMERICAL_CONVERSIONS = new HashMap<Class<?>, Class<?>>() {{
+    public static final Map<Class<?>, Class<?>> PRIMITIVES_TO_OBJECTS = Collections.unmodifiableMap(new HashMap<Class<?>, Class<?>>() {{
+        putAll(NUMERIC_PRIMITIVES);
+        put(boolean.class, Boolean.class);
+        put(char.class, Character.class);
+    }});
+
+    /**
+     * All non-numeric primitives and their corresponding non-primitive representations; vice-versa.
+     */
+    public static final Map<Class<?>, Class<?>> NON_NUMERIC_CONVERSIONS = Collections.unmodifiableMap(new HashMap<Class<?>, Class<?>>() {{
         put(boolean.class, Boolean.class);
         put(char.class, Character.class);
         put(Boolean.class, boolean.class);
         put(Character.class, char.class);
-    }};
+    }});
 
     /**
-     * All numerical data type classes.
+     * All numeric data type classes.
      */
-    public static final Set<Class<?>> NUMERICAL_CLASSES = new HashSet<Class<?>>() {{
+    public static final Set<Class<?>> NUMERIC_CLASSES = Collections.unmodifiableSet(new HashSet<Class<?>>() {{
         add(int.class);
         add(byte.class);
         add(short.class);
@@ -68,25 +73,25 @@ public class NumericConversions {
         add(Long.class);
         add(Float.class);
         add(Double.class);
-    }};
+    }});
 
     /**
-     * Returns if the given class represents a numerical data type.
+     * Returns if the given class represents a numeric data type.
      *
      * @param clazz the class to check
-     * @return if it's a numerical class
+     * @return if it's a numeric class
      */
     public static boolean isNumber(@NotNull Class<?> clazz) {
-        return NUMERICAL_CLASSES.contains(clazz);
+        return NUMERIC_CLASSES.contains(clazz);
     }
 
     /**
      * Converts a number to the target type. It must be guaranteed that the given object is an instance of {@link
-     * Number} and {@link #NUMERICAL_CLASSES} must contain the target class.
+     * Number} and {@link #NUMERIC_CLASSES} must contain the target class.
      * <p>
-     * <b>This method supports</b> casting between two numerical primitives, two non-primitive numerical representations
-     * and one
-     * of each kind. Casting between any primitive type, and it's non-primitive representation is also supported.
+     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric
+     * representations and one of each kind. Casting between any primitive type, and it's non-primitive representation
+     * is also supported.
      *
      * @param value  the value to convert
      * @param target the target type
@@ -99,7 +104,7 @@ public class NumericConversions {
         boolean primitive = target.isPrimitive();
         // If primitive
         if (primitive)
-            target = NUMERICAL_PRIMITIVES.get(target);
+            target = NUMERIC_PRIMITIVES.get(target);
 
         // Convert
         if (target == Integer.class)

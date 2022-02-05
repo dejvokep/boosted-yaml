@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,23 +31,29 @@ class GeneralSettingsTest {
 
     @Test
     void getKeyMode() {
-        assertEquals(GeneralSettings.KeyMode.OBJECT, GeneralSettings.builder().setKeyMode(GeneralSettings.KeyMode.OBJECT).build().getKeyMode());
+        assertEquals(GeneralSettings.KeyFormat.OBJECT, GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build().getKeyFormat());
     }
 
     @Test
     void getSeparator() {
-        assertEquals(',', GeneralSettings.builder().setSeparator(',').build().getSeparator());
+        assertEquals(',', GeneralSettings.builder().setRouteSeparator(',').build().getRouteSeparator());
     }
 
     @Test
     void getEscapedSeparator() {
-        assertEquals(Pattern.quote(","), GeneralSettings.builder().setSeparator(',').build().getEscapedSeparator());
+        assertEquals(Pattern.quote(","), GeneralSettings.builder().setRouteSeparator(',').build().getEscapedSeparator());
     }
 
     @Test
     void getSerializer() {
         YamlSerializer serializer = new StandardSerializer("!=");
         assertEquals(serializer, GeneralSettings.builder().setSerializer(serializer).build().getSerializer());
+    }
+
+    @Test
+    void isUseDefaults() {
+        assertTrue(GeneralSettings.builder().setUseDefaults(true).build().isUseDefaults());
+        assertFalse(GeneralSettings.builder().setUseDefaults(false).build().isUseDefaults());
     }
 
     @Test

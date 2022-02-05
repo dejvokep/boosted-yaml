@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  */
 package dev.dejvokep.boostedyaml.block.implementation;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.engine.ExtendedConstructor;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings.KeyMode;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings.KeyFormat;
+import dev.dejvokep.boostedyaml.utils.conversion.PrimitiveConversions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
@@ -28,15 +29,11 @@ import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 import static dev.dejvokep.boostedyaml.utils.conversion.ListConversions.*;
-import static dev.dejvokep.boostedyaml.utils.conversion.NumericConversions.*;
+import static dev.dejvokep.boostedyaml.utils.conversion.PrimitiveConversions.*;
 
 /**
  * Represents one YAML section (map), while storing its contents and comments. Section can also be referred to as
@@ -44,13 +41,38 @@ import static dev.dejvokep.boostedyaml.utils.conversion.NumericConversions.*;
  * <p>
  * BoostedYAML represents every entry (key=value pair) in the file as a block, which also applies to sections - sections
  * actually store {@link Block blocks}, which carry the raw value - Java object. Please learn more about implementations
- * at {wiki}.
+ * at <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
+ * <p>
+ * <b>ADDITIONAL METHOD DOCUMENTATION:</b>
+ * <ol>
+ *     <li>
+ *         <b id="note-1">Or value from defaults (#1)</b>
+ * <p>
+ *         If <i>this</i> section has an equivalent in the defaults ({@link #hasDefaults()}), instead of returning that value,
+ *         returns the result of invoking the same method on the default section {@link #getDefaults()}.
+ * <p>
+ *         This behaviour can be <a href="#note-3">disabled (#3)</a>.
+ *     </li>
+ *     <li>
+ *         <b id="note-2">If no value is at the route, checks the defaults (#2)</b>
+ * <p>
+ *         If there is no value at the given route in <i>this</i> section and <i>this</i> section has an equivalent in the defaults ({@link #hasDefaults()}),
+ *         compares value at the same route in the default section {@link #getDefaults()}. If no value is found there, immediately returns <code>false</code>.
+ * <p>
+ *         This behaviour can be <a href="#note-3">disabled (#3)</a>.
+ *     </li>
+ *     <li>
+ *         <b id="note-3">Disable use of defaults (#3)</b>
+ * <p>
+ *         You can disable use of the defaults (if any) by the method using {@link GeneralSettings.Builder#setUseDefaults(boolean)}.
+ *     </li>
+ * </ol>
  */
 @SuppressWarnings("unused")
 public class Section extends Block<Map<Object, Block<?>>> {
 
     //Root file
-    private YamlFile root;
+    private YamlDocument root;
     private Section defaults = null;
     //Parent section
     private Section parent;
@@ -72,7 +94,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      *                    Java instances of the nodes
      * @see Block#Block(Node, Node, Object) superclass constructor used
      */
-    public Section(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
+    public Section(@NotNull YamlDocument root, @Nullable Section parent, @NotNull Route route, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass (value node is null because there can't be any value comments)
         super(keyNode, valueNode, root.getGeneralSettings().getDefaultMap());
         //Set
@@ -95,7 +117,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param mappings raw (containing Java values directly; no {@link Block} instances) content map
      * @see Block#Block(Block, Object) superclass constructor used
      */
-    public Section(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route, @Nullable Block<?> previous, @NotNull Map<?, ?> mappings) {
+    public Section(@NotNull YamlDocument root, @Nullable Section parent, @NotNull Route route, @Nullable Block<?> previous, @NotNull Map<?, ?> mappings) {
         //Call superclass
         super(previous, root.getGeneralSettings().getDefaultMap());
         //Set
@@ -109,7 +131,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //Key and value
             Object key = adaptKey(entry.getKey()), value = entry.getValue();
             //Add
-            getStoredValue().put(key, value instanceof Map ? new Section(root, this, route.add(key), null, (Map<?, ?>) value) : new TerminalBlock(null, value));
+            getStoredValue().put(key, value instanceof Map ? new Section(root, this, route.add(key), null, (Map<?, ?>) value) : new TerminatedBlock(null, value));
         }
     }
 
@@ -118,8 +140,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Sets the root file, parent section, name and route to <code>null</code>.
      * <p>
-     * <b>This constructor is only used by {@link YamlFile the extending class}, where nodes are unknown at the time of
-     * initialization. It is needed to call {@link #init(YamlFile, Node, MappingNode, ExtendedConstructor)}
+     * <b>This constructor is only used by {@link YamlDocument the extending class}, where nodes are unknown at the time
+     * of
+     * initialization. It is needed to call {@link #init(YamlDocument, Node, MappingNode, ExtendedConstructor)}
      * afterwards.</b>
      *
      * @param defaultMap the content map
@@ -151,11 +174,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Initializes this section as an empty one.
      * <p>
-     * This method must only be called if {@link #isRoot()} returns <code>true</code>.
+     * This method must only be called if {@link #isRoot()} returns <code>true</code>. Expect an {@link
+     * IllegalStateException} otherwise.
      *
      * @param root the root file
      */
-    protected void initEmpty(@NotNull YamlFile root) {
+    protected void initEmpty(@NotNull YamlDocument root) {
         //Validate
         if (!root.isRoot())
             throw new IllegalStateException("Cannot init non-root section!");
@@ -169,8 +193,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Initializes this section, and it's contents using the given parameters, while also initializing the superclass by
      * calling {@link Block#init(Node, Node)}.
-     * <p>
-     * This method must only be called if {@link #isRoot()} returns <code>true</code>.
      *
      * @param root        the root file of this section
      * @param keyNode     node which represents the key to this section, used <b>only</b> to retrieve comments
@@ -178,24 +200,20 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param constructor constructor used to construct all the nodes contained within the root file, used to retrieve
      *                    Java instances of the nodes
      */
-    protected void init(@NotNull YamlFile root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
+    protected void init(@NotNull YamlDocument root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
         //Call superclass
-        super.init(keyNode, null);
+        super.init(keyNode, valueNode);
         //Set
         this.root = root;
         resetDefaults();
-        //If comments of the super node were assigned
-        boolean superNodeComments = false;
         //Loop through all mappings
         for (NodeTuple tuple : valueNode.getValue()) {
             //Key and value
             Object key = adaptKey(constructor.getConstructed(tuple.getKeyNode())), value = constructor.getConstructed(tuple.getValueNode());
             //Add
             getStoredValue().put(key, value instanceof Map ?
-                    new Section(root, this, getSubRoute(key), superNodeComments ? tuple.getKeyNode() : valueNode, (MappingNode) tuple.getValueNode(), constructor) :
-                    new TerminalBlock(superNodeComments ? tuple.getKeyNode() : valueNode, tuple.getValueNode(), value));
-            //Set to true
-            superNodeComments = true;
+                    new Section(root, this, getSubRoute(key), tuple.getKeyNode(), (MappingNode) tuple.getValueNode(), constructor) :
+                    new TerminatedBlock(tuple.getKeyNode(), tuple.getValueNode(), value));
         }
     }
 
@@ -212,8 +230,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <code>deep</code> set to <code>true</code>) and returns <code>false</code> if the result of that call is
      * <code>false</code>. If the iteration finished and none of the sub-calls returned otherwise, returns
      * <code>true</code>.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param deep if to search deeply
      * @return whether this section is empty
@@ -228,8 +244,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
         //Loop through all values
         for (Block<?> value : getStoredValue().values()) {
-            //If a terminal or non-empty section
-            if (value instanceof TerminalBlock || (value instanceof Section && !((Section) value).isEmpty(true)))
+            //If a terminated or non-empty section
+            if (value instanceof TerminatedBlock || (value instanceof Section && !((Section) value).isEmpty(true)))
                 return false;
         }
 
@@ -257,7 +273,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the root file
      */
     @NotNull
-    public YamlFile getRoot() {
+    public YamlDocument getRoot() {
         return root;
     }
 
@@ -346,7 +362,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @Nullable
     public String getRouteAsString() {
-        return route == null ? null : route.join(root.getGeneralSettings().getSeparator());
+        return route == null ? null : route.join(root.getGeneralSettings().getRouteSeparator());
     }
 
     /**
@@ -354,6 +370,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * More formally, calls {@link Route#addTo(Route, Object)}.
      *
+     * @param key key to add
      * @return sub-route derived from the {@link #getRoute() section's absolute route}
      * @see Route#addTo(Route, Object)
      */
@@ -363,15 +380,37 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
+     * Returns equivalent of this section in the defaults.
+     * <p>
+     * If there is not such section, returns <code>null</code>.
+     *
+     * @return default equivalent, or <code>null</code> if there's not any
+     * @see #hasDefaults()
+     */
+    @Nullable
+    public Section getDefaults() {
+        return defaults;
+    }
+
+    /**
+     * Returns if this section has an equivalent in the defaults.
+     *
+     * @return if this section has an equivalent in the defaults
+     */
+    public boolean hasDefaults() {
+        return defaults != null;
+    }
+
+    /**
      * Adapts this section (including sub-sections) to the new relatives. This method should be called if and only this
      * section was relocated to a new parent section.
      *
      * @param root   new root file
      * @param parent new parent section
      * @param route  new absolute route to this section (from the new root)
-     * @see #adapt(YamlFile, Route)
+     * @see #adapt(YamlDocument, Route)
      */
-    private void adapt(@NotNull YamlFile root, @Nullable Section parent, @NotNull Route route) {
+    private void adapt(@NotNull YamlDocument root, @Nullable Section parent, @NotNull Route route) {
         //Delete from the previous parent
         if (this.parent != null && this.parent.getStoredValue().get(name) == this)
             this.parent.removeInternal(this.parent, name);
@@ -386,12 +425,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Recursively adapts this section (including sub-sections) to the new relatives. This method should initially be
-     * called after {@link #adapt(YamlFile, Section, Route)}.
+     * called after {@link #adapt(YamlDocument, Section, Route)}.
      *
      * @param root  new root file
      * @param route new absolute route to this section (from the new root)
      */
-    private void adapt(@NotNull YamlFile root, @NotNull Route route) {
+    private void adapt(@NotNull YamlDocument root, @NotNull Route route) {
         //Set
         this.root = root;
         this.route = route;
@@ -405,9 +444,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Adapts the given key, as defined by the key mode currently in use ({@link GeneralSettings#getKeyMode()}).
+     * Adapts the given key, as defined by the key format currently in use ({@link GeneralSettings#getKeyFormat()}).
      * <p>
-     * More formally, if key mode is {@link KeyMode#STRING STRING}, returns the result of {@link Object#toString()} on
+     * More formally, if key format is {@link KeyFormat#STRING STRING}, returns the result of {@link Object#toString()} on
      * the given key object, the key object given otherwise.
      *
      * @param key the key object to adapt
@@ -415,7 +454,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @NotNull
     public Object adaptKey(@NotNull Object key) {
-        return root.getGeneralSettings().getKeyMode() == KeyMode.OBJECT ? key : key.toString();
+        //Validate
+        Objects.requireNonNull(key, "Sections cannot contain null keys!");
+        return root.getGeneralSettings().getKeyFormat() == KeyFormat.OBJECT ? key : key.toString();
     }
 
     /**
@@ -423,6 +464,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     private void resetDefaults() {
         this.defaults = isRoot() ? root.getDefaults() : parent == null || parent.defaults == null ? null : parent.defaults.getSection(Route.fromSingleKey(name), null);
+    }
+
+    /**
+     * Returns if methods can use defaults. That is, if there {@link #hasDefaults() are any} and it is {@link
+     * GeneralSettings#isUseDefaults() enabled by the settings}.
+     *
+     * @return if methods can use defaults
+     */
+    private boolean canUseDefaults() {
+        return hasDefaults() && root.getGeneralSettings().isUseDefaults();
     }
 
     //
@@ -450,7 +501,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * It is guaranteed that call to {@link #contains(Route)} with any route from the returned set will return
      * <code>true</code> (unless modified in between).
      * <p>
-     * <b>Does not interact with defaults.</b>
+     * The returned map will also contain routes from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. <a href="#note-3">Disable use of defaults (#3).</a>
      *
      * @param deep if to get routes deeply (from sub-sections)
      * @return the complete set of routes
@@ -459,6 +511,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Set<Route> getRoutes(boolean deep) {
         //Create a set
         Set<Route> keys = root.getGeneralSettings().getDefaultSet();
+        //Add defaults
+        if (canUseDefaults())
+            keys.addAll(defaults.getRoutes(deep));
         //Add
         addData((route, entry) -> keys.add(route), null, deep);
         //Return
@@ -477,12 +532,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * within this section.
      * <p>
      * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getSeparator()}).
+     * GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #contains(String)} with any route from the returned set will return
      * <code>true</code> (unless modified in between).
      * <p>
-     * <b>Does not interact with defaults.</b>
+     * The returned map will also contain routes from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. <a href="#note-3">Disable use of defaults (#3).</a>
      *
      * @param deep if to get routes deeply
      * @return the complete set of string routes
@@ -491,8 +547,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Set<String> getRoutesAsStrings(boolean deep) {
         //Create a set
         Set<String> keys = root.getGeneralSettings().getDefaultSet();
+        //Add defaults
+        if (canUseDefaults())
+            keys.addAll(defaults.getRoutesAsStrings(deep));
         //Add
-        addData((route, entry) -> keys.add(route), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        addData((route, entry) -> keys.add(route), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return
         return keys;
     }
@@ -503,7 +562,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * More formally, returns the key set of the underlying map. The returned set is an instance of {@link
      * GeneralSettings#getDefaultSet()}.
      * <p>
-     * <b>Does not interact with defaults.</b>
+     * The returned map will also contain keys from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. <a href="#note-3">Disable use of defaults (#3).</a>
      *
      * @return the complete set of keys directly contained within this (only; not sub-) section
      * @see #getRoutes(boolean)
@@ -512,11 +572,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
     @NotNull
     public Set<Object> getKeys() {
         //Create a set
-        Set<Object> set = root.getGeneralSettings().getDefaultSet(getStoredValue().size());
+        Set<Object> keys = root.getGeneralSettings().getDefaultSet(getStoredValue().size());
+        //Add defaults
+        if (canUseDefaults())
+            keys.addAll(defaults.getKeys());
         //Add all
-        set.addAll(getStoredValue().keySet());
+        keys.addAll(getStoredValue().keySet());
         //Return
-        return set;
+        return keys;
     }
 
     //
@@ -546,7 +609,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * It is guaranteed that call to {@link #get(Route)} with any route from the returned map will return the value
      * assigned to that route in the returned map (unless modified in between).
      * <p>
-     * <b>Does not interact with defaults.</b>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. <a href="#note-3">Disable use of defaults (#3).</a>
      *
      * @param deep if to get values from sub-sections too
      * @return the complete map of <i>route=value</i> pairs
@@ -555,6 +619,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Map<Route, Object> getRouteMappedValues(boolean deep) {
         //Create a map
         Map<Route, Object> values = root.getGeneralSettings().getDefaultMap();
+        //Add defaults
+        if (canUseDefaults())
+            values.putAll(defaults.getRouteMappedValues(deep));
         //Add
         addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), null, deep);
         //Return
@@ -574,22 +641,26 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <i>route=value</i> pairs within this section.
      * <p>
      * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getSeparator()}).
+     * GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #get(String)} with any route from the returned map will return the value
      * assigned to that route in the returned map (unless modified in between).
      * <p>
-     * <b>Does not interact with defaults.</b>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. <a href="#note-3">Disable use of defaults (#3).</a>
      *
      * @param deep if to get values from sub-sections too
      * @return the complete map of <i>string route=value</i> pairs, including sections
      */
     @NotNull
-    public Map<String, Object> getStringMappedValues(boolean deep) {
+    public Map<String, Object> getStringRouteMappedValues(boolean deep) {
         //Create a map
         Map<String, Object> values = root.getGeneralSettings().getDefaultMap();
+        //Add defaults
+        if (canUseDefaults())
+            values.putAll(defaults.getStringRouteMappedValues(deep));
         //Add
-        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        addData((route, entry) -> values.put(route, entry.getValue() instanceof Section ? entry.getValue() : entry.getValue().getStoredValue()), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return
         return values;
     }
@@ -621,7 +692,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * It is guaranteed that call to {@link #getBlock(Route)} with any route from the returned map will return the block
      * assigned to that route in the returned map (unless modified in between).
      * <p>
-     * <b>Does not interact with defaults.</b>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. <a href="#note-3">Disable use of defaults (#3).</a>
      *
      * @param deep if to get blocks from sub-sections too
      * @return the complete map of <i>route=block</i> pairs
@@ -630,6 +702,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public Map<Route, Block<?>> getRouteMappedBlocks(boolean deep) {
         //Create map
         Map<Route, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
+        //Add defaults
+        if (canUseDefaults())
+            blocks.putAll(defaults.getRouteMappedBlocks(deep));
         //Add
         addData((route, entry) -> blocks.put(route, entry.getValue()), null, deep);
         //Return
@@ -649,22 +724,26 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <i>route=block</i> pairs within this section.
      * <p>
      * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getSeparator()}).
+     * GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #getBlock(String)} with any route from the returned map will return the
      * block assigned to that route in the returned map (unless modified in between).
      * <p>
-     * <b>Does not interact with defaults.</b>
+     * The returned map will also contain entries from the {@link #getDefaults() equivalent section in the defaults}, if
+     * any. <a href="#note-3">Disable use of defaults (#3).</a>
      *
      * @param deep if to get blocks from sub-sections too
      * @return the complete map of <i>route=block</i> pairs
      */
     @NotNull
-    public Map<String, Block<?>> getStringMappedBlocks(boolean deep) {
+    public Map<String, Block<?>> getStringRouteMappedBlocks(boolean deep) {
         //Create map
         Map<String, Block<?>> blocks = root.getGeneralSettings().getDefaultMap();
+        //Add defaults
+        if (canUseDefaults())
+            blocks.putAll(defaults.getStringRouteMappedBlocks(deep));
         //Add
-        addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getSeparator(), deep);
+        addData((route, entry) -> blocks.put(route, entry.getValue()), new StringBuilder(), root.getGeneralSettings().getRouteSeparator(), deep);
         //Return
         return blocks;
     }
@@ -688,8 +767,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If any of the entries contain an instance of {@link Section} as their value and <code>deep</code> is set to
      * <code>true</code>, this method is called on each sub-section with the same consumer (while the route is managed
      * to be always relative to this section).
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param consumer the consumer to call for each entry
      * @param current  the route to the currently iterated section, relative to the main caller section
@@ -715,8 +792,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If any of the entries contain an instance of {@link Section} as their value and <code>deep</code> is set to
      * <code>true</code>, this method is called on each sub-section with the same consumer (while the route is managed
      * to be always relative to this section).
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param consumer     the consumer to call for each entry
      * @param routeBuilder the route to the currently iterated section, relative to the caller section
@@ -754,29 +829,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns whether this section contains anything at the given route.
-     * <p>
-     * <b>Does not interact with defaults.</b>
+     * Returns whether this section contains anything at the given route. <a href="#note-2">If no value is at the route,
+     * checks the defaults (#2).</a>
      *
      * @param route the route to check
      * @return if this section contains anything at the given route
-     * @see #getOptionalBlock(Route)
+     * @see #getBlock(Route)
      */
     public boolean contains(@NotNull Route route) {
-        return getOptionalBlock(route).isPresent();
+        return getBlock(route) != null;
     }
 
     /**
-     * Returns whether this section contains anything at the given route.
-     * <p>
-     * <b>Does not interact with defaults.</b>
+     * Returns whether this section contains anything at the given route. <a href="#note-2">If no value is at the route,
+     * checks the defaults (#2).</a>
      *
      * @param route the route to check
      * @return if this section contains anything at the given route
-     * @see #getOptionalBlock(String)
+     * @see #getBlock(String)
      */
     public boolean contains(@NotNull String route) {
-        return getOptionalBlock(route).isPresent();
+        return getBlock(route) != null;
     }
 
     //
@@ -835,7 +908,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = route.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
+            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
             //If found
             if (nextSeparator != -1)
                 //Create section
@@ -896,18 +969,19 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * As the value to set, you can give instances of <b>anything</b>, with the following warnings:
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
-     *     <li>{@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
-     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments),</li>
+     *     <li>{@link Section}: the given section will be <i>moved</i> here (including comments, it will be deleted from the previous location),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
-     *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
+     *     instances; please see {@link #Section(YamlDocument, Section, Route, Block, Map)} for more information),</li>
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
      * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
-     * considered illegal and will result in an {@link IllegalArgumentException}.</b>
+     * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
+     * between two different files with different key formats will result in such exception.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -943,18 +1017,19 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * As the value to set, you can give instances of <b>anything</b>, with the following warnings:
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
-     *     <li><b>non-root</b> {@link Section}: the given section will be <i>pasted</i> here (including comments),</li>
-     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments),</li>
+     *     <li><b>non-root</b> {@link Section}: the given section will be <i>moved</i> here (including comments, it will be deleted from the previous location),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
-     *     instances; please see {@link #Section(YamlFile, Section, Route, Block, Map)} for more information),</li>
+     *     instances; please see {@link #Section(YamlDocument, Section, Route, Block, Map)} for more information),</li>
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
      * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
-     * considered illegal and will result in an {@link IllegalArgumentException}.</b>
+     * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
+     * between two different files with different key formats will result in such exception.</b>
      *
      * @param route the route to set at
      * @param value the value to set
@@ -968,7 +1043,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = route.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
+            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
             //If found
             if (nextSeparator != -1) {
                 //Create section
@@ -1000,15 +1075,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //If is the root
             if (section.isRoot())
                 throw new IllegalArgumentException("Cannot set root section as the value!");
+            //Different key formats
+            if (section.getRoot().getGeneralSettings().getKeyFormat() != getRoot().getGeneralSettings().getKeyFormat())
+                throw new IllegalArgumentException("Cannot move sections between files with different key formats!");
             //Set
             getStoredValue().put(key, section);
 
             //Adapt
             section.adapt(root, this, getSubRoute(key));
             return;
-        } else if (value instanceof TerminalBlock) {
+        } else if (value instanceof TerminatedBlock) {
             //Set
-            getStoredValue().put(key, (TerminalBlock) value);
+            getStoredValue().put(key, (TerminatedBlock) value);
             return;
         }
 
@@ -1024,12 +1102,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //If already existing block is not present
         if (previous == null) {
             //Add
-            getStoredValue().put(key, new TerminalBlock(null, null, value));
+            getStoredValue().put(key, new TerminatedBlock(null, null, value));
             return;
         }
 
         //Add with existing block's comments
-        getStoredValue().put(key, new TerminalBlock(previous, value));
+        getStoredValue().put(key, new TerminatedBlock(previous, value));
     }
 
     //
@@ -1047,8 +1125,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Removes entry at the given route (if any); returns <code>true</code> if successfully removed. The method returns
      * <code>false</code> if and only no entry exists at the route.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to remove the entry at
      * @return if anything was removed
@@ -1060,14 +1136,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Removes entry at the given route (if any); returns <code>true</code> if successfully removed. The method returns
      * <code>false</code> if and only no entry exists at the route (nothing was removed).
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to remove the entry at
      * @return if anything was removed
      */
     public boolean remove(@NotNull String route) {
-        return removeInternal(getParent(route).orElse(null), route.substring(route.lastIndexOf(root.getGeneralSettings().getSeparator()) + 1));
+        return removeInternal(getParent(route).orElse(null), route.substring(route.lastIndexOf(root.getGeneralSettings().getRouteSeparator()) + 1));
     }
 
     /**
@@ -1092,8 +1166,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Clears content within this section.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      */
     public void clear() {
         getStoredValue().clear();
@@ -1115,14 +1187,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given route encapsulated in an instance of {@link Optional}. If there is no block present
      * (no value) at the given route, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
-     * for more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminatedBlock} instances. See the <a
+     * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>Functionality notes:</b> When individual elements (keys) of the given route are traversed, they are (without
-     * modifying the route object given - it is immutable) adapted to the current key mode setting (see {@link
+     * modifying the route object given - it is immutable) adapted to the current key format setting (see {@link
      * #adaptKey(Object)}).
-     * <p>
-     * <b>Does not interact with defaults.</b>
      * <p>
      * <b>This is one of the fundamental methods, upon which the functionality of other methods in this class is
      * built.</b>
@@ -1131,15 +1201,15 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return block at the given route encapsulated in an optional
      */
     public Optional<Block<?>> getOptionalBlock(@NotNull Route route) {
-        return getSafeInternal(route, false);
+        return getBlockInternal(route, false);
     }
 
     /**
      * Returns block at the given direct key encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given key, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
-     * for more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminatedBlock} instances. See the <a
+     * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>A direct key</b> means the key is referring to object in this section directly (e.g. does not work like
      * route, which might - if consisting of multiple keys - refer to subsections) - similar to {@link
@@ -1148,8 +1218,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <b>Please note</b> that this class also supports <code>null</code> keys, or empty string keys (<code>""</code>)
      * as allowed by YAML 1.2 spec. This also means that compatibility with Spigot/BungeeCord API is not maintained
      * regarding empty string keys, where those APIs would return the instance of the current block - this section.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      * <p>
      * <b>This is one of the fundamental methods, upon which the functionality of other methods in this class is
      * built.</b>
@@ -1165,11 +1233,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns block at the given string route encapsulated in an instance of {@link Optional}. If there is no block
      * present (no value) at the given route, returns an empty optional.
      * <p>
-     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminalBlock} instances. See the {wiki}
-     * for more information.
+     * Each value is encapsulated in a {@link Block}: {@link Section} or {@link TerminatedBlock} instances. See the <a
+     * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>Functionality notes:</b> The given route must contain individual keys separated using the separator character
-     * configured using {@link GeneralSettings.Builder#setSeparator(char)}.
+     * configured using {@link GeneralSettings.Builder#setRouteSeparator(char)}.
      * <p>
      * If the given string route does not contain the separator character (is only one key), the route refers to content
      * in this section.
@@ -1184,15 +1252,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * constructor {@link Route#fromString(String, char)} (which effectively splits the given string route into separate
      * string keys according to the separator).
      * <p>
-     * This method works independently of the root's {@link GeneralSettings#getKeyMode()}. However, as the given route
-     * contains individual <b>string</b> keys, if set to {@link KeyMode#OBJECT}, you will only be able to access data at
+     * This method works independently of the root's {@link GeneralSettings#getKeyFormat()}. However, as the given route
+     * contains individual <b>string</b> keys, if set to {@link KeyFormat#OBJECT}, you will only be able to access data at
      * routes containing only keys parsed as strings (no integer, boolean... or <code>null</code> keys) by SnakeYAML
      * Engine. If such functionality is needed, use {@link #getOptionalBlock(Route)} instead.
      * <p>
      * <b>Please note</b> that compatibility with Spigot/BungeeCord API is not maintained regarding empty string keys,
      * where those APIs would return the instance of the current block - this section.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      * <p>
      * <b>This is one of the fundamental methods, upon which the functionality of other methods in this class is
      * built.</b>
@@ -1201,37 +1267,35 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return block at the given route encapsulated in an optional
      */
     public Optional<Block<?>> getOptionalBlock(@NotNull String route) {
-        return route.indexOf(root.getGeneralSettings().getSeparator()) != -1 ? getSafeInternalString(route, false) : getDirectOptionalBlock(route);
+        return route.indexOf(root.getGeneralSettings().getRouteSeparator()) != -1 ? getBlockInternalString(route, false) : getDirectOptionalBlock(route);
     }
 
     /**
      * Returns the block encapsulated in the result of {@link #getOptionalBlock(Route)}.
      * <p>
-     * If it's an empty {@link Optional}, returns <code>null</code>.
-     * <p>
-     * <b>Does not interact with defaults.</b>
+     * If it's an empty {@link Optional}, returns <code>null</code><a href="#note-1"><sup>or value from defaults
+     * (#1)</sup></a>.
      *
      * @param route the string route to get the block at
      * @return block at the given route, or <code>null</code> if it doesn't exist
      * @see #getOptionalBlock(Route)
      */
     public Block<?> getBlock(@NotNull Route route) {
-        return getOptionalBlock(route).orElse(null);
+        return getOptionalBlock(route).orElseGet(() -> canUseDefaults() ? defaults.getBlock(route) : null);
     }
 
     /**
      * Returns the block encapsulated in the result of {@link #getOptionalBlock(String)}.
      * <p>
-     * If it's an empty {@link Optional}, returns <code>null</code>.
-     * <p>
-     * <b>Does not interact with defaults.</b>
+     * If it's an empty {@link Optional}, returns <code>null</code><a href="#note-1"><sup>or value from defaults
+     * (#1)</sup></a>.
      *
      * @param route the string route to get the block at
      * @return block at the given route, or <code>null</code> if it doesn't exist
      * @see #getOptionalBlock(String)
      */
     public Block<?> getBlock(@NotNull String route) {
-        return getOptionalBlock(route).orElse(null);
+        return getOptionalBlock(route).orElseGet(() -> canUseDefaults() ? defaults.getBlock(route) : null);
     }
 
     //
@@ -1251,14 +1315,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * in this section. If there is no block present, returns an empty optional.
      * <p>
      * This method does not interact with any others defined in this class.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route  the route to get the block at
      * @param parent if searching for the parent section of the given route
      * @return block at the given route encapsulated in an optional
      */
-    private Optional<Block<?>> getSafeInternalString(@NotNull String route, boolean parent) {
+    private Optional<Block<?>> getBlockInternalString(@NotNull String route, boolean parent) {
         //Index of the last separator + 1
         int lastSeparator = 0;
         //Section
@@ -1267,7 +1329,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
         //While true (control statements are inside)
         while (true) {
             //Next separator
-            int nextSeparator = route.indexOf(root.getGeneralSettings().getSeparator(), lastSeparator);
+            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
             //If not found
             if (nextSeparator == -1)
                 break;
@@ -1292,14 +1354,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * in this section. If there is no block present, returns an empty optional.
      * <p>
      * This method does not interact with any others defined in this class.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route  the route to get the block at
      * @param parent if searching for the parent section of the given route
      * @return block at the given route encapsulated in an optional
      */
-    private Optional<Block<?>> getSafeInternal(@NotNull Route route, boolean parent) {
+    private Optional<Block<?>> getBlockInternal(@NotNull Route route, boolean parent) {
         //Starting index
         int i = -1;
         //Section
@@ -1339,14 +1399,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * That means, this method ignores if the given route represents an existing block. If block at that parent route is
      * not a section, returns an empty optional.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to get the parent section from
      * @return section at the parent route from the given one encapsulated in an optional
      */
     public Optional<Section> getParent(@NotNull Route route) {
-        return getSafeInternal(route, true).map(block -> block instanceof Section ? (Section) block : null);
+        return getBlockInternal(route, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
     /**
@@ -1356,14 +1414,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * That means, this method ignores if the given route represents an existing block. If block at that parent route is
      * not a section, returns an empty optional.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to get the parent section from
      * @return section at the parent route from the given one encapsulated in an optional
      */
     public Optional<Section> getParent(@NotNull String route) {
-        return getSafeInternalString(route, true).map(block -> block instanceof Section ? (Section) block : null);
+        return getBlockInternalString(route, true).map(block -> block instanceof Section ? (Section) block : null);
     }
 
     //
@@ -1383,8 +1439,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * the corresponding {@link Section} instance; encapsulated in an instance of {@link Optional}.
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), returns an empty optional.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to get the value at
      * @return the value, or section at the given route
@@ -1398,8 +1452,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * the corresponding {@link Section} instance; encapsulated in an instance of {@link Optional}.
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), returns an empty optional.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to get the value at
      * @return the value, or section at the given route
@@ -1413,15 +1465,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * the corresponding {@link Section} instance.
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), returns default value
-     * defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
-     * <p>
-     * <b>Does not interact with defaults.</b>
+     * defined by root's general settings {@link GeneralSettings#getDefaultObject()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      *
      * @param route the route to get the value at
      * @return the value at the given route, or default according to the documentation above
      */
     public Object get(@NotNull Route route) {
-        return getOptional(route).orElse(root.getGeneralSettings().getDefaultObject());
+        return getOptional(route).orElseGet(() -> canUseDefaults() ? defaults.get(route) : root.getGeneralSettings().getDefaultObject());
     }
 
     /**
@@ -1429,15 +1480,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * the corresponding {@link Section} instance.
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), returns default value
-     * defined by root's general settings {@link GeneralSettings#getDefaultObject()}.
-     * <p>
-     * <b>Does not interact with defaults.</b>
+     * defined by root's general settings {@link GeneralSettings#getDefaultObject()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      *
      * @param route the route to get the value at
      * @return the value at the given route, or default according to the documentation above
      */
     public Object get(@NotNull String route) {
-        return getOptional(route).orElse(root.getGeneralSettings().getDefaultObject());
+        return getOptional(route).orElseGet(() -> canUseDefaults() ? defaults.get(route) : root.getGeneralSettings().getDefaultObject());
     }
 
     /**
@@ -1446,8 +1496,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), returns the provided
      * default.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to get the value at
      * @param def   the default value
@@ -1463,8 +1511,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), returns the provided
      * default.
-     * <p>
-     * <b>Does not interact with defaults.</b>
      *
      * @param route the route to get the value at
      * @param def   the default value
@@ -1495,12 +1541,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1509,10 +1552,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @SuppressWarnings("unchecked")
     public <T> Optional<T> getAsOptional(@NotNull Route route, @NotNull Class<T> clazz) {
-        Optional<T> value = getOptional(route).map((object) -> clazz.isInstance(object) ? (T) object :
-                isNumber(object.getClass()) && isNumber(clazz) ? (T) convertNumber(object, clazz) :
-                        NON_NUMERICAL_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERICAL_CONVERSIONS.containsKey(clazz) ? (T) object : null);
-        return value.isPresent() ? value : Optional.ofNullable(defaults == null ? null : defaults.getAs(route, clazz));
+        return getOptional(route).map((object) -> clazz.isInstance(object) ? (T) object :
+                PrimitiveConversions.isNumber(object.getClass()) && PrimitiveConversions.isNumber(clazz) ? (T) convertNumber(object, clazz) :
+                        NON_NUMERIC_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERIC_CONVERSIONS.containsKey(clazz) ? (T) object : null);
     }
 
 
@@ -1524,12 +1566,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1538,10 +1577,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @SuppressWarnings("unchecked")
     public <T> Optional<T> getAsOptional(@NotNull String route, @NotNull Class<T> clazz) {
-        Optional<T> value = getOptional(route).map((object) -> clazz.isInstance(object) ? (T) object :
-                isNumber(object.getClass()) && isNumber(clazz) ? (T) convertNumber(object, clazz) :
-                        NON_NUMERICAL_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERICAL_CONVERSIONS.containsKey(clazz) ? (T) object : null);
-        return value.isPresent() ? value : Optional.ofNullable(defaults == null ? null : defaults.getAs(route, clazz));
+        return getOptional(route).map((object) -> clazz.isInstance(object) ? (T) object :
+                PrimitiveConversions.isNumber(object.getClass()) && PrimitiveConversions.isNumber(clazz) ? (T) convertNumber(object, clazz) :
+                        NON_NUMERIC_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERIC_CONVERSIONS.containsKey(clazz) ? (T) object : null);
     }
 
     /**
@@ -1549,22 +1587,20 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * {@link Section} instance, in both cases cast to instance of the given class.
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
-     * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code>.
+     * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code><a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns <code>null</code>.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return the value cast to the given type, or <code>null</code> according to the documentation above
+     * @return the value cast to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull Route route, @NotNull Class<T> clazz) {
-        return getAs(route, clazz, null);
+        return getAsOptional(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getAs(route, clazz) : null);
     }
 
     /**
@@ -1572,22 +1608,20 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * {@link Section} instance, in both cases cast to instance of the given class.
      * <p>
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
-     * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code>.
+     * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code><a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns <code>null</code>.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
      * @param <T>   the target type
-     * @return the value cast to the given type, or <code>null</code> according to the documentation above
+     * @return the value cast to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull String route, @NotNull Class<T> clazz) {
-        return getAs(route, clazz, null);
+        return getAsOptional(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getAs(route, clazz) : null);
     }
 
     /**
@@ -1597,12 +1631,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1621,12 +1652,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
      *
      * @param route the route to get the value at
      * @param clazz class of the target type
@@ -1640,14 +1668,11 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given route exists, and
-     * it is an instance of the given class.
+     * it is an instance of the given class. <a href="#note-2">If no value is at the route, checks the defaults
+     * (#2).</a>
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks the defaults under the same conditions as
-     * above.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>).
      *
      * @param route the route to check the value at
      * @param clazz class of the target type
@@ -1655,19 +1680,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return if a value exists at the given route, and it is an instance of the given class
      */
     public <T> boolean is(@NotNull Route route, @NotNull Class<T> clazz) {
-        return getAsOptional(route, clazz).isPresent();
+        Object o = get(route);
+        return PRIMITIVES_TO_OBJECTS.containsKey(clazz) ? PRIMITIVES_TO_OBJECTS.get(clazz).isInstance(o) : clazz.isInstance(o);
     }
 
     /**
      * Returns <code>true</code> if and only value (list, integer... or {@link Section}) at the given route exists, and
-     * it is an instance of the given class.
+     * it is an instance of the given class. <a href="#note-2">If no value is at the route, checks the defaults
+     * (#2).</a>
      * <p>
-     * <b>This method supports</b> casting between two numeric primitives, two non-primitive numeric representations
-     * and one of each kind. Casting between any primitive type, and it's non-primitive representation is also
-     * supported.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>).
      *
      * @param route the route to check the value at
      * @param clazz class of the target type
@@ -1675,7 +1698,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return if a value exists at the given route, and it is an instance of the given class
      */
     public <T> boolean is(@NotNull String route, @NotNull Class<T> clazz) {
-        return getAsOptional(route, clazz).isPresent();
+        Object o = get(route);
+        return PRIMITIVES_TO_OBJECTS.containsKey(clazz) ? PRIMITIVES_TO_OBJECTS.get(clazz).isInstance(o) : clazz.isInstance(o);
     }
 
     // END OF BASE METHODS, DEPENDENT (DERIVED) METHODS FOLLOW
@@ -1694,9 +1718,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns section at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not a {@link Section}, returns an empty optional.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the section at
      * @return the section at the given route
@@ -1709,9 +1730,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns section at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not a {@link Section}, returns an empty optional.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the section at
      * @return the section at the given route
@@ -1723,42 +1741,31 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns section at the given route. If nothing is present at the given route, or is not a {@link Section},
-     * returns
-     * <code>null</code>.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returns <code>null</code>, or <a href="#note-1">value from defaults (#1)</a>.
      *
      * @param route the route to get the section at
      * @return the section at the given route, or default according to the documentation above
      * @see #getSection(Route, Section)
      */
     public Section getSection(@NotNull Route route) {
-        return getSection(route, null);
+        return getOptionalSection(route).orElseGet(() -> canUseDefaults() ? defaults.getSection(route) : null);
     }
 
     /**
      * Returns section at the given route. If nothing is present at the given route, or is not a {@link Section},
-     * returns
-     * <code>null</code>.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returns <code>null</code>, or <a href="#note-1">value from defaults (#1)</a>.
      *
      * @param route the route to get the section at
      * @return the section at the given route, or default according to the documentation above
      * @see #getSection(String, Section)
      */
     public Section getSection(@NotNull String route) {
-        return getSection(route, null);
+        return getOptionalSection(route).orElseGet(() -> canUseDefaults() ? defaults.getSection(route) : null);
     }
 
     /**
      * Returns section at the given route. If nothing is present at the given route, or is not a {@link Section},
      * returns the provided default.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the section at
      * @param def   the default value
@@ -1772,9 +1779,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns section at the given route. If nothing is present at the given route, or is not a {@link Section},
      * returns the provided default.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the section at
      * @param def   the default value
@@ -1786,31 +1790,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Section}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Section}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
      * @return if the value at the given route exists and is a section
-     * @see #getOptionalSection(Route)
+     * @see #get(Route)
      */
     public boolean isSection(@NotNull Route route) {
-        return getOptionalSection(route).isPresent();
+        return get(route) instanceof Section;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Section}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Section}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
      * @return if the value at the given route exists and is a section
-     * @see #getOptionalSection(String)
+     * @see #get(String)
      */
     public boolean isSection(@NotNull String route) {
-        return getOptionalSection(route).isPresent();
+        return get(route) instanceof Section;
     }
 
     //
@@ -1831,17 +1831,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
      * Object#toString()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the string at
      * @return the string at the given route
      * @see #getOptional(Route)
      */
     public Optional<String> getOptionalString(@NotNull Route route) {
-        Optional<String> value = getOptional(route).map(Object::toString);
-        return value.isPresent() ? value : defaults == null ? Optional.empty() : defaults.getOptionalString(route);
+        return getOptional(route).map(Object::toString);
     }
 
     /**
@@ -1850,55 +1846,45 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
      * Object#toString()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the string at
      * @return the string at the given route
      * @see #getOptional(String)
      */
     public Optional<String> getOptionalString(@NotNull String route) {
-        Optional<String> value = getOptional(route).map(Object::toString);
-        return value.isPresent() ? value : defaults == null ? Optional.empty() : defaults.getOptionalString(route);
+        return getOptional(route).map(Object::toString);
     }
 
     /**
      * Returns string at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultString()}.
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultString()}<a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
      * Object#toString()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
      *
      * @param route the route to get the string at
      * @return the string at the given route, or default according to the documentation above
      * @see #getString(Route, String)
      */
     public String getString(@NotNull Route route) {
-        return getString(route, root.getGeneralSettings().getDefaultString());
+        return getOptionalString(route).orElseGet(() -> canUseDefaults() ? defaults.getString(route) : root.getGeneralSettings().getDefaultString());
     }
 
     /**
      * Returns string at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultString()}.
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultString()}<a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
      * Object#toString()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
      *
      * @param route the route to get the string at
      * @return the string at the given route, or default according to the documentation above
      * @see #getString(String, String)
      */
     public String getString(@NotNull String route) {
-        return getString(route, root.getGeneralSettings().getDefaultString());
+        return getOptionalString(route).orElseGet(() -> canUseDefaults() ? defaults.getString(route) : root.getGeneralSettings().getDefaultString());
     }
 
     /**
@@ -1907,9 +1893,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
      * Object#toString()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the string at
      * @param def   the default value
@@ -1926,9 +1909,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
      * Object#toString()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the string at
      * @param def   the default value
@@ -1940,35 +1920,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link String}, or any other
-     * compatible type. Please learn more at {@link #getOptionalString(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link String}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a string, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalString(Route)
+     * @return if the value at the given route exists and is a string
+     * @see #get(Route)
      */
     public boolean isString(@NotNull Route route) {
-        return getOptionalString(route).isPresent();
+        return get(route) instanceof String;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link String}, or any other
-     * compatible type. Please learn more at {@link #getOptionalString(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link String}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a string, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalString(String)
+     * @return if the value at the given route exists and is a string
+     * @see #get(String)
      */
     public boolean isString(@NotNull String route) {
-        return getOptionalString(route).isPresent();
+        return get(route) instanceof String;
     }
 
     //
@@ -1990,17 +1962,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
      * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the char at
      * @return the char at the given route
      * @see #getOptional(Route)
      */
     public Optional<Character> getOptionalChar(@NotNull Route route) {
-        Optional<Character> value = getOptional(route).map((object) -> object instanceof String ? object.toString().length() != 1 ? null : object.toString().charAt(0) : object instanceof Integer ? (char) ((int) object) : null);
-        return value.isPresent() ? value : defaults == null ? Optional.empty() : defaults.getOptionalChar(route);
+        return getOptional(route).map(this::toChar);
     }
 
     /**
@@ -2010,69 +1978,58 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
      * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the char at
      * @return the char at the given route
      * @see #getOptional(String)
      */
     public Optional<Character> getOptionalChar(@NotNull String route) {
-        Optional<Character> value = getOptional(route).map((object) -> object instanceof String ? object.toString().length() != 1 ? null : object.toString().charAt(0) : object instanceof Integer ? (char) ((int) object) : null);
-        return value.isPresent() ? value : defaults == null ? Optional.empty() : defaults.getOptionalChar(route);
+        return getOptional(route).map(this::toChar);
     }
 
     /**
      * Returns char at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultChar()}.
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultChar()}<a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
      * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
      *
      * @param route the route to get the char at
      * @return the char at the given route, or default according to the documentation above
      * @see #getChar(Route, Character)
      */
     public Character getChar(@NotNull Route route) {
-        return getChar(route, root.getGeneralSettings().getDefaultChar());
+        return getOptionalChar(route).orElseGet(() -> canUseDefaults() ? defaults.getChar(route) : root.getGeneralSettings().getDefaultChar());
     }
 
     /**
      * Returns char at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultChar()}.
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultChar()}<a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
      * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
      *
      * @param route the route to get the char at
      * @return the char at the given route, or default according to the documentation above
      * @see #getChar(String, Character)
      */
     public Character getChar(@NotNull String route) {
-        return getChar(route, root.getGeneralSettings().getDefaultChar());
+        return getOptionalChar(route).orElseGet(() -> canUseDefaults() ? defaults.getChar(route) : root.getGeneralSettings().getDefaultChar());
     }
 
     /**
-     * Returns char at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns the provided default.
+     * Returns char at the given route.
+     * <p>
+     * If nothing is present at the given route, or is not an instance of any compatible type (see below), returns the
+     * provided default.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
      * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the char at
      * @param def   the default value
@@ -2084,15 +2041,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns char at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns the provided default.
+     * Returns char at the given route.
+     * <p>
+     * If nothing is present at the given route, or is not an instance of any compatible type (see below), returns the
+     * provided default.
      * <p>
      * Natively, {@link Character} instance is preferred. However, if there is an instance of {@link String} and it is
      * exactly 1 character in length, returns that character. If is an {@link Integer} (or primitive variant), it is
      * converted to a character (by casting, see the <a href="https://en.wikipedia.org/wiki/ASCII">ASCII table</a>).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the char at
      * @param def   the default value
@@ -2105,34 +2061,47 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Character}, or any
-     * other compatible type. Please learn more at {@link #getOptionalChar(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * other compatible type defined by {@link #getOptionalChar(Route)}. <a href="#note-2">If no value is at the route,
+     * checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a character, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalChar(Route)
+     * @return if the value at the given route exists and is a character
+     * @see #get(Route)
      */
     public boolean isChar(@NotNull Route route) {
-        return getOptionalChar(route).isPresent();
+        return toChar(get(route)) != null;
     }
 
     /**
      * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Character}, or any
-     * other compatible type. Please learn more at {@link #getOptionalChar(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * other compatible type defined by {@link #getOptionalChar(String)}. <a href="#note-2">If no value is at the route,
+     * checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a character, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalChar(String)
+     * @return if the value at the given route exists and is a character
+     * @see #get(String)
      */
     public boolean isChar(@NotNull String route) {
-        return getOptionalChar(route).isPresent();
+        return toChar(get(route)) != null;
+    }
+
+    /**
+     * Converts the given object to a character, if possible per definition of {@link #getOptionalChar(Route)},
+     * <code>null</code> otherwise.
+     *
+     * @param object the object to convert
+     * @return the character, or <code>null</code>
+     */
+    private Character toChar(@Nullable Object object) {
+        if (object == null)
+            return null;
+        if (object instanceof Character)
+            return (Character) object;
+        if (object instanceof Integer)
+            return (char) ((int) object);
+        if (object instanceof String && object.toString().length() == 1)
+            return object.toString().charAt(0);
+        return null;
     }
 
     //
@@ -2148,14 +2117,123 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns integer at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * Returns number at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given route, or is not a {@link Number}, returns an empty optional.
+     *
+     * @param route the route to get the number at
+     * @return the number at the given route
+     * @see #getAsOptional(Route, Class)
+     */
+    public Optional<Number> getOptionalNumber(@NotNull Route route) {
+        return getAsOptional(route, Number.class);
+    }
+
+    /**
+     * Returns number at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given route, or is not a {@link Number}, returns an empty optional.
+     *
+     * @param route the route to get the number at
+     * @return the number at the given route
+     * @see #getAsOptional(String, Class)
+     */
+    public Optional<Number> getOptionalNumber(@NotNull String route) {
+        return getAsOptional(route, Number.class);
+    }
+
+    /**
+     * Returns number at the given route. If nothing is present at the given route, or is not a {@link Number}, returns
+     * default defined by root's {@link GeneralSettings#getDefaultNumber()}, or <a href="#note-1">value from defaults
+     * (#1)</a>.
+     *
+     * @param route the route to get the number at
+     * @return the number at the given route, or default according to the documentation above
+     * @see #getNumber(Route, Number)
+     */
+    public Number getNumber(@NotNull Route route) {
+        return getOptionalNumber(route).orElseGet(() -> canUseDefaults() ? defaults.getNumber(route) : root.getGeneralSettings().getDefaultNumber());
+    }
+
+    /**
+     * Returns number at the given route. If nothing is present at the given route, or is not a {@link Number}, returns
+     * default defined by root's {@link GeneralSettings#getDefaultNumber()}, or <a href="#note-1">value from defaults
+     * (#1)</a>.
+     *
+     * @param route the route to get the number at
+     * @return the number at the given route, or default according to the documentation above
+     * @see #getNumber(String, Number)
+     */
+    public Number getNumber(@NotNull String route) {
+        return getOptionalNumber(route).orElseGet(() -> canUseDefaults() ? defaults.getNumber(route) : root.getGeneralSettings().getDefaultNumber());
+    }
+
+    /**
+     * Returns number at the given route. If nothing is present at the given route, or is not a {@link Number}, returns
+     * the provided default.
+     *
+     * @param route the route to get the number at
+     * @param def   the default value
+     * @return the number at the given route, or default according to the documentation above
+     * @see #getOptionalNumber(Route)
+     */
+    public Number getNumber(@NotNull Route route, @Nullable Number def) {
+        return getOptionalNumber(route).orElse(def);
+    }
+
+    /**
+     * Returns number at the given route. If nothing is present at the given route, or is not a {@link Number}, returns
+     * the provided default.
+     *
+     * @param route the route to get the number at
+     * @param def   the default value
+     * @return the number at the given route, or default according to the documentation above
+     * @see #getOptionalNumber(String)
+     */
+    public Number getNumber(@NotNull String route, @Nullable Number def) {
+        return getOptionalNumber(route).orElse(def);
+    }
+
+    /**
+     * Returns <code>true</code> if and only a value at the given route exists, and it is an {@link Number}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     *
+     * @param route the route to check the value at
+     * @return if the value at the given route exists and is a number
+     * @see #get(Route)
+     */
+    public boolean isNumber(@NotNull Route route) {
+        return get(route) instanceof Number;
+    }
+
+    /**
+     * Returns <code>true</code> if and only a value at the given route exists, and it is an {@link Number}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     *
+     * @param route the route to check the value at
+     * @return if the value at the given route exists and is a number
+     * @see #get(String)
+     */
+    public boolean isNumber(@NotNull String route) {
+        return get(route) instanceof Number;
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //          Number methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns number at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#intValue()}.
      *
      * @param route the route to get the integer at
      * @return the integer at the given route
@@ -2170,10 +2248,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#intValue()}.
      *
      * @param route the route to get the integer at
      * @return the integer at the given route
@@ -2185,40 +2260,34 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Integer} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#intValue()}.
      *
      * @param route the route to get the integer at
      * @return the integer at the given route, or default according to the documentation above
      * @see #getInt(Route, Integer)
      */
     public Integer getInt(@NotNull Route route) {
-        return getInt(route, root.getGeneralSettings().getDefaultNumber().intValue());
+        return getOptionalInt(route).orElseGet(() -> canUseDefaults() ? defaults.getInt(route) : root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     /**
      * Returns integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Integer} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Integer} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#intValue()}.
      *
      * @param route the route to get the integer at
      * @return the integer at the given route, or default according to the documentation above
      * @see #getInt(String, Integer)
      */
     public Integer getInt(@NotNull String route) {
-        return getInt(route, root.getGeneralSettings().getDefaultNumber().intValue());
+        return getOptionalInt(route).orElseGet(() -> canUseDefaults() ? defaults.getInt(route) : root.getGeneralSettings().getDefaultNumber().intValue());
     }
 
     /**
@@ -2226,10 +2295,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#intValue()}.
      *
      * @param route the route to get the integer at
      * @param def   the default value
@@ -2245,10 +2311,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Integer} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#intValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#intValue()}.
      *
      * @param route the route to get the integer at
      * @param def   the default value
@@ -2260,35 +2323,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is an {@link Integer}, or any
-     * other compatible type. Please learn more at {@link #getOptionalInt(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is an {@link Integer} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is an integer, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalInt(Route)
+     * @return if the value at the given route exists and is an integer
+     * @see #get(Route)
      */
     public boolean isInt(@NotNull Route route) {
-        return getOptionalInt(route).isPresent();
+        return get(route) instanceof Integer;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is an {@link Integer}, or any
-     * other compatible type. Please learn more at {@link #getOptionalInt(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is an {@link Integer} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is an integer, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalInt(String)
+     * @return if the value at the given route exists and is an integer
+     * @see #get(String)
      */
     public boolean isInt(@NotNull String route) {
-        return getOptionalInt(route).isPresent();
+        return get(route) instanceof Integer;
     }
 
     //
@@ -2309,10 +2364,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
@@ -2328,10 +2380,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
@@ -2343,42 +2392,36 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns big integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link BigInteger} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
      * @see #getBigInt(Route, BigInteger)
      */
     public BigInteger getBigInt(@NotNull Route route) {
-        return getBigInt(route, BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
+        return getOptionalBigInt(route).orElseGet(() -> canUseDefaults() ? defaults.getBigInt(route) : BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
     }
 
     /**
      * Returns big integer at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link BigInteger} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link BigInteger} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
      * @see #getBigInt(Route, BigInteger)
      */
     public BigInteger getBigInt(@NotNull String route) {
-        return getBigInt(route, BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
+        return getOptionalBigInt(route).orElseGet(() -> canUseDefaults() ? defaults.getBigInt(route) : BigInteger.valueOf(root.getGeneralSettings().getDefaultNumber().longValue()));
     }
 
     /**
@@ -2387,10 +2430,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @param def   the default value
@@ -2407,10 +2447,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
      * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @param def   the default value
@@ -2422,35 +2459,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link BigInteger}, or any
-     * other compatible type. Please learn more at {@link #getOptionalBigInt(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link BigInteger}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is an integer, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalBigInt(Route)
+     * @return if the value at the given route exists and is a big integer
+     * @see #get(Route)
      */
     public boolean isBigInt(@NotNull Route route) {
-        return getOptionalBigInt(route).isPresent();
+        return get(route) instanceof BigInteger;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link BigInteger}, or any
-     * other compatible type. Please learn more at {@link #getOptionalBigInt(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link BigInteger}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is an integer, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalBigInt(Route)
+     * @return if the value at the given route exists and is a big integer
+     * @see #get(String)
      */
     public boolean isBigInt(@NotNull String route) {
-        return getOptionalBigInt(route).isPresent();
+        return get(route) instanceof BigInteger;
     }
 
     //
@@ -2468,9 +2497,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns boolean at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not a {@link Boolean} (or the primitive variant), returns an empty optional.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the boolean at
      * @return the boolean at the given route
@@ -2483,9 +2509,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns boolean at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not a {@link Boolean} (or the primitive variant), returns an empty optional.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the boolean at
      * @return the boolean at the given route
@@ -2497,42 +2520,33 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns boolean at the given route. If nothing is present at the given route, or is not a {@link Boolean} (or the
-     * primitive variant), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultBoolean()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * primitive variant), returns default defined by root's {@link GeneralSettings#getDefaultBoolean()}<a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      *
      * @param route the route to get the boolean at
      * @return the boolean at the given route, or default according to the documentation above
      * @see #getBoolean(Route, Boolean)
      */
     public Boolean getBoolean(@NotNull Route route) {
-        return getBoolean(route, root.getGeneralSettings().getDefaultBoolean());
+        return getOptionalBoolean(route).orElseGet(() -> canUseDefaults() ? defaults.getBoolean(route) : root.getGeneralSettings().getDefaultBoolean());
     }
 
     /**
      * Returns boolean at the given route. If nothing is present at the given route, or is not a {@link Boolean} (or the
-     * primitive variant), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultBoolean()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * primitive variant), returns default defined by root's {@link GeneralSettings#getDefaultBoolean()}<a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      *
      * @param route the route to get the boolean at
      * @return the boolean at the given route, or default according to the documentation above
      * @see #getBoolean(String, Boolean)
      */
     public Boolean getBoolean(@NotNull String route) {
-        return getBoolean(route, root.getGeneralSettings().getDefaultBoolean());
+        return getOptionalBoolean(route).orElseGet(() -> canUseDefaults() ? defaults.getBoolean(route) : root.getGeneralSettings().getDefaultBoolean());
     }
 
     /**
      * Returns boolean at the given route. If nothing is present at the given route, or is not a {@link Boolean} (or the
      * primitive variant), returns the provided default.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the boolean at
      * @param def   the default value
@@ -2546,9 +2560,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns boolean at the given route. If nothing is present at the given route, or is not a {@link Boolean} (or the
      * primitive variant), returns the provided default.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
      *
      * @param route the route to get the boolean at
      * @param def   the default value
@@ -2561,32 +2572,26 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Boolean} (or the
-     * primitive variant).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
      * @return if the value at the given route exists and is a boolean
-     * @see #getOptionalBoolean(Route)
+     * @see #get(Route)
      */
     public boolean isBoolean(@NotNull Route route) {
-        return getOptionalBoolean(route).isPresent();
+        return get(route) instanceof Boolean;
     }
 
     /**
      * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Boolean} (or the
-     * primitive variant).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
      * @return if the value at the given route exists and is a boolean
-     * @see #getOptionalBoolean(String)
+     * @see #get(String)
      */
     public boolean isBoolean(@NotNull String route) {
-        return getOptionalBoolean(route).isPresent();
+        return get(route) instanceof Boolean;
     }
 
     //
@@ -2606,10 +2611,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#doubleValue()}.
      *
      * @param route the route to get the double at
      * @return the double at the given route
@@ -2624,10 +2626,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#doubleValue()}.
      *
      * @param route the route to get the double at
      * @return the double at the given route
@@ -2639,40 +2638,34 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns double at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Double} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#doubleValue()}.
      *
      * @param route the route to get the double at
      * @return the double at the given route, or default according to the documentation above
      * @see #getDouble(Route, Double)
      */
     public Double getDouble(@NotNull Route route) {
-        return getDouble(route, root.getGeneralSettings().getDefaultNumber().doubleValue());
+        return getOptionalDouble(route).orElseGet(() -> canUseDefaults() ? defaults.getDouble(route) : root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     /**
      * Returns double at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Double} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Double} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#doubleValue()}.
      *
      * @param route the route to get the double at
      * @return the double at the given route, or default according to the documentation above
      * @see #getDouble(String, Double)
      */
     public Double getDouble(@NotNull String route) {
-        return getDouble(route, root.getGeneralSettings().getDefaultNumber().doubleValue());
+        return getOptionalDouble(route).orElseGet(() -> canUseDefaults() ? defaults.getDouble(route) : root.getGeneralSettings().getDefaultNumber().doubleValue());
     }
 
     /**
@@ -2680,10 +2673,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#doubleValue()}.
      *
      * @param route the route to get the double at
      * @param def   the default value
@@ -2699,10 +2689,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Double} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#doubleValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#doubleValue()}.
      *
      * @param route the route to get the double at
      * @param def   the default value
@@ -2714,35 +2701,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double}, or any other
-     * compatible type. Please learn more at {@link #getOptionalDouble(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a double, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalDouble(Route)
+     * @return if the value at the given route exists and is a double
+     * @see #get(Route)
      */
     public boolean isDouble(@NotNull Route route) {
-        return getOptionalDouble(route).isPresent();
+        return get(route) instanceof Double;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double}, or any other
-     * compatible type. Please learn more at {@link #getOptionalDouble(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a double, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalDouble(String)
+     * @return if the value at the given route exists and is a double
+     * @see #get(String)
      */
     public boolean isDouble(@NotNull String route) {
-        return getOptionalDouble(route).isPresent();
+        return get(route) instanceof Double;
     }
 
     //
@@ -2762,10 +2741,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#floatValue()}.
      *
      * @param route the route to get the float at
      * @return the float at the given route
@@ -2780,10 +2756,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#floatValue()}.
      *
      * @param route the route to get the float at
      * @return the float at the given route
@@ -2795,40 +2768,34 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns float at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Float} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#floatValue()}.
      *
      * @param route the route to get the float at
      * @return the float at the given route, or default according to the documentation above
      * @see #getFloat(Route, Float)
      */
     public Float getFloat(@NotNull Route route) {
-        return getFloat(route, root.getGeneralSettings().getDefaultNumber().floatValue());
+        return getOptionalFloat(route).orElseGet(() -> canUseDefaults() ? defaults.getFloat(route) : root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     /**
      * Returns float at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Float} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Float} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#floatValue()}.
      *
      * @param route the route to get the float at
      * @return the float at the given route, or default according to the documentation above
      * @see #getFloat(Route, Float)
      */
     public Float getFloat(@NotNull String route) {
-        return getFloat(route, root.getGeneralSettings().getDefaultNumber().floatValue());
+        return getOptionalFloat(route).orElseGet(() -> canUseDefaults() ? defaults.getFloat(route) : root.getGeneralSettings().getDefaultNumber().floatValue());
     }
 
     /**
@@ -2836,10 +2803,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#floatValue()}.
      *
      * @param route the route to get the float at
      * @param def   the default value
@@ -2855,10 +2819,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Float} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#floatValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#floatValue()}.
      *
      * @param route the route to get the float at
      * @param def   the default value
@@ -2870,35 +2831,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Float}, or any other
-     * compatible type. Please learn more at {@link #getOptionalFloat(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Float} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a float, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalFloat(Route)
+     * @return if the value at the given route exists and is a float
+     * @see #get(Route)
      */
     public boolean isFloat(@NotNull Route route) {
-        return getOptionalFloat(route).isPresent();
+        return get(route) instanceof Float;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Float}, or any other
-     * compatible type. Please learn more at {@link #getOptionalFloat(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Float} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a float, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalFloat(String)
+     * @return if the value at the given route exists and is a float
+     * @see #get(String)
      */
     public boolean isFloat(@NotNull String route) {
-        return getOptionalFloat(route).isPresent();
+        return get(route) instanceof Float;
     }
 
     //
@@ -2918,10 +2871,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#byteValue()}.
      *
      * @param route the route to get the byte at
      * @return the byte at the given route
@@ -2936,10 +2886,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#byteValue()}.
      *
      * @param route the route to get the byte at
      * @return the byte at the given route
@@ -2951,40 +2898,34 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns byte at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Byte} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#byteValue()}.
      *
      * @param route the route to get the byte at
      * @return the byte at the given route, or default according to the documentation above
      * @see #getByte(Route, Byte)
      */
     public Byte getByte(@NotNull Route route) {
-        return getByte(route, root.getGeneralSettings().getDefaultNumber().byteValue());
+        return getOptionalByte(route).orElseGet(() -> canUseDefaults() ? defaults.getByte(route) : root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     /**
      * Returns byte at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Byte} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Byte} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#byteValue()}.
      *
      * @param route the route to get the byte at
      * @return the byte at the given route, or default according to the documentation above
      * @see #getByte(String, Byte)
      */
     public Byte getByte(@NotNull String route) {
-        return getByte(route, root.getGeneralSettings().getDefaultNumber().byteValue());
+        return getOptionalByte(route).orElseGet(() -> canUseDefaults() ? defaults.getByte(route) : root.getGeneralSettings().getDefaultNumber().byteValue());
     }
 
     /**
@@ -2992,12 +2933,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#byteValue()}.
      *
      * @param route the route to get the byte at
+     * @param def   the default value
      * @return the byte at the given route, or default according to the documentation above
      * @see #getOptionalByte(Route)
      */
@@ -3010,12 +2949,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Byte} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#byteValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#byteValue()}.
      *
      * @param route the route to get the byte at
+     * @param def   the default value
      * @return the byte at the given route, or default according to the documentation above
      * @see #getOptionalByte(String)
      */
@@ -3024,35 +2961,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Byte}, or any other
-     * compatible type. Please learn more at {@link #getOptionalByte(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Byte} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a byte, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalByte(Route)
+     * @return if the value at the given route exists and is a byte
+     * @see #get(Route)
      */
     public boolean isByte(@NotNull Route route) {
-        return getOptionalByte(route).isPresent();
+        return get(route) instanceof Byte;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Byte}, or any other
-     * compatible type. Please learn more at {@link #getOptionalByte(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Byte} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a byte, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalByte(String)
+     * @return if the value at the given route exists and is a byte
+     * @see #get(String)
      */
     public boolean isByte(@NotNull String route) {
-        return getOptionalByte(route).isPresent();
+        return get(route) instanceof Byte;
     }
 
     //
@@ -3072,10 +3001,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#longValue()}.
      *
      * @param route the route to get the long at
      * @return the long at the given route
@@ -3090,10 +3016,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#longValue()}.
      *
      * @param route the route to get the long at
      * @return the long at the given route
@@ -3105,40 +3028,34 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns long at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Long} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#longValue()}.
      *
      * @param route the route to get the long at
      * @return the long at the given route, or default according to the documentation above
      * @see #getLong(Route, Long)
      */
     public Long getLong(@NotNull Route route) {
-        return getLong(route, root.getGeneralSettings().getDefaultNumber().longValue());
+        return getOptionalLong(route).orElseGet(() -> canUseDefaults() ? defaults.getLong(route) : root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     /**
      * Returns long at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Long} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Long} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#longValue()}.
      *
      * @param route the route to get the long at
      * @return the long at the given route, or default according to the documentation above
      * @see #getLong(Route, Long)
      */
     public Long getLong(@NotNull String route) {
-        return getLong(route, root.getGeneralSettings().getDefaultNumber().longValue());
+        return getOptionalLong(route).orElseGet(() -> canUseDefaults() ? defaults.getLong(route) : root.getGeneralSettings().getDefaultNumber().longValue());
     }
 
     /**
@@ -3146,12 +3063,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#longValue()}.
      *
      * @param route the route to get the long at
+     * @param def   the default value
      * @return the long at the given route, or default according to the documentation above
      * @see #getOptionalLong(Route)
      */
@@ -3164,12 +3079,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Long} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#longValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#longValue()}.
      *
      * @param route the route to get the long at
+     * @param def   the default value
      * @return the long at the given route, or default according to the documentation above
      * @see #getOptionalLong(String)
      */
@@ -3178,35 +3091,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Long}, or any other
-     * compatible type. Please learn more at {@link #getOptionalLong(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Long} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a long, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalLong(Route)
+     * @return if the value at the given route exists and is a long
+     * @see #get(Route)
      */
     public boolean isLong(@NotNull Route route) {
-        return getOptionalLong(route).isPresent();
+        return get(route) instanceof Long;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Long}, or any other
-     * compatible type. Please learn more at {@link #getOptionalLong(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Long} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a long, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalLong(String)
+     * @return if the value at the given route exists and is a long
+     * @see #get(String)
      */
     public boolean isLong(@NotNull String route) {
-        return getOptionalLong(route).isPresent();
+        return get(route) instanceof Long;
     }
 
     //
@@ -3226,10 +3131,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#shortValue()}.
      *
      * @param route the route to get the short at
      * @return the short at the given route
@@ -3244,10 +3146,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, returns value from the defaults under the same
-     * conditions as above.</b>
+     * returned is the result of {@link Number#shortValue()}.
      *
      * @param route the route to get the short at
      * @return the short at the given route
@@ -3259,40 +3158,34 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns short at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Short} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#shortValue()}.
      *
      * @param route the route to get the short at
      * @return the short at the given route, or default according to the documentation above
      * @see #getShort(Route, Short)
      */
     public Short getShort(@NotNull Route route) {
-        return getShort(route, root.getGeneralSettings().getDefaultNumber().shortValue());
+        return getOptionalShort(route).orElseGet(() -> canUseDefaults() ? defaults.getShort(route) : root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     /**
      * Returns short at the given route. If nothing is present at the given route, or is not an instance of any
-     * compatible type (see below), returns default value defined by root's general settings {@link
-     * GeneralSettings#getDefaultNumber()} (converted to {@link Short} as defined below).
+     * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultNumber()}
+     * (converted to {@link Short} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the settings default.</b>
+     * returned is the result of {@link Number#shortValue()}.
      *
      * @param route the route to get the short at
      * @return the short at the given route, or default according to the documentation above
      * @see #getShort(String, Short)
      */
     public Short getShort(@NotNull String route) {
-        return getShort(route, root.getGeneralSettings().getDefaultNumber().shortValue());
+        return getOptionalShort(route).orElseGet(() -> canUseDefaults() ? defaults.getShort(route) : root.getGeneralSettings().getDefaultNumber().shortValue());
     }
 
     /**
@@ -3300,12 +3193,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#shortValue()}.
      *
      * @param route the route to get the short at
+     * @param def   the default value
      * @return the short at the given route, or default according to the documentation above
      * @see #getOptionalShort(Route)
      */
@@ -3318,12 +3209,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link Short} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is the result of {@link Number#shortValue()} (which might involve rounding or truncating).
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if couldn't find a valid value there returns the given default.</b>
+     * returned is the result of {@link Number#shortValue()}.
      *
      * @param route the route to get the short at
+     * @param def   the default value
      * @return the short at the given route, or default according to the documentation above
      * @see #getOptionalShort(Route)
      */
@@ -3332,35 +3221,65 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Short}, or any other
-     * compatible type. Please learn more at {@link #getOptionalShort(Route)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Short} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a short, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalShort(Route)
+     * @return if the value at the given route exists and is a short
+     * @see #get(Route)
      */
     public boolean isShort(@NotNull Route route) {
-        return getOptionalShort(route).isPresent();
+        return get(route) instanceof Short;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Short}, or any other
-     * compatible type. Please learn more at {@link #getOptionalShort(String)}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Short} (or the
+     * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a short, or any other compatible type according to the
-     * documentation above
-     * @see #getOptionalShort(String)
+     * @return if the value at the given route exists and is a short
+     * @see #get(String)
      */
     public boolean isShort(@NotNull String route) {
-        return getOptionalShort(route).isPresent();
+        return get(route) instanceof Short;
+    }
+
+    //
+    //
+    //      -----------------------
+    //
+    //
+    //         Decimal methods
+    //
+    //
+    //      -----------------------
+    //
+    //
+
+    /**
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} or {@link
+     * Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     *
+     * @param route the route to check the value at
+     * @return if the value at the given route exists and is a decimal
+     * @see #get(Route)
+     */
+    public boolean isDecimal(@NotNull Route route) {
+        Object o = get(route);
+        return o instanceof Double || o instanceof Float;
+    }
+
+    /**
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} or {@link
+     * Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     *
+     * @param route the route to check the value at
+     * @return if the value at the given route exists and is a decimal
+     * @see #get(String)
+     */
+    public boolean isDecimal(@NotNull String route) {
+        Object o = get(route);
+        return o instanceof Double || o instanceof Float;
     }
 
     //
@@ -3378,9 +3297,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns list at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not a {@link List}, returns an empty optional.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the list at
      * @return the list at the given route
@@ -3393,9 +3309,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns list at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not a {@link List}, returns an empty optional.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the list at
      * @return the list at the given route
@@ -3407,40 +3320,33 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list at the given route. If nothing is present at the given route, or is not a {@link List}, returns
-     * default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if there is no list at the route, returns the settings default.</b>
+     * default value defined by root's general settings {@link GeneralSettings#getDefaultList()}, or <a
+     * href="#note-1">value from defaults</a>.
      *
      * @param route the route to get the list at
      * @return the list at the given route, or default according to the documentation above
      * @see #getList(Route, List)
      */
     public List<?> getList(@NotNull Route route) {
-        return getList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalList(route).orElseGet(() -> canUseDefaults() ? defaults.getList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list at the given route. If nothing is present at the given route, or is not a {@link List}, returns
-     * default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * default value defined by root's general settings {@link GeneralSettings#getDefaultList()}, or <a
+     * href="#note-1">value from defaults</a>.
      *
      * @param route the route to get the list at
      * @return the list at the given route, or default according to the documentation above
      * @see #getList(String, List)
      */
     public List<?> getList(@NotNull String route) {
-        return getList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalList(route).orElseGet(() -> canUseDefaults() ? defaults.getList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list at the given route. If nothing is present at the given route, or is not a {@link List}, returns the
      * provided default.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the given default.</b>
      *
      * @param route the route to get the list at
      * @param def   the default value
@@ -3454,9 +3360,6 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns list at the given route. If nothing is present at the given route, or is not a {@link List}, returns the
      * provided default.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the given default.</b>
      *
      * @param route the route to get the list at
      * @param def   the default value
@@ -3468,31 +3371,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link List}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link List}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
      * @return if the value at the given route exists and is a list
-     * @see #getOptionalList(Route)
+     * @see #get(Route)
      */
     public boolean isList(@NotNull Route route) {
-        return getOptionalList(route).isPresent();
+        return get(route) instanceof List;
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link List}.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, checks defaults under the same conditions as
-     * above.</b>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link List}. <a
+     * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
      * @return if the value at the given route exists and is a list
-     * @see #getOptionalList(String)
+     * @see #get(String)
      */
     public boolean isList(@NotNull String route) {
-        return getOptionalList(route).isPresent();
+        return get(route) instanceof List;
     }
 
     //
@@ -3511,14 +3410,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of strings at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalString(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route
@@ -3526,21 +3421,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(Route)
      */
     public Optional<List<String>> getOptionalStringList(@NotNull Route route) {
-        return toStringList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toStringList(getList(route, null));
     }
 
     /**
      * Returns list of strings at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalString(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route
@@ -3548,21 +3439,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(String)
      */
     public Optional<List<String>> getOptionalStringList(@NotNull String route) {
-        return toStringList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toStringList(getList(route, null));
     }
 
     /**
      * Returns list of strings at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalString(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the string list at
      * @param def   the default value
@@ -3578,14 +3465,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of strings at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalString(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the string list at
      * @param def   the default value
@@ -3599,16 +3482,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of strings at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalString(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route, or default according to the documentation above
@@ -3616,21 +3496,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(Route)
      */
     public List<String> getStringList(@NotNull Route route) {
-        return getStringList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalStringList(route).orElseGet(() -> canUseDefaults() ? defaults.getStringList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of strings at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalString(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalString(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the string list at
      * @return the string list at the given route, or default according to the documentation above
@@ -3638,7 +3515,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalString(String)
      */
     public List<String> getStringList(@NotNull String route) {
-        return getStringList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalStringList(route).orElseGet(() -> canUseDefaults() ? defaults.getStringList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3657,14 +3534,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of integers at the given route encapsulated in an instance of {@link Optional}. If nothing is
      * present at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalInt(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route
@@ -3672,21 +3545,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(Route)
      */
     public Optional<List<Integer>> getOptionalIntList(@NotNull Route route) {
-        return toIntList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toIntList(getList(route, null));
     }
 
     /**
      * Returns list of integers at the given route encapsulated in an instance of {@link Optional}. If nothing is
      * present at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalInt(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route
@@ -3694,21 +3563,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(String)
      */
     public Optional<List<Integer>> getOptionalIntList(@NotNull String route) {
-        return toIntList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toIntList(getList(route, null));
     }
 
     /**
      * Returns list of integers at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalInt(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the integer list at
      * @param def   the default value
@@ -3724,14 +3589,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of integers at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalInt(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the integer list at
      * @param def   the default value
@@ -3745,16 +3606,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of integers at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalInt(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route, or default according to the documentation above
@@ -3762,21 +3620,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(Route)
      */
     public List<Integer> getIntList(@NotNull Route route) {
-        return getIntList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of integers at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalInt(String)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalInt(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the integer list at
      * @return the integer list at the given route, or default according to the documentation above
@@ -3784,7 +3639,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalInt(String)
      */
     public List<Integer> getIntList(@NotNull String route) {
-        return getIntList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3803,14 +3658,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of big integers at the given route encapsulated in an instance of {@link Optional}. If nothing is
      * present at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalBigInt(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route
@@ -3818,21 +3669,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(Route)
      */
     public Optional<List<BigInteger>> getOptionalBigIntList(@NotNull Route route) {
-        return toBigIntList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toBigIntList(getList(route, null));
     }
 
     /**
      * Returns list of big integers at the given route encapsulated in an instance of {@link Optional}. If nothing is
      * present at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalBigInt(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route
@@ -3840,21 +3687,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(String)
      */
     public Optional<List<BigInteger>> getOptionalBigIntList(@NotNull String route) {
-        return toBigIntList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toBigIntList(getList(route, null));
     }
 
     /**
      * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
      * List}, returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalBigInt(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @param def   the default value
@@ -3870,14 +3713,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
      * List}, returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalBigInt(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @param def   the default value
@@ -3891,16 +3730,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value
+     * from defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalBigInt(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route, or default according to the documentation above
@@ -3908,21 +3744,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(Route)
      */
     public List<BigInteger> getBigIntList(@NotNull Route route) {
-        return getBigIntList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalBigIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getBigIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value
+     * from defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalBigInt(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalBigInt(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the big integer list at
      * @return the big integer list at the given route, or default according to the documentation above
@@ -3930,7 +3763,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalBigInt(String)
      */
     public List<BigInteger> getBigIntList(@NotNull String route) {
-        return getBigIntList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalBigIntList(route).orElseGet(() -> canUseDefaults() ? defaults.getBigIntList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -3949,14 +3782,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of bytes at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalByte(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route
@@ -3964,21 +3793,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(Route)
      */
     public Optional<List<Byte>> getOptionalByteList(@NotNull Route route) {
-        return toByteList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toByteList(getList(route, null));
     }
 
     /**
      * Returns list of bytes at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalByte(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route
@@ -3986,21 +3811,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(String)
      */
     public Optional<List<Byte>> getOptionalByteList(@NotNull String route) {
-        return toByteList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toByteList(getList(route, null));
     }
 
     /**
      * Returns list of bytes at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalByte(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @param def   the default value
@@ -4016,14 +3837,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of bytes at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalByte(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @param def   the default value
@@ -4037,16 +3854,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of bytes at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalByte(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route, or default according to the documentation above
@@ -4054,21 +3868,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(Route)
      */
     public List<Byte> getByteList(@NotNull Route route) {
-        return getByteList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalByteList(route).orElseGet(() -> canUseDefaults() ? defaults.getByteList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of bytes at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalByte(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalByte(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the byte list at
      * @return the byte list at the given route, or default according to the documentation above
@@ -4076,7 +3887,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalByte(String)
      */
     public List<Byte> getByteList(@NotNull String route) {
-        return getByteList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalByteList(route).orElseGet(() -> canUseDefaults() ? defaults.getByteList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4095,14 +3906,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of longs at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalLong(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route
@@ -4110,21 +3917,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(Route)
      */
     public Optional<List<Long>> getOptionalLongList(@NotNull Route route) {
-        return toLongList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toLongList(getList(route, null));
     }
 
     /**
      * Returns list of longs at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalLong(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route
@@ -4132,21 +3935,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(String)
      */
     public Optional<List<Long>> getOptionalLongList(@NotNull String route) {
-        return toLongList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toLongList(getList(route, null));
     }
 
     /**
      * Returns list of longs at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalLong(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the long list at
      * @param def   the default value
@@ -4162,14 +3961,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of longs at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalLong(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the long list at
      * @param def   the default value
@@ -4183,16 +3978,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of longs at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(Route)}, it is skipped and will not appear
-     * in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalLong(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route, or default according to the documentation above
@@ -4200,21 +3992,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(Route)
      */
     public List<Long> getLongList(@NotNull Route route) {
-        return getLongList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalLongList(route).orElseGet(() -> canUseDefaults() ? defaults.getLongList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of longs at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalLong(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalLong(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the long list at
      * @return the long list at the given route, or default according to the documentation above
@@ -4222,7 +4011,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalLong(String)
      */
     public List<Long> getLongList(@NotNull String route) {
-        return getLongList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalLongList(route).orElseGet(() -> canUseDefaults() ? defaults.getLongList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4241,14 +4030,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of doubles at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalDouble(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route
@@ -4256,21 +4041,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(Route)
      */
     public Optional<List<Double>> getOptionalDoubleList(@NotNull Route route) {
-        return toDoubleList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toDoubleList(getList(route, null));
     }
 
     /**
      * Returns list of doubles at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalDouble(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route
@@ -4278,21 +4059,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(String)
      */
     public Optional<List<Double>> getOptionalDoubleList(@NotNull String route) {
-        return toDoubleList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toDoubleList(getList(route, null));
     }
 
     /**
      * Returns list of doubles at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalDouble(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the double list at
      * @param def   the default value
@@ -4308,14 +4085,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of doubles at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalDouble(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the double list at
      * @param def   the default value
@@ -4329,16 +4102,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of doubles at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalDouble(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route, or default according to the documentation above
@@ -4346,21 +4116,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(Route)
      */
     public List<Double> getDoubleList(@NotNull Route route) {
-        return getDoubleList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalDoubleList(route).orElseGet(() -> canUseDefaults() ? defaults.getDoubleList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of doubles at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalDouble(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalDouble(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the double list at
      * @return the double list at the given route, or default according to the documentation above
@@ -4368,7 +4135,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalDouble(String)
      */
     public List<Double> getDoubleList(@NotNull String route) {
-        return getDoubleList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalDoubleList(route).orElseGet(() -> canUseDefaults() ? defaults.getDoubleList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4387,14 +4154,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of floats at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalFloat(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route
@@ -4402,21 +4165,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(Route)
      */
     public Optional<List<Float>> getOptionalFloatList(@NotNull Route route) {
-        return toFloatList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toFloatList(getList(route, null));
     }
 
     /**
      * Returns list of floats at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalFloat(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route
@@ -4424,21 +4183,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(String)
      */
     public Optional<List<Float>> getOptionalFloatList(@NotNull String route) {
-        return toFloatList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toFloatList(getList(route, null));
     }
 
     /**
      * Returns list of floats at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalFloat(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the float list at
      * @param def   the default value
@@ -4454,14 +4209,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of floats at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalFloat(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the float list at
      * @param def   the default value
@@ -4475,16 +4226,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of floats at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalFloat(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route, or default according to the documentation above
@@ -4492,21 +4240,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(Route)
      */
     public List<Float> getFloatList(@NotNull Route route) {
-        return getFloatList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalFloatList(route).orElseGet(() -> canUseDefaults() ? defaults.getFloatList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of floats at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalFloat(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalFloat(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the float list at
      * @return the float list at the given route, or default according to the documentation above
@@ -4514,7 +4259,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalFloat(String)
      */
     public List<Float> getFloatList(@NotNull String route) {
-        return getFloatList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalFloatList(route).orElseGet(() -> canUseDefaults() ? defaults.getFloatList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4533,14 +4278,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of shorts at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalShort(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route
@@ -4548,21 +4289,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(Route)
      */
     public Optional<List<Short>> getOptionalShortList(@NotNull Route route) {
-        return toShortList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toShortList(getList(route, null));
     }
 
     /**
      * Returns list of shorts at the given route encapsulated in an instance of {@link Optional}. If nothing is present
      * at the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalShort(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route
@@ -4570,21 +4307,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(String)
      */
     public Optional<List<Short>> getOptionalShortList(@NotNull String route) {
-        return toShortList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toShortList(getList(route, null));
     }
 
     /**
      * Returns list of shorts at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalShort(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the short list at
      * @param def   the default value
@@ -4600,14 +4333,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of shorts at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalShort(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the short list at
      * @param def   the default value
@@ -4621,16 +4350,13 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of shorts at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(Route)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalShort(Route)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route, or default according to the documentation above
@@ -4638,21 +4364,18 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(Route)
      */
     public List<Short> getShortList(@NotNull Route route) {
-        return getShortList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalShortList(route).orElseGet(() -> canUseDefaults() ? defaults.getShortList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of shorts at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not compatible as documented at {@link #getOptionalShort(String)}, it is skipped and will not
-     * appear in the returned list.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not compatible as documented at
+     * {@link #getOptionalShort(String)}, it is skipped and will not appear in the returned list.
      *
      * @param route the route to get the short list at
      * @return the short list at the given route, or default according to the documentation above
@@ -4660,7 +4383,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptionalShort(String)
      */
     public List<Short> getShortList(@NotNull String route) {
-        return getShortList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalShortList(route).orElseGet(() -> canUseDefaults() ? defaults.getShortList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     //
@@ -4679,63 +4402,54 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of maps at the given route encapsulated in an instance of {@link Optional}. If nothing is present at
      * the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not an instance of {@link Map}, it
+     * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
      * the section. It is, however, if needed, still recommended to call {@link #set(Route, Object)} afterwards.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the map list at
      * @return the map list at the given route
      * @see #getOptionalList(Route)
      */
     public Optional<List<Map<?, ?>>> getOptionalMapList(@NotNull Route route) {
-        return toMapList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toMapList(getList(route, null));
     }
 
     /**
      * Returns list of maps at the given route encapsulated in an instance of {@link Optional}. If nothing is present at
      * the given route, or is not a {@link List}, returns an empty optional.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not an instance of {@link Map}, it
+     * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
      * the section. It is, however, if needed, still recommended to call {@link #set(String, Object)} afterwards.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above.</b>
      *
      * @param route the route to get the map list at
      * @return the map list at the given route
      * @see #getOptionalList(String)
      */
     public Optional<List<Map<?, ?>>> getOptionalMapList(@NotNull String route) {
-        return toMapList(getList(route, defaults == null ? null : defaults.getList(route)));
+        return toMapList(getList(route, null));
     }
 
     /**
      * Returns list of maps at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not an instance of {@link Map}, it
+     * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
      * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
      * #set(Route, Object)} afterwards.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
      *
      * @param route the route to get the map list at
      * @param def   the default value
@@ -4750,17 +4464,14 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns list of maps at the given route. If nothing is present at the given route, or is not a {@link List},
      * returns the provided default.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not an instance of {@link Map}, it
+     * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
      * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
      * #set(String, Object)} afterwards.
-     * <p>
-     * <b>If there are any defaults and if there is no list at the route, searches the defaults under the same
-     * conditions as above, and if couldn't find a list there returns the given default.</b>
      *
      * @param route the route to get the map list at
      * @param def   the default value
@@ -4773,59 +4484,46 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Returns list of maps at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not an instance of {@link Map}, it
+     * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
      * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
      * #set(Route, Object)} afterwards.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
      *
      * @param route the route to get the map list at
      * @return the map list at the given route, or default according to the documentation above
      * @see #getMapList(Route, List)
      */
     public List<Map<?, ?>> getMapList(@NotNull Route route) {
-        return getMapList(route, root.getGeneralSettings().getDefaultList());
+        return getOptionalMapList(route).orElseGet(() -> canUseDefaults() ? defaults.getMapList(route) : root.getGeneralSettings().getDefaultList());
     }
 
     /**
      * Returns list of maps at the given route. If nothing is present at the given route, or is not a {@link List},
-     * returns default value defined by root's general settings {@link GeneralSettings#getDefaultList()}.
+     * returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value from
+     * defaults</sup></a>.
      * <p>
-     * This method creates and returns newly created list of instance defined by root's general settings {@link
-     * GeneralSettings#getDefaultList()}, with the elements re-added (to the target/returned list) from the (source)
-     * list at the given route one by one, in order determined by the list iterator. If any of the elements of the
-     * source list is not an instance of {@link Map}, it is skipped and will not appear in the returned list.
+     * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
+     * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
+     * determined by the list iterator. If any of the elements of the source list is not an instance of {@link Map}, it
+     * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
      * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
      * #set(String, Object)} afterwards.
-     * <p>
-     * <b>If there are any defaults and if couldn't find a valid value, searches the defaults under the same conditions
-     * as above, and if there is no list at the route, returns the settings default.</b>
      *
      * @param route the route to get the map list at
      * @return the map list at the given route, or default according to the documentation above
      * @see #getMapList(String, List)
      */
     public List<Map<?, ?>> getMapList(@NotNull String route) {
-        return getMapList(route, root.getGeneralSettings().getDefaultList());
-    }
-
-
-    private <T> T orSupply(@Nullable T o1, @NotNull Supplier<T> o2) {
-        return o1 == null ? o2.get() : o1;
-    }
-
-    private <T> T or(@Nullable T o1, @Nullable T o2) {
-        return o1 == null ? o2 : o1;
+        return getOptionalMapList(route).orElseGet(() -> canUseDefaults() ? defaults.getMapList(route) : root.getGeneralSettings().getDefaultList());
     }
 
 }

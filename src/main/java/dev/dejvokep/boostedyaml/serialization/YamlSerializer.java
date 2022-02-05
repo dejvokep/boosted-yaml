@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ public interface YamlSerializer {
      *
      * @param object   the object to serialize
      * @param supplier the supplier used to supply default maps
+     * @param <T> type of the object to serialize
      * @return the serialized object
      */
     @Nullable

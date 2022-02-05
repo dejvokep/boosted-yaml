@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import java.util.Optional;
  * Block}.
  * <p>
  * <b>Please note</b> that the methods provided here add possibilities for all implemented {@link Position positions}.
- * However, using positions other than {@link Position#BEFORE} might lead to comment de-alignment. Please read more
- * information at the enum constants.
+ * However, using positions other than {@link Position#BEFORE} might lead to comment de-alignment and errors. Please
+ * read more information at the enum constants.
  */
 public class Comments {
 
@@ -46,18 +46,16 @@ public class Comments {
         /**
          * Puts the comments inline with the node.
          * <p>
-         * <b>Please note</b> that such comments will be dumped after the node. That means, after they are loaded
-         * again, they will be attached to the <b>next</b> node in the document (leading to de-alignment of the comments
-         * - they will no longer be part of the same mapping). Therefore, you should <b>never</b> use this position.
+         * <b>Please note this method may de-align comments to other nodes when reloaded; errors might be thrown in
+         * some cases. It is advised to never use this position.</b>
          */
         INLINE,
 
         /**
          * Puts the comments after the node.
          * <p>
-         * <b>Please note</b> that such, after they are loaded again, will be attached to the <b>next</b> node in the
-         * document (leading to de-alignment of the comments - they will no longer be part of the same mapping).
-         * Therefore, you should <b>never</b> use this position.
+         * <b>Please note this method may de-align comments to other nodes when reloaded; errors might be thrown in
+         * some cases. It is advised to never use this position.</b>
          */
         AFTER
     }
@@ -79,7 +77,7 @@ public class Comments {
     /**
      * Comment representing a blank line.
      */
-    public static final CommentLine BLANK_LINE = new CommentLine(Optional.empty(), Optional.empty(), null, CommentType.BLANK_LINE);
+    public static final CommentLine BLANK_LINE = new CommentLine(Optional.empty(), Optional.empty(), "", CommentType.BLANK_LINE);
 
     /**
      * Returns comments at the given position.
@@ -117,6 +115,10 @@ public class Comments {
      * @param comments the comments to set
      */
     public static void set(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @Nullable List<CommentLine> comments) {
+        //Replace
+        if (comments != null)
+            comments = new ArrayList<>(comments);
+
         switch (position) {
             case BEFORE:
                 if (node == NodeType.KEY)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package dev.dejvokep.boostedyaml.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
-import dev.dejvokep.boostedyaml.fvs.segment.Segment;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.segment.Segment;
 import dev.dejvokep.boostedyaml.route.Route;
-import dev.dejvokep.boostedyaml.fvs.Pattern;
-import dev.dejvokep.boostedyaml.fvs.Version;
+import dev.dejvokep.boostedyaml.dvs.Pattern;
+import dev.dejvokep.boostedyaml.dvs.Version;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -37,9 +38,9 @@ class RelocatorTest {
     // Pattern
     private static final Pattern PATTERN = new Pattern(Segment.range(1, Integer.MAX_VALUE), Segment.literal("."), Segment.range(0, 10));
     // Versions
-    private static final Version VERSION_USER = Objects.requireNonNull(PATTERN.getVersion("1.2")), VERSION_DEFAULT = Objects.requireNonNull(PATTERN.getVersion("2.3"));
-    // Relocations
-    private static final Map<String, Map<Route, Route>> RELOCATIONS = new HashMap<String, Map<Route, Route>>(){{
+    private static final Version VERSION_DOCUMENT = Objects.requireNonNull(PATTERN.getVersion("1.2")), VERSION_DEFAULT = Objects.requireNonNull(PATTERN.getVersion("2.3"));
+    // Settings
+    private static final UpdaterSettings SETTINGS = UpdaterSettings.builder().setRelocations(new HashMap<String, Map<Route, Route>>(){{
         put("1.0", new HashMap<Route, Route>(){{
             put(Route.from("d"), Route.from("e"));
         }});
@@ -55,17 +56,17 @@ class RelocatorTest {
             put(Route.from("g"), Route.from("h"));
             put(Route.from("z"), Route.from("i"));
         }});
-    }};
+    }}).build();
 
     @Test
     void apply() {
         try {
             // File
-            YamlFile file = YamlFile.create(new ByteArrayInputStream("x: a\ny: b\nz:\n  a: 1\n  b: 10".getBytes(StandardCharsets.UTF_8)));
+            YamlDocument file = YamlDocument.create(new ByteArrayInputStream("x: a\ny: b\nz:\n  a: 1\n  b: 10".getBytes(StandardCharsets.UTF_8)));
             // Create relocator
-            Relocator relocator = new Relocator(file, VERSION_USER, VERSION_DEFAULT);
+            Relocator relocator = new Relocator(file, VERSION_DOCUMENT, VERSION_DEFAULT);
             // Apply
-            relocator.apply(RELOCATIONS);
+            relocator.apply(SETTINGS, '.');
             // Assert
             assertEquals("a", file.get("h", null));
             assertEquals("b", file.get("x", null));

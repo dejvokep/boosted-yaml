@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public interface Route {
      * The given array cannot contain <code>null</code> keys.
      * <p>
      * Empty array is considered illegal and will throw an {@link IllegalArgumentException}. Call with <code>null</code>
-     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) is will throw a {@link
+     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) will throw a {@link
      * NullPointerException}.
      * <p>
      * The given keys are traversed in order as they were specified. Assuming route <code>["x", 1]</code>, processor
@@ -63,10 +63,8 @@ public interface Route {
      */
     @NotNull
     static Route from(@NotNull Object... route) {
-        // Validate
-        Objects.requireNonNull(route, "Route array cannot be null!");
         // If empty
-        if (route.length == 0)
+        if (Objects.requireNonNull(route, "Route array cannot be null!").length == 0)
             throw new IllegalArgumentException("Empty routes are not allowed!");
         // Create
         return route.length == 1 ? new SingleKeyRoute(route[0]) : new MultiKeyRoute(route);
@@ -114,7 +112,7 @@ public interface Route {
     }
 
     /**
-     * Constructs a route from the given string route, by splitting it by {@link GeneralSettings#DEFAULT_SEPARATOR}.
+     * Constructs a route from the given string route, by splitting it by {@link GeneralSettings#DEFAULT_ROUTE_SEPARATOR}.
      * <p>
      * To split using a custom separator, please use {@link #fromString(String, char)}.
      * <p>
@@ -135,7 +133,7 @@ public interface Route {
      */
     @NotNull
     static Route fromString(@NotNull String route) {
-        return fromString(route, GeneralSettings.DEFAULT_SEPARATOR);
+        return fromString(route, GeneralSettings.DEFAULT_ROUTE_SEPARATOR);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.fvs;
+package dev.dejvokep.boostedyaml.dvs;
 
-import dev.dejvokep.boostedyaml.fvs.segment.Segment;
+import dev.dejvokep.boostedyaml.dvs.segment.Segment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 
 /**
  * Represents an immutable pattern using which version IDs can be parsed into {@link Version versions}.
@@ -43,7 +45,7 @@ public class Pattern {
      * </ol>
      * Please note that patterns and segments are immutable, and therefore, you can reuse them.
      * <p>
-     * <b>For more information</b> please visit the {wiki}.
+     * <b>For more information</b> please visit the <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
      *
      * @param segments the segments, ordered from left (most-significant) to right (least-significant)
      */
@@ -102,4 +104,10 @@ public class Pattern {
         return new Version(null, this, new int[segments.length]);
     }
 
+    @Override
+    public String toString() {
+        return "Pattern{" +
+                "segments=" + Arrays.toString(segments) +
+                '}';
+    }
 }

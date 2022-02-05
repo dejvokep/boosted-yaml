@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.fvs.versioning;
+package dev.dejvokep.boostedyaml.dvs.versioning;
 
-import dev.dejvokep.boostedyaml.YamlFile;
-import dev.dejvokep.boostedyaml.fvs.Pattern;
-import dev.dejvokep.boostedyaml.fvs.segment.Segment;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.Pattern;
+import dev.dejvokep.boostedyaml.dvs.segment.Segment;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -34,13 +34,9 @@ class ManualVersioningTest {
     private static final ManualVersioning VERSIONING = new ManualVersioning(PATTERN, "1.2", "1.4");
 
     @Test
-    void getDefSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDefSectionVersion(createFile()));
-    }
-
-    @Test
-    void getUserSectionVersion() throws IOException {
-        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getUserSectionVersion(createFile()));
+    void getDocumentVersion() throws IOException {
+        assertEquals(PATTERN.getVersion("1.4"), VERSIONING.getDocumentVersion(createFile(), true));
+        assertEquals(PATTERN.getVersion("1.2"), VERSIONING.getDocumentVersion(createFile(), false));
     }
 
     @Test
@@ -48,8 +44,8 @@ class ManualVersioningTest {
         assertEquals(PATTERN.getFirstVersion(), VERSIONING.getFirstVersion());
     }
 
-    private YamlFile createFile() throws IOException {
-        return YamlFile.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
+    private YamlDocument createFile() throws IOException {
+        return YamlDocument.create(new ByteArrayInputStream("x: 1.2\ny: true".getBytes(StandardCharsets.UTF_8)));
     }
 
 }

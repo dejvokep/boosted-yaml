@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,7 @@ public class SingleKeyRoute implements Route {
      * @param key the single element in the route
      */
     public SingleKeyRoute(@NotNull Object key) {
-        //Validate
-        Objects.requireNonNull(key, "Route cannot contain null keys!");
-        //Set
-        this.key = key;
+        this.key = Objects.requireNonNull(key, "Route cannot contain null keys!");
     }
 
     @Override
@@ -75,10 +72,7 @@ public class SingleKeyRoute implements Route {
     @Override
     @NotNull
     public Route add(@NotNull Object key) {
-        //Validate
-        Objects.requireNonNull(key, "Route cannot contain null keys!");
-        //Return
-        return Route.from(this.key, key);
+        return Route.from(this.key, Objects.requireNonNull(key, "Route cannot contain null keys!"));
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  */
 package dev.dejvokep.boostedyaml.settings.general;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.route.Route;
-import dev.dejvokep.boostedyaml.serialization.standard.StandardSerializer;
 import dev.dejvokep.boostedyaml.serialization.YamlSerializer;
+import dev.dejvokep.boostedyaml.serialization.standard.StandardSerializer;
 import dev.dejvokep.boostedyaml.utils.supplier.ListSupplier;
 import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
 import dev.dejvokep.boostedyaml.utils.supplier.SetSupplier;
@@ -29,35 +30,36 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * General settings cover all options related to files.
+ * General settings cover all options related to documents in general.
  * <p>
- * To start using this library, it is recommended to take a look at the following methods:
- * <ul>
- *     <li>{@link Builder#setKeyMode(KeyMode)}</li>
- * </ul>
+ * Settings introduced by BoostedYAML follow builder design pattern, e.g. you may build your own settings using
+ * <code>GeneralSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings("unused")
 public class GeneralSettings {
 
     /**
-     * Key mode for sections to use, specifies how the loaded/supplied keys should be treated and how to convert them.
-     * <p>
-     * It highly recommended to read {@link Section#getOptionalBlock(Route)} and {@link Section#getOptionalBlock(String)} documentation.
+     * Key format for sections to use; specifies how the loaded/supplied keys should be formatted.
      */
-    public enum KeyMode {
+    public enum KeyFormat {
 
         /**
-         * Converts all section keys to strings when loading. If any of the keys in {@link Route} objects used in
-         * get/set/remove... methods is not a string, convert it to one (internally, will not modify the routes). Routes
-         * with non-string keys will be rendered useless, as the sections contain string keys only.
+         * Allows only strings as keys.
+         * <ul>
+         *     <li>All keys loaded are converted to strings via {@link Object#toString()} (e.g. <code>5</code> -&gt; <code>"5"</code>), except <code>null</code> keys, which are considered illegal and will throw a {@link NullPointerException}. Please note that such conversion is irrevocable upon saving.</li>
+         *     <li>String routes should only be used, as all keys are guaranteed to be strings. {@link Route Routes} can still be used, however, due to their capabilities, it is considered to be an overkill; all non-string keys supplied via those will internally be converted to strings (without modifying the route itself, they are immutable).</li>
+         * </ul>
          * <p>
-         * <b>This key mode ensures compatibility with Spigot/BungeeCord APIs.</b>
+         * <b>This key format ensures compatibility with Spigot/BungeeCord APIs.</b>
          */
         STRING,
 
         /**
-         * Does not convert any keys - leaves them as loaded/supplied using methods. If string routes are used, they will
-         * only be able to refer to values whose route is constructed only from {@link String} keys.
+         * Allows anything as the key per the YAML specification (that is, integers, strings, doubles...).
+         * <ul>
+         *     <li>Preserves keys as they were loaded by SnakeYAML Engine (YAML processor), or supplied.</li>
+         *     <li>Note that the only way to refer to data at routes that contain non-string keys is using {@link Route}. String routes can still be used, however, only to the extent of their limitations.</li>
+         * </ul>
          */
         OBJECT
     }
@@ -65,19 +67,23 @@ public class GeneralSettings {
     /**
      * The default string route separator.
      */
-    public static final char DEFAULT_SEPARATOR = '.';
+    public static final char DEFAULT_ROUTE_SEPARATOR = '.';
     /**
      * Escaped version of the default separator.
      */
-    public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_SEPARATOR));
+    public static final String DEFAULT_ESCAPED_SEPARATOR = Pattern.quote(String.valueOf(DEFAULT_ROUTE_SEPARATOR));
     /**
-     * Default key mode.
+     * Default key format.
      */
-    public static final KeyMode DEFAULT_KEY_MODE = KeyMode.STRING;
+    public static final KeyFormat DEFAULT_KEY_FORMATTING = KeyFormat.STRING;
     /**
      * Default serializer.
      */
-    public static final YamlSerializer DEFAULT_SERIALIZER = StandardSerializer.DEFAULT;
+    public static final YamlSerializer DEFAULT_SERIALIZER = StandardSerializer.getDefault();
+    /**
+     * If to use defaults by default.
+     */
+    public static final boolean DEFAULT_USE_DEFAULTS = true;
     /**
      * Default object.
      */
@@ -116,14 +122,16 @@ public class GeneralSettings {
      */
     public static final GeneralSettings DEFAULT = builder().build();
 
-    //key mode
-    private final KeyMode keyMode;
+    //Key format
+    private final KeyFormat keyFormat;
     //Route separator
     private final char separator;
     //Escaped route separator
     private final String escapedSeparator;
     //Serializer
     private final YamlSerializer serializer;
+    //Use defaults
+    private final boolean useDefaults;
     //Default object
     private final Object defaultObject;
     //Default number
@@ -147,8 +155,8 @@ public class GeneralSettings {
      * @param builder the builder
      */
     private GeneralSettings(Builder builder) {
-        this.keyMode = builder.keyMode;
-        this.separator = builder.separator;
+        this.keyFormat = builder.keyFormat;
+        this.separator = builder.routeSeparator;
         this.escapedSeparator = Pattern.quote(String.valueOf(separator));
         this.serializer = builder.serializer;
         this.defaultObject = builder.defaultObject;
@@ -159,38 +167,33 @@ public class GeneralSettings {
         this.defaultList = builder.defaultList;
         this.defaultSet = builder.defaultSet;
         this.defaultMap = builder.defaultMap;
+        this.useDefaults = builder.useDefaults;
     }
 
     /**
-     * Returns the key mode to use; please read more at your selected {@link KeyMode}.
+     * Returns the key format to use.
      *
-     * @return the key mode to use
-     * @see #getSeparator()
+     * @return the key format to use
+     * @see Builder#setKeyFormat(KeyFormat)
      */
-    public KeyMode getKeyMode() {
-        return keyMode;
+    public KeyFormat getKeyFormat() {
+        return keyFormat;
     }
 
     /**
-     * Returns route separator to use to separate individual keys inside a string route. Functionality compatible with
-     * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
-     * <p>
-     * Assuming separator <code>'.'</code>, route <code>a.b</code> represents object at key <code>b</code> in section
-     * at key <code>a</code> in the root file (section).
+     * Sets route separator used to separate individual keys inside a string route and vice-versa.
      *
-     * @return the separator to use
-     * @see #getKeyMode()
-     * @see KeyMode#STRING
+     * @return separator the separator to use
      */
-    public char getSeparator() {
+    public char getRouteSeparator() {
         return separator;
     }
 
     /**
-     * Returns escaped route separator.
+     * Returns the escaped route separator.
      *
      * @return the escaped route separator
-     * @see #getSeparator()
+     * @see #getRouteSeparator()
      */
     public String getEscapedSeparator() {
         return escapedSeparator;
@@ -206,7 +209,16 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default object to use by section getters if the return type is object.
+     * Returns if to enable use of the defaults by {@link Section} methods (if any are present).
+     *
+     * @return if to use defaults
+     */
+    public boolean isUseDefaults() {
+        return useDefaults;
+    }
+
+    /**
+     * Returns default object to use by {@link Section} getters if the return type is object.
      *
      * @return the default object
      */
@@ -215,7 +227,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default string to use by section getters if the return type is string.
+     * Returns default string to use by {@link Section} getters if the return type is string.
      *
      * @return the default string
      */
@@ -224,7 +236,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default char to use by section getters if the return type is char.
+     * Returns default char to use by {@link Section} getters if the return type is char.
      *
      * @return the default char
      */
@@ -233,7 +245,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default number to use by section getters if the return type is a number - integer, float, byte,
+     * Returns default number to use by {@link Section} getters if the return type is a number - integer, float, byte,
      * biginteger... (per the getter documentation).
      *
      * @return the default number
@@ -243,7 +255,7 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default boolean to use by section getters if the return type is boolean.
+     * Returns default boolean to use by {@link Section} getters if the return type is boolean.
      *
      * @return the default boolean
      */
@@ -252,8 +264,10 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default list of the given size, using the default list supplier.
+     * Returns default list of the given size.
      *
+     * @param size initial size (if supported)
+     * @param <T>  content type
      * @return the default list of the given size
      */
     public <T> List<T> getDefaultList(int size) {
@@ -261,17 +275,20 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default empty list using the default list supplier.
+     * Returns an empty default list.
      *
-     * @return the default empty list
+     * @param <T> content type
+     * @return the empty default list
      */
     public <T> List<T> getDefaultList() {
         return getDefaultList(0);
     }
 
     /**
-     * Returns default set of the given size, using the default set supplier.
+     * Returns default set of the given size.
      *
+     * @param size initial size (if supported)
+     * @param <T>  content type
      * @return the default set of the given size
      */
     public <T> Set<T> getDefaultSet(int size) {
@@ -279,27 +296,33 @@ public class GeneralSettings {
     }
 
     /**
-     * Returns default empty set using the default set supplier.
+     * Returns an empty default set.
      *
-     * @return the default empty set
+     * @param <T> content type
+     * @return the empty default set
      */
     public <T> Set<T> getDefaultSet() {
         return getDefaultSet(0);
     }
 
     /**
-     * Returns default map of the given size, using the default map supplier.
+     * Returns default map of the given size.
      *
-     * @return the default empty size
+     * @param size initial size (if supported)
+     * @param <K>  key type
+     * @param <V>  value type
+     * @return the default map of the given size
      */
     public <K, V> Map<K, V> getDefaultMap(int size) {
         return defaultMap.supply(size);
     }
 
     /**
-     * Returns default empty map using the default map supplier.
+     * Returns an empty default map.
      *
-     * @return the default map of the given size
+     * @param <K> key type
+     * @param <V> value type
+     * @return the empty default map
      */
     public <K, V> Map<K, V> getDefaultMap() {
         return getDefaultMap(0);
@@ -324,15 +347,39 @@ public class GeneralSettings {
     }
 
     /**
+     * Returns a new builder with the same configuration as the given settings.
+     *
+     * @param settings preset settings
+     * @return the new builder
+     */
+    public static Builder builder(GeneralSettings settings) {
+        return builder()
+                .setKeyFormat(settings.keyFormat)
+                .setRouteSeparator(settings.separator)
+                .setSerializer(settings.serializer)
+                .setUseDefaults(settings.useDefaults)
+                .setDefaultObject(settings.defaultObject)
+                .setDefaultNumber(settings.defaultNumber)
+                .setDefaultString(settings.defaultString)
+                .setDefaultChar(settings.defaultChar)
+                .setDefaultBoolean(settings.defaultBoolean)
+                .setDefaultList(settings.defaultList)
+                .setDefaultSet(settings.defaultSet)
+                .setDefaultMap(settings.defaultMap);
+    }
+
+    /**
      * Builder for general settings.
      */
     public static class Builder {
-        //key mode
-        private KeyMode keyMode = DEFAULT_KEY_MODE;
+        //Key format
+        private KeyFormat keyFormat = DEFAULT_KEY_FORMATTING;
         //Route separator
-        private char separator = DEFAULT_SEPARATOR;
+        private char routeSeparator = DEFAULT_ROUTE_SEPARATOR;
         //Serializer
         private YamlSerializer serializer = DEFAULT_SERIALIZER;
+        //Use defaults
+        private boolean useDefaults = DEFAULT_USE_DEFAULTS;
         //Default object
         private Object defaultObject = DEFAULT_OBJECT;
         //Default number
@@ -357,35 +404,29 @@ public class GeneralSettings {
         }
 
         /**
-         * Sets the key mode to use. Please read more at your selected {@link KeyMode}.
+         * Sets the key format to use.
          * <p>
-         * <b>Default: </b>{@link #DEFAULT_KEY_MODE}
+         * <b>Default: </b>{@link #DEFAULT_KEY_FORMATTING}
          *
-         * @param keyMode the key mode to use
+         * @param keyFormat the key format to use
          * @return the builder
-         * @see #setSeparator(char)
+         * @see #setRouteSeparator(char)
          */
-        public Builder setKeyMode(@NotNull KeyMode keyMode) {
-            this.keyMode = keyMode;
+        public Builder setKeyFormat(@NotNull KeyFormat keyFormat) {
+            this.keyFormat = keyFormat;
             return this;
         }
 
         /**
-         * Sets route separator used to separate individual keys inside a string route. Functionality compatible with
-         * Spigot/BungeeCord API. Unless requested explicitly, used only if key mode is set to {@link KeyMode#STRING}.
+         * Sets route separator used to separate individual keys inside a string route and vice-versa.
          * <p>
-         * Assuming separator <code>'.'</code>, route <code>"a.b"</code> represents object at key <code>"b"</code> in section
-         * at key <code>"a"</code> in the root file (section).
-         * <p>
-         * <b>Default: </b>{@link #DEFAULT_SEPARATOR}
+         * <b>Default: </b>{@link #DEFAULT_ROUTE_SEPARATOR}
          *
          * @param separator the separator to use
          * @return the builder
-         * @see #setKeyMode(KeyMode)
-         * @see KeyMode#STRING
          */
-        public Builder setSeparator(char separator) {
-            this.separator = separator;
+        public Builder setRouteSeparator(char separator) {
+            this.routeSeparator = separator;
             return this;
         }
 
@@ -399,6 +440,71 @@ public class GeneralSettings {
          */
         public Builder setSerializer(@NotNull YamlSerializer serializer) {
             this.serializer = serializer;
+            return this;
+        }
+
+        /**
+         * Sets if to enable use of the defaults by {@link Section} methods (if any are present).
+         * <p>
+         * Not effective if there are no {@link YamlDocument#getDefaults() defaults associated} with the document.
+         * <p>
+         * <b>If enabled (<code>true</code>):</b>
+         * <ul>
+         *     <li>
+         *         Bulk getter methods (which return a set/map of all keys, routes, values, blocks) will not only include
+         *         content from the file, but also from the equivalent section in the defaults.
+         *     </li>
+         *     <li>
+         *         Value getters with signature <code>getX(route)</code> will search the defaults as documented. You can also view the behaviour in the
+         *         call stack below:
+         *         <ol>
+         *             <li>
+         *                 Is there any value at the specified route?
+         *                 <ul>
+         *                     <li>
+         *                         <b>1A.</b> Yes: Is it compatible with the return type (see method documentation)?
+         *                         <ul>
+         *                             <li><b>2A.</b> Yes: Return it.</li>
+         *                             <li>
+         *                                 <b>2B.</b> No: Is there an equivalent of this section in the defaults ({@link Section#hasDefaults()})?
+         *                                 <ul>
+         *                                     <li>
+         *                                         <b>3A.</b> Yes: Return the value returned by calling the same method on the default section equivalent ({@link Section#getDefaults()}).
+         *                                     </li>
+         *                                     <li>
+         *                                         <b>3B.</b> No: Return the default value defined by the settings (see method documentation).
+         *                                     </li>
+         *                                 </ul>
+         *                             </li>
+         *                         </ul>
+         *                     </li>
+         *                     <li>
+         *                         <b>1B.</b> No: Continue with 2B.
+         *                     </li>
+         *                 </ul>
+         *             </li>
+         *         </ol>
+         *     </li>
+         * </ul>
+         * <b>If disabled (<code>false</code>):</b>
+         * <ul>
+         *     <li>
+         *         None of the {@link Section} methods will interact with the defaults.
+         *     </li>
+         *     <li>
+         *         This is recommended if you would like to handle all value absences (present in the defaults, but not
+         *         in the file) and invalid values manually - e.g. notifying the user and then using the default value defined within
+         *         <code>final</code> fields, or obtained via {@link Section#getDefaults()}.
+         *     </li>
+         * </ul>
+         * <p>
+         * <b>Default: </b>{@link #DEFAULT_USE_DEFAULTS}
+         *
+         * @param useDefaults if to use defaults
+         * @return the builder
+         */
+        public Builder setUseDefaults(boolean useDefaults) {
+            this.useDefaults = useDefaults;
             return this;
         }
 
@@ -421,8 +527,8 @@ public class GeneralSettings {
          * <p>
          * <b>Default: </b>{@link #DEFAULT_NUMBER}
          * <p>
-         * <i>The given default can not be <code>null</code> as multiple section getters derive their defaults from this
-         * default (using {@link Number#intValue()}...).</i>
+         * <i>The given default can not be <code>null</code> as multiple section getters derive their defaults from
+         * this default (using {@link Number#intValue()}...).</i>
          *
          * @param defaultNumber default number
          * @return the builder
@@ -450,9 +556,9 @@ public class GeneralSettings {
          * <p>
          * <b>Default: </b>{@link #DEFAULT_CHAR}
          * <p>
-         * <i>The parameter is not of a primitive type, to allow for <code>null</code> values. Setting the default to such
-         * value might produce unexpected issues, unless your program is adapted for it. On the other hand, there are
-         * methods returning optionals, so having default value like this is rather pointless.</i>
+         * <i>The parameter is not of a primitive type, to allow for <code>null</code> values. Setting the default to
+         * such value might produce unexpected issues, unless your program is adapted for it. On the other hand, there
+         * are methods returning optionals, so having default value like this is rather pointless.</i>
          *
          * @param defaultChar default char
          * @return the builder
@@ -467,9 +573,9 @@ public class GeneralSettings {
          * <p>
          * <b>Default: </b>{@link #DEFAULT_BOOLEAN}
          * <p>
-         * <i>The parameter is not of a primitive type, to allow for <code>null</code> values. Setting the default to such
-         * value might produce unexpected issues, unless your program is adapted for it. On the other hand, there are
-         * methods returning optionals, so having default value like this is rather pointless.</i>
+         * <i>The parameter is not of a primitive type, to allow for <code>null</code> values. Setting the default to
+         * such value might produce unexpected issues, unless your program is adapted for it. On the other hand, there
+         * are methods returning optionals, so having default value like this is rather pointless.</i>
          *
          * @param defaultBoolean default boolean
          * @return the builder

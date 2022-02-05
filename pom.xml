@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2021 https://dejvokep.dev/
+    Copyright 2022 https://dejvokep.dev/
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
     <groupId>dev.dejvokep</groupId>
     <version>1.0</version>
     <name>BoostedYAML</name>
-    <description>Library delivering boosted experience while working with YAML files.</description>
+    <description>A simple-to-use library delivering boosted experience while working with YAML files.</description>
     <url>https://github.com/dejvokep/boosted-yaml</url>
     <packaging>jar</packaging>
 
@@ -179,7 +179,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -187,8 +187,17 @@
                         <goals>
                             <goal>sign</goal>
                         </goals>
+                        <configuration>
+                            <keyname>${gpg.keyname}</keyname>
+                            <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                        </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
             </plugin>
         </plugins>
     </build>
@@ -213,7 +222,7 @@
         <dependency>
             <groupId>org.snakeyaml</groupId>
             <artifactId>snakeyaml-engine</artifactId>
-            <version>2.3</version>
+            <version>2.4-SNAPSHOT</version>
         </dependency>
         <!-- Annotations -->
         <dependency>

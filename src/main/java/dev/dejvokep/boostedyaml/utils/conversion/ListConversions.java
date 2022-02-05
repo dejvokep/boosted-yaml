@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class ListConversions {
 
     /**
      * Constructs a list of strings from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -45,12 +45,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<String>> toStringList(@Nullable List<?> value) {
-        return construct(value, o -> Optional.ofNullable(o instanceof String || o instanceof Number || o instanceof Boolean ? o.toString() : null));
+        return construct(value, o -> Optional.ofNullable(o.toString()));
     }
 
     /**
      * Constructs a list of integers from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -61,12 +61,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Integer>> toIntList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toInt);
+        return construct(value, PrimitiveConversions::toInt);
     }
 
     /**
      * Constructs a list of big integers from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -77,12 +77,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<BigInteger>> toBigIntList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toBigInt);
+        return construct(value, PrimitiveConversions::toBigInt);
     }
 
     /**
      * Constructs a list of bytes from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -93,12 +93,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Byte>> toByteList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toByte);
+        return construct(value, PrimitiveConversions::toByte);
     }
 
     /**
      * Constructs a list of longs from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -109,12 +109,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Long>> toLongList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toLong);
+        return construct(value, PrimitiveConversions::toLong);
     }
 
     /**
      * Constructs a list of doubles from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -125,12 +125,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Double>> toDoubleList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toDouble);
+        return construct(value, PrimitiveConversions::toDouble);
     }
 
     /**
      * Constructs a list of floats from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -141,12 +141,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Float>> toFloatList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toFloat);
+        return construct(value, PrimitiveConversions::toFloat);
     }
 
     /**
      * Constructs a list of shorts from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an element incompatible, it is
      * skipped and will not appear in the returned list. Please learn more about compatible types at the main content
@@ -157,12 +157,12 @@ public class ListConversions {
      */
     @NotNull
     public static Optional<List<Short>> toShortList(@Nullable List<?> value) {
-        return construct(value, NumericConversions::toShort);
+        return construct(value, PrimitiveConversions::toShort);
     }
 
     /**
      * Constructs a list of maps from the given list of unknown type. The returned optional is never empty, unless
-     * the given one is.
+     * the given value is <code>null</code>.
      * <p>
      * The individual elements of the list are processed each one by one. If there is an non-map element, it is
      * skipped and will not appear in the returned list.
@@ -194,9 +194,14 @@ public class ListConversions {
         //Output
         List<T> list = new ArrayList<>();
         //All elements
-        for (Object element : value)
+        for (Object element : value) {
+            //If null
+            if (element == null)
+                continue;
+
             //Add
             mapper.apply(element).ifPresent(list::add);
+        }
 
         //Return
         return Optional.of(list);

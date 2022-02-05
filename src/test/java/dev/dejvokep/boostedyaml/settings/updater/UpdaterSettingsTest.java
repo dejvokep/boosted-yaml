@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 package dev.dejvokep.boostedyaml.settings.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
-import dev.dejvokep.boostedyaml.fvs.segment.Segment;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.dvs.segment.Segment;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
-import dev.dejvokep.boostedyaml.fvs.Pattern;
-import dev.dejvokep.boostedyaml.fvs.Version;
-import dev.dejvokep.boostedyaml.fvs.versioning.ManualVersioning;
+import dev.dejvokep.boostedyaml.dvs.Pattern;
+import dev.dejvokep.boostedyaml.dvs.Version;
+import dev.dejvokep.boostedyaml.dvs.versioning.ManualVersioning;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -54,10 +54,10 @@ class UpdaterSettingsTest {
     }
 
     @Test
-    void getKeep() {
+    void getIgnoredRoutes() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .setKeepRoutes(new HashMap<String, Set<Route>>() {{
+                .setIgnoredRoutes(new HashMap<String, Set<Route>>() {{
                     put("1.2", new HashSet<Route>() {{
                         add(Route.from("a"));
                     }});
@@ -65,7 +65,7 @@ class UpdaterSettingsTest {
                         add(Route.from("c"));
                     }});
                 }})
-                .setStringKeepRoutes(new HashMap<String, Set<String>>() {{
+                .setIgnoredStringRoutes(new HashMap<String, Set<String>>() {{
                     put("1.2", new HashSet<String>() {{
                         add("b");
                     }});
@@ -73,30 +73,27 @@ class UpdaterSettingsTest {
                         add("d");
                     }});
                 }})
-                .setKeepRoutes("1.5", new HashSet<Route>() {{
+                .setIgnoredRoutes("1.5", new HashSet<Route>() {{
                     add(Route.from("e"));
                 }})
-                .setStringKeepRoutes("1.5", new HashSet<String>() {{
+                .setIgnoredStringRoutes("1.5", new HashSet<String>() {{
                     add("f");
                 }}).build();
-        // Map
-        Map<String, Set<Route>> routes = settings.getKeep('.');
         // Assert
         assertEquals(new HashSet<Route>() {{
             add(Route.from("a"));
             add(Route.from("b"));
-        }}, routes.get("1.2"));
+        }}, settings.getIgnoredRoutes("1.2", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("c"));
-        }}, routes.get("1.3"));
+        }}, settings.getIgnoredRoutes("1.3", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("d"));
-        }}, routes.get("1.4"));
+        }}, settings.getIgnoredRoutes("1.4", '.'));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("e"));
             add(Route.from("f"));
-        }}, routes.get("1.5"));
-        assertEquals(4, routes.keySet().size());
+        }}, settings.getIgnoredRoutes("1.5", '.'));
     }
 
     @Test
@@ -125,24 +122,21 @@ class UpdaterSettingsTest {
                 .setStringRelocations("1.5", new HashMap<String, String>() {{
                     put("f", "l");
                 }}).build();
-        // Map
-        Map<String, Map<Route, Route>> relocations = settings.getRelocations('.');
         // Assert
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("a"), Route.from("g"));
             put(Route.from("b"), Route.from("h"));
-        }}, relocations.get("1.2"));
+        }}, settings.getRelocations("1.2", '.'));
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("c"), Route.from("i"));
-        }}, relocations.get("1.3"));
+        }}, settings.getRelocations("1.3", '.'));
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("d"), Route.from("j"));
-        }}, relocations.get("1.4"));
+        }}, settings.getRelocations("1.4", '.'));
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("e"), Route.from("k"));
             put(Route.from("f"), Route.from("l"));
-        }}, relocations.get("1.5"));
-        assertEquals(4, relocations.keySet().size());
+        }}, settings.getRelocations("1.5", '.'));
     }
 
     @Test
@@ -151,18 +145,17 @@ class UpdaterSettingsTest {
             // Pattern
             Pattern pattern = new Pattern(Segment.range(1, 100), Segment.literal("."), Segment.range(0, 10));
             // File
-            YamlFile file = YamlFile.create(
+            YamlDocument file = YamlDocument.create(
                     new ByteArrayInputStream("a: 1.2".getBytes(StandardCharsets.UTF_8)), new ByteArrayInputStream("a: 1.3".getBytes(StandardCharsets.UTF_8)),
                     GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
             // Target version
             Version version = pattern.getVersion("1.2");
             // Assert
-            assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getUserSectionVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getUserSectionVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Route.from("a")).build().getVersioning().getUserSectionVersion(file));
-            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getUserSectionVersion(file));
-        } catch (
-                IOException ex) {
+            assertEquals(version, UpdaterSettings.builder().setVersioning(new ManualVersioning(pattern, "1.2", "1.3")).build().getVersioning().getDocumentVersion(file, false));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "1.2", "1.3").build().getVersioning().getDocumentVersion(file, false));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, Route.from("a")).build().getVersioning().getDocumentVersion(file, false));
+            assertEquals(version, UpdaterSettings.builder().setVersioning(pattern, "a").build().getVersioning().getDocumentVersion(file, false));
+        } catch (IOException ex) {
             fail(ex);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.loader;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
@@ -35,11 +35,8 @@ import java.util.Optional;
 /**
  * Loader settings cover all options related explicitly (only) to file loading.
  * <p>
- * To start using this library, it is recommended to take a look at the following methods:
- * <ul>
- *     <li>{@link Builder#setCreateFileIfAbsent(boolean)}</li>
- *     <li>{@link Builder#setAutoUpdate(boolean)}</li>
- * </ul>
+ * Settings introduced by BoostedYAML follow builder design pattern, e.g. you may build your own settings using
+ * <code>LoaderSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class LoaderSettings {
@@ -66,25 +63,16 @@ public class LoaderSettings {
     }
 
     /**
-     * Returns if to automatically attempt to update the file, after finished loading.
-     * <p>
-     * Per the {@link YamlFile#update(UpdaterSettings)} specification, update is not possible, therefore this option
-     * has no effect, if no defaults (stream or file) have been given to the file instance, for which these settings
-     * will be used.
+     * Returns if to automatically call {@link YamlDocument#update()} after the document has been loaded.
      *
-     * @return if to automatically update after loading
+     * @return if to automatically update after the document has been loaded
      */
     public boolean isAutoUpdate() {
         return autoUpdate;
     }
 
     /**
-     * Returns if to create a new file with default content if it does not exist (defaults will be dumped and saved using
-     * {@link DumperSettings} given to the file instance, for which these settings will be used). If disabled, only
-     * loads the defaults, without modifying the disk contents - manual save is needed.
-     * <p>
-     * This setting is not effective if no defaults (stream or file) have been given to the file instance, for which
-     * these settings will be used.
+     * Returns if to create a new file and save it if it does not exist automatically.
      *
      * @return if to create a new file if absent
      */
@@ -93,8 +81,7 @@ public class LoaderSettings {
     }
 
     /**
-     * Builds new SnakeYAML engine settings. If the underlying builder was changed somehow, just in case, resets all
-     * settings (those which should not be modified).
+     * Builds the SnakeYAML Engine settings.
      *
      * @param generalSettings settings used to get defaults (list, set, map) from
      * @return the new settings
@@ -126,6 +113,18 @@ public class LoaderSettings {
      */
     public static Builder builder(LoadSettingsBuilder builder) {
         return new Builder(builder);
+    }
+
+    /**
+     * Returns a new builder with the same configuration as the given settings.
+     *
+     * @param settings preset settings
+     * @return the new builder
+     */
+    public static Builder builder(LoaderSettings settings) {
+        return builder(settings.builder)
+                .setAutoUpdate(settings.autoUpdate)
+                .setCreateFileIfAbsent(settings.createFileIfAbsent);
     }
 
     /**
@@ -180,11 +179,9 @@ public class LoaderSettings {
         }
 
         /**
-         * Sets if to create a new user file with default content if it does not exist (from the defaults) by saving it using {@link YamlFile#save()}.
+         * Sets if to create a new file and save it if it does not exist automatically.
          * <p>
-         * If disabled, only loads the defaults, without modifying the user file contents - manual save is needed.
-         * <p>
-         * Not effective if there is no user file associated with the {@link YamlFile} that's being loaded.
+         * Not effective if there is no {@link YamlDocument#getFile() file associated} with the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_CREATE_FILE_IF_ABSENT}
          *
@@ -197,9 +194,9 @@ public class LoaderSettings {
         }
 
         /**
-         * If enabled, automatically calls {@link YamlFile#update()} after it has been loaded.
+         * If enabled, automatically calls {@link YamlDocument#update()} after the document has been loaded.
          * <p>
-         * Not effective if there are no defaults associated with the YamlFile that's being loaded.
+         * Not effective if there are no {@link YamlDocument#getDefaults() defaults associated} with the document.
          * <p>
          * <b>Default: </b>{@link #DEFAULT_AUTO_UPDATE}
          *

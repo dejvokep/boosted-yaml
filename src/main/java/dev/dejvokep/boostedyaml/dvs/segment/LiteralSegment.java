@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.fvs.segment;
+package dev.dejvokep.boostedyaml.dvs.segment;
+
+import java.util.Arrays;
 
 /**
  * Represents an immutable segment constructed directly from an array of elements.
@@ -59,5 +61,12 @@ public class LiteralSegment implements Segment {
     @Override
     public int length() {
         return elements.length;
+    }
+
+    @Override
+    public String toString() {
+        return "LiteralSegment{" +
+                "elements=" + Arrays.toString(elements) +
+                '}';
     }
 }

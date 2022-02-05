@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,8 +82,9 @@ public class ExtendedConstructor extends StandardConstructor {
     }
 
     /**
-     * Clears all the (previously) constructed objects - therefore, freeing up the memory. It is always recommended
-     * calling this method after this instance of the constructor is done constructing.
+     * Clears all the (previously) constructed objects - therefore, freeing up the memory.
+     * <p>
+     * It is always recommended calling this method after this instance of the constructor is done constructing.
      */
     public void clear() {
         constructed.clear();

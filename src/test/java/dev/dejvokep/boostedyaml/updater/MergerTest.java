@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 https://dejvokep.dev/
+ * Copyright 2022 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.updater;
 
-import dev.dejvokep.boostedyaml.YamlFile;
+import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -38,13 +38,13 @@ class MergerTest {
     void merge() {
         try {
             // File
-            YamlFile file = YamlFile.create(
+            YamlDocument file = YamlDocument.create(
                     new ByteArrayInputStream("x: 1.2\ny: true\nz:\n  a: 1\n  b: 10\no: \"a: b\"\np: false".getBytes(StandardCharsets.UTF_8)),
                     new ByteArrayInputStream("x: 1.4\ny: false\nz:\n  a: 5\n  b: 10\nm: \"a: c\"".getBytes(StandardCharsets.UTF_8)),
                     GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UPDATER_SETTINGS);
 
-            // Mark "p" to be kept
-            file.getOptionalBlock("p").orElseThrow(NullPointerException::new).setKeep(true);
+            // Mark "p" to be ignored
+            file.getOptionalBlock("p").orElseThrow(NullPointerException::new).setIgnored(true);
             // Merge
             Merger.merge(file, file.getDefaults(), UPDATER_SETTINGS);
             // Verify all
