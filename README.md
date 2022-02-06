@@ -103,7 +103,7 @@ Parameters of the `.create()` might now look like this:
 ```java
 YamlDocument config = YamlDocument.create(new File("config.yml"), getResource("config.yml"), GeneralSettings.DEFAULT, LoaderSettings.builder().setAutoUpdate(true).build(), DumperSettings.DEFAULT, UpdaterSettings.builder().setVersioning(new BasicVersioning("config-version")).build());
 ```
-The custom LoaderSettings with enabled auto-update will ensure the file's automatically updated initially and each time it's reloaded.
+The custom LoaderSettings with enabled auto-update will ensure the document's automatically updated initially and each time it's reloaded.
 
 **That's it! No need to do some weird file version handling manually, let BoostedYAML do it for you.** The updater also offers some nice features like [ignored routes](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#ignored-routes) and [relocations](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#ignored-routes), which you can learn more about by clicking the links.
 ## 5. Use the document to it's fullest:
