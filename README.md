@@ -75,7 +75,7 @@ Please note that this guide covers only the basics, there are a lot more variati
 ```java
 YamlDocument config = YamlDocument.create(new File("config.yml"), getResource("config.yml"));
 ```
-**The file will automatically be managed by the library** - no need to create it if it does not exist, nor copy the defaults. Everything's done automatically. **Please note** that if you chose to use [Routes (objects)](https://javadoc.io/doc/dev.dejvokep/boosted-yaml/latest/dev/dejvokep/boostedyaml/route/Route.html), you will need to configure the document to use `KeyFormat.OBJECT`. You can do so via general settings, with the final `.create` method looking like:
+**The file will automatically be managed by the library** - no need to create it if it does not exist, nor copy the defaults. Everything's done automatically. **Please note** that if you chose to use [Routes (objects)](https://javadoc.io/doc/dev.dejvokep/boosted-yaml/latest/dev/dejvokep/boostedyaml/route/Route.html), you will need to configure the document to use `KeyFormat.OBJECT`. You can do so via GeneralSettings, with the final `.create()` method looking like:
 ```java
 YamlDocument config = YamlDocument.create(new File("config.yml"), getResource("config.yml"), GeneralSettings.builder().setKeyFormat(KeyFormat.OBJECT).build(), LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
 ```
@@ -85,9 +85,9 @@ You might already be familiar with specifying version inside your document, most
 ```yaml
 config-version: 1
 ```
-BoostedYAML defines such information as version ID. Pick a route at which the version ID of the document will be. **You will never be able to change it** and **the defaults must have it specified and valid**. Provide the route to updater settings like this:
+BoostedYAML defines such information as version ID. Pick a route at which the version ID of the document will be. **You will never be able to change it** and **the defaults must have it specified and valid**. Provide the route to UpdaterSettings like this:
 ```java
-UpdaterSettings.builder().setVersioning(new BasicVersioning("config-version")).build()
+UpdaterSettings.builder().setVersioning(new BasicVersioning("config-version")).build();
 ```
 Do not forget to provide the built settings to the `.create()` method.
 ###### B)
@@ -98,6 +98,13 @@ config-version: 2   # 2nd release
 config-version: 3   # 3rd release
 # etc.
 ```
+###### C)
+Parameters of the `.create()` might now look like this:
+```java
+YamlDocument config = YamlDocument.create(new File("config.yml"), getResource("config.yml"), GeneralSettings.DEFAULT, LoaderSettings.builder().setAutoUpdate(true).build(), DumperSettings.DEFAULT, UpdaterSettings.builder().setVersioning(new BasicVersioning("config-version")).build());
+```
+The custom LoaderSettings with enabled auto-update will ensure the file's automatically updated initially and each time it's reloaded.
+
 **That's it! No need to do some weird file version handling manually, let BoostedYAML do it for you.** The updater also offers some nice features like [ignored routes](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#ignored-routes) and [relocations](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#ignored-routes), which you can learn more about by clicking the links.
 ## 5. Use the document to it's fullest:
 Reload/save anytime from/to the file:
