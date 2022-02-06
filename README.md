@@ -6,7 +6,7 @@ developers to manage documents and files with ease.
 
 If you are developing plugins for Spigot/BungeeCord API, make sure to read the post at [SpigotMC forums](https://www.spigotmc.org/threads/545585/) for more information regarding setup and other relevant useful information.
 
-![](https://cdn.discordapp.com/attachments/927561782279675977/939877609775452200/Group_129.png)
+[![BoostedYAML is powered by Senior Hosting. Use code "YAML" for 10% off!](https://cdn.discordapp.com/attachments/927561782279675977/939877609775452200/Group_129.png)](https://senior-host.com/)
 
 # ❓ Why to use BoostedYAML over other libraries?
 
