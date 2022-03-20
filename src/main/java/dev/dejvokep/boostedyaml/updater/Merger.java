@@ -26,8 +26,11 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.MergeRule;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
+import org.snakeyaml.engine.v2.nodes.ScalarNode;
+import org.snakeyaml.engine.v2.nodes.Tag;
 import org.snakeyaml.engine.v2.representer.BaseRepresenter;
 
 import java.util.*;
@@ -210,7 +213,7 @@ public class Merger {
         constructor.constructSingleDocument(Optional.of(represented));
 
         //Create
-        section = new Section(newParent.getRoot(), newParent, section.getRoute(), null, (MappingNode) represented, constructor);
+        section = new Section(newParent.getRoot(), newParent, section.getRoute(), moveComments(represented), (MappingNode) represented, constructor);
         //Clear
         constructor.clear();
         //Create
@@ -248,6 +251,28 @@ public class Merger {
         constructor.clear();
         //Return
         return entry;
+    }
+
+    /**
+     * Creates a dummy node to which comments from the given node are moved. That is, the comments attached to the given
+     * node will be removed.
+     *
+     * @param node the node to move comments from
+     * @return a new, dummy node with comments from the given node
+     */
+    private Node moveComments(@NotNull Node node) {
+        // Dummy node
+        ScalarNode scalarNode = new ScalarNode(Tag.STR, "", ScalarStyle.PLAIN);
+        // Move
+        scalarNode.setBlockComments(node.getBlockComments());
+        scalarNode.setInLineComments(node.getInLineComments());
+        scalarNode.setEndComments(node.getEndComments());
+        // Delete
+        node.setBlockComments(Collections.emptyList());
+        node.setInLineComments(null);
+        node.setEndComments(null);
+        // Return
+        return scalarNode;
     }
 
     /**
