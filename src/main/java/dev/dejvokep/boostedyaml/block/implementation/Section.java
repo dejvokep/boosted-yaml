@@ -412,7 +412,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     private void adapt(@NotNull YamlDocument root, @Nullable Section parent, @NotNull Route route) {
         //Delete from the previous parent
-        if (this.parent != null && this.parent.getStoredValue().get(name) == this)
+        if (this.parent != null && this.parent != parent && this.parent.getStoredValue().get(name) == this)
             this.parent.removeInternal(this.parent, name);
 
         //Set
