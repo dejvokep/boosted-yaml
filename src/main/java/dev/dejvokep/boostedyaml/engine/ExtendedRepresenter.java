@@ -41,8 +41,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     /**
      * Creates an instance of the representer.
+     *
      * @param generalSettings general settings of the root's file, whose contents are going to be represented
-     * @param dumpSettings dumper settings
+     * @param dumpSettings    dumper settings
      */
     public ExtendedRepresenter(@NotNull GeneralSettings generalSettings, @NotNull DumpSettings dumpSettings) {
         //Call the superclass constructor
@@ -95,8 +96,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
     /**
      * Applies the given block's (if not <code>null</code>) key comments to the given node and returns the given node
      * itself.
+     *
      * @param block the block whose key comments to apply
-     * @param node node to apply the comments to
+     * @param node  node to apply the comments to
      * @return the given node
      */
     @NotNull
@@ -115,8 +117,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
     /**
      * Applies the given block's (if not <code>null</code>) value comments to the given node and returns the given node
      * itself.
+     *
      * @param block the block whose value comments to apply
-     * @param node node to apply the comments to
+     * @param node  node to apply the comments to
      * @return the given node
      */
     @NotNull

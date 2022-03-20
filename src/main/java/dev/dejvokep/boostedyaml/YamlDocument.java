@@ -333,8 +333,9 @@ public class YamlDocument extends Section {
      * {@link #getGeneralSettings() general} settings.
      * <p>
      * Please note that this involves loading a YAML document from the given stream. <b>If you'd like to update, but
-     * don't want the defaults to be used in any other means,</b> you can {@link GeneralSettings.Builder#setUseDefaults(boolean)
-     * disable use of them} and provide the defaults right to the <code>YamlDocument.create()</code> method.
+     * don't want the defaults to be used in any other means,</b> you can disable use of them via {@link
+     * GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right to the
+     * <code>YamlDocument.create()</code> method.
      *
      * @param defaults defaults to load and update against
      * @throws IOException an IO error
@@ -348,8 +349,9 @@ public class YamlDocument extends Section {
      * #getGeneralSettings() general} settings.
      * <p>
      * Please note that this involves loading a YAML document from the given stream. <b>If you'd like to update, but
-     * don't want the defaults to be used in any other means,</b> you can {@link GeneralSettings.Builder#setUseDefaults(boolean)
-     * disable use of them} and provide the defaults right to the <code>YamlDocument.create()</code> method.
+     * don't want the defaults to be used in any other means,</b> you can disable use of them via {@link
+     * GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right to the
+     * <code>YamlDocument.create()</code> method.
      *
      * @param defaults        defaults to load and update against
      * @param updaterSettings updater settings to use
@@ -711,8 +713,8 @@ public class YamlDocument extends Section {
      * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created and
      * saved.
      * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can {@link
-     * GeneralSettings.Builder#setUseDefaults(boolean) disable use of them} and provide the defaults right here.
+     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use of
+     * them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
      *
      * @param document        document (does not need to {@link File#exists() exist})
      * @param generalSettings general settings
@@ -738,8 +740,8 @@ public class YamlDocument extends Section {
      * LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created and
      * saved.
      * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can {@link
-     * GeneralSettings.Builder#setUseDefaults(boolean) disable use of them} and provide the defaults right here.
+     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use of
+     * them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
      *
      * @param document document (does not need to {@link File#exists() exist})
      * @return the created and loaded document
@@ -756,8 +758,8 @@ public class YamlDocument extends Section {
      * will need to provide data input/output each time you're reloading/saving. As you are not providing any defaults,
      * you will need to provide them each time you're updating.
      * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can {@link
-     * GeneralSettings.Builder#setUseDefaults(boolean) disable use of them} and provide the defaults right here.
+     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use of
+     * them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
      *
      * @param document        document
      * @param generalSettings general settings
@@ -779,8 +781,8 @@ public class YamlDocument extends Section {
      * you will need to provide data input/output each time you're reloading/saving. As you are not providing any
      * defaults, you will need to provide them each time you're updating.
      * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can {@link
-     * GeneralSettings.Builder#setUseDefaults(boolean) disable use of them} and provide the defaults right here.
+     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use of
+     * them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
      *
      * @param document document
      * @return the created and loaded document

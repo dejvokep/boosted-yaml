@@ -172,10 +172,20 @@ public abstract class Block<T> {
         }
     }
 
+    /**
+     * Converts a list of the given comment lines to block comments, that is, replaces comments of type {@link
+     * CommentType#IN_LINE} with their {@link CommentType#BLOCK} equivalent.
+     *
+     * @param commentLines lines to convert
+     * @return converted list of lines
+     */
     private List<CommentLine> toBlockComments(@NotNull List<CommentLine> commentLines) {
+        // Index
         int i = -1;
+        // Convert
         for (CommentLine commentLine : commentLines)
             commentLines.set(++i, commentLine.getCommentType() != CommentType.IN_LINE ? commentLine : new CommentLine(commentLine.getStartMark(), commentLine.getEndMark(), commentLine.getValue(), CommentType.BLOCK));
+        // Return
         return commentLines;
     }
 
