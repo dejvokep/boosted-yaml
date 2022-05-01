@@ -140,9 +140,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <p>
      * Sets the root file, parent section, name and route to <code>null</code>.
      * <p>
-     * <b>This constructor is only used by {@link YamlDocument the extending class}, where nodes are unknown at the time
-     * of
-     * initialization. It is needed to call {@link #init(YamlDocument, Node, MappingNode, ExtendedConstructor)}
+     * <b>This constructor is only used by {@link YamlDocument the extending class}, where nodes are unknown at the
+     * time of initialization. It is needed to call {@link #init(YamlDocument, Node, MappingNode, ExtendedConstructor)}
      * afterwards.</b>
      *
      * @param defaultMap the content map
@@ -446,8 +445,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Adapts the given key, as defined by the key format currently in use ({@link GeneralSettings#getKeyFormat()}).
      * <p>
-     * More formally, if key format is {@link KeyFormat#STRING STRING}, returns the result of {@link Object#toString()} on
-     * the given key object, the key object given otherwise.
+     * More formally, if key format is {@link KeyFormat#STRING STRING}, returns the result of {@link Object#toString()}
+     * on the given key object, the key object given otherwise.
      *
      * @param key the key object to adapt
      * @return the adapted key
@@ -963,6 +962,38 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
+     * Repopulates ({@link #clear() clears} and sets) the section with all the given <b>direct</b> mappings into this
+     * section in order as returned by the given map's iterator.
+     * <p>
+     * Direct mappings mean that the given mappings will be inserted directly into this map. Therefore, this
+     * implementation does not support {@link Route routes} as keys and will not be able to process them (use {@link
+     * #setAll(Map)} instead). All the mappings can then be retrieved via {@link #getStoredValue()} exactly in form as
+     * they were given.
+     * <p>
+     * The setting of the values including the limitations follows the documentation defined by {@link #set(Route,
+     * Object)}.
+     *
+     * @param mappings mappings to repopulate the section with
+     * @see #set(Route, Object)
+     */
+    public void repopulate(@NotNull Map<Object, Block<?>> mappings) {
+        clear();
+        mappings.forEach(this::setInternal);
+    }
+
+    /**
+     * Sets all the given mappings into this section in order as returned by the given map's iterator.
+     * <p>
+     * The setting of the values including the limitations follows the documentation defined by {@link #set(Route,
+     * Object)}.
+     *
+     * @param mappings mappings to set
+     */
+    public void setAll(@NotNull Map<Route, Object> mappings) {
+        mappings.forEach(this::set);
+    }
+
+    /**
      * Sets the given value at the given route in this section - overwrites the already existing value (if any). If
      * there are sections missing to the route where the object should be set, they are created along the way.
      * <p>
@@ -970,7 +1001,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
      *     <li>{@link Section}: the given section will be <i>moved</i> here (including comments, it will be deleted from the previous location),</li>
-     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, <b>!!will keep reference to the previous location, delete it manually from there!!</b>),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
      *     instances; please see {@link #Section(YamlDocument, Section, Route, Block, Map)} for more information),</li>
@@ -1018,7 +1049,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <ul>
      *     <li><code>null</code>: valid value (please use {@link #remove(Route)} to remove entries),</li>
      *     <li><b>non-root</b> {@link Section}: the given section will be <i>moved</i> here (including comments, it will be deleted from the previous location),</li>
-     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, !!will keep reference to the previous location, delete it manually from there!!),</li>
+     *     <li>any other {@link Block}: the given block will be <i>pasted</i> here (including comments, <b>!!will keep reference to the previous location, delete it manually from there!!</b>),</li>
      *     <li>{@link Map}: a section will be created and initialized by the contents of the given map and comments of
      *     the previous block at that key (if any); where the map must only contain raw content (e.g. no {@link Block}
      *     instances; please see {@link #Section(YamlDocument, Section, Route, Block, Map)} for more information),</li>
@@ -1067,7 +1098,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param key   the (already adapted) key at which to set the value
      * @param value the value to set
      */
-    public void setInternal(@NotNull Object key, @Nullable Object value) {
+    private void setInternal(@NotNull Object key, @Nullable Object value) {
         //If a section
         if (value instanceof Section) {
             //Cast
@@ -1253,8 +1284,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * string keys according to the separator).
      * <p>
      * This method works independently of the root's {@link GeneralSettings#getKeyFormat()}. However, as the given route
-     * contains individual <b>string</b> keys, if set to {@link KeyFormat#OBJECT}, you will only be able to access data at
-     * routes containing only keys parsed as strings (no integer, boolean... or <code>null</code> keys) by SnakeYAML
+     * contains individual <b>string</b> keys, if set to {@link KeyFormat#OBJECT}, you will only be able to access data
+     * at routes containing only keys parsed as strings (no integer, boolean... or <code>null</code> keys) by SnakeYAML
      * Engine. If such functionality is needed, use {@link #getOptionalBlock(Route)} instead.
      * <p>
      * <b>Please note</b> that compatibility with Spigot/BungeeCord API is not maintained regarding empty string keys,
