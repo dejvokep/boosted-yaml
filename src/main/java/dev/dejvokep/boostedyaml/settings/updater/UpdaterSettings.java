@@ -238,6 +238,7 @@ public class UpdaterSettings {
                 .setAutoSave(settings.autoSave)
                 .setEnableDowngrading(settings.enableDowngrading)
                 .setKeepAll(settings.keepAll)
+                .setOptionSorting(settings.optionSorting)
                 .setMergeRules(settings.mergeRules)
                 .setIgnoredRoutes(settings.ignored)
                 .setIgnoredStringRoutes(settings.stringIgnored)
@@ -268,7 +269,7 @@ public class UpdaterSettings {
         //Versioning
         private Versioning versioning = DEFAULT_VERSIONING;
         //Option sorting
-        private OptionSorting optionSorting;
+        private OptionSorting optionSorting = DEFAULT_OPTION_SORTING;
 
         /**
          * Creates a new builder will all the default settings applied.
