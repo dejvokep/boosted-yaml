@@ -1008,7 +1008,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
-     * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
+     * when the value is an instance of {@link Block}, in which case comments from the block are preserved).
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
      * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
@@ -1056,7 +1056,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * </ul>
      * <p>
      * If there's any entry at the given route, it's comments are kept and assigned to the new entry (does not apply
-     * when the value is an instance of {@link Block}, in which case comments from the block are preserved.
+     * when the value is an instance of {@link Block}, in which case comments from the block are preserved).
      * <p>
      * <b>Attempt to set an instance of {@link Section} whose call to {@link #isRoot()} returns <code>true</code> is
      * considered illegal and will result in an {@link IllegalArgumentException}. Similarly, attempting to move sections
