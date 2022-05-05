@@ -18,11 +18,13 @@ package dev.dejvokep.boostedyaml.settings.updater;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.route.RouteFactory;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.dvs.Pattern;
 import dev.dejvokep.boostedyaml.dvs.versioning.AutomaticVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.ManualVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
+import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,8 +39,31 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class UpdaterSettings {
 
+    /**
+     * Enum defining how options in sections should be sorted during merging.
+     */
     public enum OptionSorting {
-        NONE, SORT_BY_DEFAULTS
+
+        /**
+         * Does not sort. This setting ensures that new entries from the defaults will be placed as the last into the
+         * section <b>map</b>.
+         * <p>
+         * <b>This setting does not introduce any additional memory consumption and should be used if the map
+         * implementation defined by {@link GeneralSettings.Builder#setDefaultMap(MapSupplier)} doesn't preserve element
+         * order.</b>
+         */
+        NONE,
+
+        /**
+         * Sorts options by their order in the defaults. This setting ensures that entries which will appear in the
+         * merged document will be placed into the section <b>map</b> in order defined by the defaults.
+         * <p>
+         * <b>Note that the order depends on the map implementation defined by {@link
+         * GeneralSettings.Builder#setDefaultMap(MapSupplier)}. If the used implementation does not preserve order of
+         * the elements (as they were put into the map), avoid additional memory consumption and use {@link #NONE}
+         * instead.</b>
+         */
+        SORT_BY_DEFAULTS
     }
 
     /**
