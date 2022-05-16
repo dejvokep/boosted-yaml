@@ -18,11 +18,13 @@ package dev.dejvokep.boostedyaml.settings.updater;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.route.RouteFactory;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.dvs.Pattern;
 import dev.dejvokep.boostedyaml.dvs.versioning.AutomaticVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.ManualVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
+import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +40,33 @@ import java.util.*;
 public class UpdaterSettings {
 
     /**
+     * Enum defining how options in sections should be sorted during merging.
+     */
+    public enum OptionSorting {
+
+        /**
+         * Does not sort. This setting ensures that new entries from the defaults will be placed as the last into the
+         * section <b>map</b>.
+         * <p>
+         * <b>This setting does not introduce any additional memory consumption and should be used if the map
+         * implementation defined by {@link GeneralSettings.Builder#setDefaultMap(MapSupplier)} doesn't preserve element
+         * order.</b>
+         */
+        NONE,
+
+        /**
+         * Sorts options by their order in the defaults. This setting ensures that entries which will appear in the
+         * merged document will be placed into the section <b>map</b> in order defined by the defaults.
+         * <p>
+         * <b>Note that the order depends on the map implementation defined by {@link
+         * GeneralSettings.Builder#setDefaultMap(MapSupplier)}. If the used implementation does not preserve order of
+         * the elements (as they were put into the map), avoid additional memory consumption and use {@link #NONE}
+         * instead.</b>
+         */
+        SORT_BY_DEFAULTS
+    }
+
+    /**
      * If to, by default, automatically save the file after updating.
      */
     public static final boolean DEFAULT_AUTO_SAVE = true;
@@ -50,6 +79,10 @@ public class UpdaterSettings {
      * default.
      */
     public static final boolean DEFAULT_KEEP_ALL = false;
+    /**
+     * Default option sorting.
+     */
+    public static final OptionSorting DEFAULT_OPTION_SORTING = OptionSorting.SORT_BY_DEFAULTS;
     /**
      * Default merge preservation rules.
      */
@@ -84,6 +117,8 @@ public class UpdaterSettings {
     private final Map<String, Map<String, String>> stringRelocations;
     //Versioning
     private final Versioning versioning;
+    //Option sorting
+    private final OptionSorting optionSorting;
 
     /**
      * Creates final, immutable updater settings from the given builder.
@@ -94,6 +129,7 @@ public class UpdaterSettings {
         this.autoSave = builder.autoSave;
         this.enableDowngrading = builder.enableDowngrading;
         this.keepAll = builder.keepAll;
+        this.optionSorting = builder.optionSorting;
         this.mergeRules = builder.mergeRules;
         this.ignored = builder.ignored;
         this.stringIgnored = builder.stringIgnored;
@@ -199,6 +235,15 @@ public class UpdaterSettings {
     }
 
     /**
+     * Returns how to sort options in sections during merging.
+     *
+     * @return option sorting to use
+     */
+    public OptionSorting getOptionSorting() {
+        return optionSorting;
+    }
+
+    /**
      * Returns a new builder.
      *
      * @return the new builder
@@ -218,6 +263,7 @@ public class UpdaterSettings {
                 .setAutoSave(settings.autoSave)
                 .setEnableDowngrading(settings.enableDowngrading)
                 .setKeepAll(settings.keepAll)
+                .setOptionSorting(settings.optionSorting)
                 .setMergeRules(settings.mergeRules)
                 .setIgnoredRoutes(settings.ignored)
                 .setIgnoredStringRoutes(settings.stringIgnored)
@@ -247,6 +293,8 @@ public class UpdaterSettings {
         private final Map<String, Map<String, String>> stringRelocations = new HashMap<>();
         //Versioning
         private Versioning versioning = DEFAULT_VERSIONING;
+        //Option sorting
+        private OptionSorting optionSorting = DEFAULT_OPTION_SORTING;
 
         /**
          * Creates a new builder will all the default settings applied.
@@ -308,6 +356,19 @@ public class UpdaterSettings {
          */
         public Builder setKeepAll(boolean keepAll) {
             this.keepAll = keepAll;
+            return this;
+        }
+
+        /**
+         * Sets how to sort options in sections during merging.
+         * <p>
+         * <b>Default: </b>{@link #DEFAULT_OPTION_SORTING}
+         *
+         * @param optionSorting option sorting to use
+         * @return the builder
+         */
+        public Builder setOptionSorting(@NotNull OptionSorting optionSorting) {
+            this.optionSorting = optionSorting;
             return this;
         }
 
@@ -386,8 +447,8 @@ public class UpdaterSettings {
 
         /**
          * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
-         * updating to a certain version ID. If there already are <i>string</i> routes defined for version ID, which is also present
-         * in the given map, they are overwritten.
+         * updating to a certain version ID. If there already are <i>string</i> routes defined for version ID, which is
+         * also present in the given map, they are overwritten.
          * <p>
          * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
          * you should specify a version ID of the document and routes of such sections (which were in the document with
@@ -406,8 +467,8 @@ public class UpdaterSettings {
 
         /**
          * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
-         * updating to a certain version ID. If there already are <i>string</i> routes defined for the given ID, they are
-         * overwritten.
+         * updating to a certain version ID. If there already are <i>string</i> routes defined for the given ID, they
+         * are overwritten.
          * <p>
          * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
          * you should specify a version ID of the document and routes of such sections (which were in the document with

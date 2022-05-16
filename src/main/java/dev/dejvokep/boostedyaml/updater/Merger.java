@@ -86,6 +86,9 @@ public class Merger {
     private void iterate(Section document, Section defaults, UpdaterSettings settings) {
         //Keys
         Set<Object> documentKeys = new HashSet<>(document.getStoredValue().keySet());
+        //Sorting
+        boolean sort = settings.getOptionSorting() == UpdaterSettings.OptionSorting.SORT_BY_DEFAULTS;
+        Map<Object, Block<?>> sorted = sort ? document.getRoot().getGeneralSettings().getDefaultMap() : null;
 
         //Loop through all default entries
         for (Map.Entry<Object, Block<?>> entry : defaults.getStoredValue().entrySet()) {
@@ -105,6 +108,10 @@ public class Merger {
                     //If a section
                     if (documentBlock instanceof Section)
                         resetIgnored((Section) documentBlock);
+
+                    //If sorting
+                    if (sort)
+                        sorted.put(key, documentBlock);
                     continue;
                 }
 
@@ -114,21 +121,39 @@ public class Merger {
                 if (isDefaultBlockSection && isDocumentBlockSection) {
                     //Iterate
                     iterate((Section) documentBlock, (Section) defaultBlock, settings);
+
+                    //If sorting
+                    if (sort)
+                        sorted.put(key, documentBlock);
                     continue;
                 }
 
                 //Set preserved value
-                document.set(route, getPreservedValue(settings.getMergeRules(), documentBlock, () -> cloneBlock(defaultBlock, document), isDocumentBlockSection, isDefaultBlockSection));
+                if (sort)
+                    sorted.put(key, getPreservedValue(settings.getMergeRules(), documentBlock, () -> cloneBlock(defaultBlock, document), isDocumentBlockSection, isDefaultBlockSection));
+                else
+                    document.set(route, getPreservedValue(settings.getMergeRules(), documentBlock, () -> cloneBlock(defaultBlock, document), isDocumentBlockSection, isDefaultBlockSection));
                 continue;
             }
 
             //Set cloned
-            document.set(route, cloneBlock(defaultBlock, document));
+            if (sort)
+                sorted.put(key, cloneBlock(defaultBlock, document));
+            else
+                document.set(route, cloneBlock(defaultBlock, document));
         }
 
         //If to keep all
-        if (settings.isKeepAll())
+        if (settings.isKeepAll()) {
+            //If sorting
+            if (sort) {
+                //Add remaining
+                documentKeys.forEach(key -> sorted.put(key, document.getStoredValue().get(key)));
+                //Repopulate
+                document.repopulate(sorted);
+            }
             return;
+        }
 
         //Loop through all document keys
         for (Object key : documentKeys) {
@@ -143,12 +168,21 @@ public class Merger {
                 //If a section
                 if (block instanceof Section)
                     resetIgnored((Section) block);
+
+                //If sorting
+                if (sort)
+                    sorted.put(key, block);
                 continue;
             }
 
-            //Remove
-            document.remove(route);
+            //Remove if not sorting
+            if (!sort)
+                document.remove(route);
         }
+
+        //Repopulate
+        if (sort)
+            document.repopulate(sorted);
     }
 
     /**

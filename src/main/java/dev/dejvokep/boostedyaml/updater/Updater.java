@@ -80,7 +80,7 @@ public class Updater {
      * <ol>
      *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
      *     <li>If the version of the document is not provided (is <code>null</code>), assigns the oldest version specified by the underlying pattern
-     *     (see {@link Versioning#getFirstVersion()}).</li>
+     *     (see {@link Versioning#getFirstVersion()}) and automatically forces an update.</li>
      *     <li>If downgrading and it is disabled, throws an
      *     {@link UnsupportedOperationException}.</li>
      *     <li>If version IDs equal, does not proceed.</li>
@@ -103,13 +103,9 @@ public class Updater {
 
         //Versions
         Version documentVersion = versioning.getDocumentVersion(document, false), defaultsVersion = Objects.requireNonNull(versioning.getDocumentVersion(defaults, true), "Version ID of the defaults cannot be null! Is it malformed or not specified?");
-        //If document ID is null
-        if (documentVersion == null)
-            //Set to the oldest (to go through all relocations supplied)
-            documentVersion = versioning.getFirstVersion();
 
-        //Compare
-        int compared = documentVersion.compareTo(defaultsVersion);
+        //Compare (or force update if not found)
+        int compared = documentVersion != null ? documentVersion.compareTo(defaultsVersion) : -1;
         //If downgrading
         if (compared > 0 && !settings.isEnableDowngrading())
             //Throw an error
@@ -122,7 +118,7 @@ public class Updater {
         //If not downgrading
         if (compared < 0) {
             //Initialize relocator
-            Relocator relocator = new Relocator(document, documentVersion, defaultsVersion);
+            Relocator relocator = new Relocator(document, documentVersion != null ? documentVersion : versioning.getFirstVersion(), defaultsVersion);
             //Apply all
             relocator.apply(settings, separator);
         }

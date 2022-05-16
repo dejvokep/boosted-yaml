@@ -67,5 +67,18 @@ class UpdaterTest {
         assertEquals(100, file.get("t", null));
         assertEquals(6, file.getKeys().size());
         assertEquals(2, file.getSection("s").getKeys().size());
+
+        // File
+        file = YamlDocument.create(
+                new ByteArrayInputStream("x: 1".getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayInputStream("a: 1.0\nx: 1\ny: 2".getBytes(StandardCharsets.UTF_8)),
+                GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UPDATER_SETTINGS);
+        // Update
+        Updater.update(file, file.getDefaults(), file.getUpdaterSettings(), file.getGeneralSettings());
+        // Assert
+        assertEquals("1.0", file.getString("a", null));
+        assertEquals(1, file.getInt("x", null));
+        assertEquals(2, file.getInt("y", null));
+        assertEquals(3, file.getKeys().size());
     }
 }

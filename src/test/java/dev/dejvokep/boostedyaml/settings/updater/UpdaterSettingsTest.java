@@ -178,4 +178,9 @@ class UpdaterSettingsTest {
         assertFalse(UpdaterSettings.builder().setAutoSave(false).build().isAutoSave());
     }
 
+    @Test
+    void getOptionSorting() {
+        assertEquals(UpdaterSettings.OptionSorting.NONE, UpdaterSettings.builder().setOptionSorting(UpdaterSettings.OptionSorting.NONE).build().getOptionSorting());
+        assertEquals(UpdaterSettings.OptionSorting.SORT_BY_DEFAULTS, UpdaterSettings.builder().setOptionSorting(UpdaterSettings.OptionSorting.SORT_BY_DEFAULTS).build().getOptionSorting());
+    }
 }
