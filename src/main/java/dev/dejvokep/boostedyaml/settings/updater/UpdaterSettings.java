@@ -387,7 +387,7 @@ public class UpdaterSettings {
             return this;
         }
 
-        public Builder setIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
+        private Builder setIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
             this.ignored.putAll(routes);
             return this;
         }
@@ -471,7 +471,7 @@ public class UpdaterSettings {
             return this;
         }
 
-        public Builder setRelocationsInternal(@NotNull Map<String, RouteMap<Route, String>> relocations) {
+        private Builder setRelocationsInternal(@NotNull Map<String, RouteMap<Route, String>> relocations) {
             this.relocations.putAll(relocations);
             return this;
         }
@@ -560,7 +560,7 @@ public class UpdaterSettings {
             return this;
         }
 
-        public Builder setMappersInternal(@NotNull Map<String, RouteMap<ValueMapper, ValueMapper>> mappers) {
+        private Builder setMappersInternal(@NotNull Map<String, RouteMap<ValueMapper, ValueMapper>> mappers) {
             this.mappers.putAll(mappers);
             return this;
         }
