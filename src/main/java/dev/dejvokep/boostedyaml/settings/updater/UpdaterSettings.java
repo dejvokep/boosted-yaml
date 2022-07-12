@@ -611,13 +611,41 @@ public class UpdaterSettings {
         }
     }
 
+    /**
+     * A collection container which represents data mapped to a route. Each instance keeps two {@link Map maps}, one of
+     * which has {@link Route} and the other one {@link String} (routes) as the key type. Value type for each of the
+     * respective maps are defined by {@link R} and {@link S} parameters.
+     * <p>
+     * Creating an instance of the class does not introduce any additional overhead, because the contained collections
+     * are initially <code>null</code> and are initialized only on call to {@link #getRouteMap()} or {@link
+     * #getStringMap()} (still only the corresponding one).
+     *
+     * @param <R> value type of the {@link Route}-keyed {@link Map map} (<code>Map&lt;Route, R&gt;</code>)
+     * @param <S> value type of the {@link String}-keyed {@link Map map} (<code>Map&lt;String, S&gt;</code>)
+     */
     private static class RouteMap<R, S> {
-        private static final RouteMap<?, ?> EMPTY = new RouteMap<>();
 
+        // Maps
         private Map<Route, R> routes = null;
         private Map<String, S> strings = null;
 
-        public <T> Map<Route, T> merge(Function<R, T> routeMapper, Function<S, T> stringMapper, char separator) {
+        /**
+         * Merges the contained maps into one single map with customizable value type.
+         * <p>
+         * String routes are converted to {@link Route routes} using the provided separator. The {@link #getRouteMap()}
+         * has higher priority during merging, that means any key duplicates present in {@link #getStringMap()} will be
+         * discarded.
+         * <p>
+         * <b>The returned object might (but not necessarily) be immutable.</b>
+         *
+         * @param routeMapper  mapping function applied to {@link R} values (those from {@link #getRouteMap()})
+         * @param stringMapper mapping function applied to {@link S} values (those from {@link #getStringMap()})
+         * @param separator    route key separator (see {@link Route#fromString(String, char)})
+         * @param <T>          value type of the returned map
+         * @return the merged map
+         */
+        @NotNull
+        public <T> Map<Route, T> merge(@NotNull Function<R, T> routeMapper, @NotNull Function<S, T> stringMapper, char separator) {
             if ((routes == null || routes.isEmpty()) && (strings == null || strings.isEmpty()))
                 return Collections.emptyMap();
             Map<Route, T> map = new HashMap<>();
@@ -628,25 +656,51 @@ public class UpdaterSettings {
             return map;
         }
 
+        /**
+         * Returns the {@link Route}-keyed map.
+         *
+         * @return the {@link Route}-keyed map
+         */
+        @NotNull
         public Map<Route, R> getRouteMap() {
             return routes == null ? routes = new HashMap<>() : routes;
         }
 
+        /**
+         * Returns the {@link String}-keyed map.
+         *
+         * @return the {@link String}-keyed map
+         */
+        @NotNull
         public Map<String, S> getStringMap() {
             return strings == null ? strings = new HashMap<>() : strings;
         }
-
-        @SuppressWarnings("unchecked")
-        public static <R, S> RouteMap<R, S> empty() {
-            return (RouteMap<R, S>) EMPTY;
-        }
     }
 
+    /**
+     * A collection container which represents a {@link Set set} of routes. Each instance keeps two {@link Set sets},
+     * one of which has {@link Route} and the other one {@link String} (routes) as the type
+     * (<code>Set&lt;Route&gt;</code> and <code>Set&lt;String&gt;</code>, respectively).
+     * <p>
+     * Creating an instance of the class does not introduce any additional overhead, because the contained collections
+     * are initially <code>null</code> and are initialized only on call to {@link #getRouteSet()} or {@link
+     * #getStringSet()} (still only the corresponding one).
+     */
     private static class RouteSet {
 
+        // Sets
         private Set<Route> routes = null;
         private Set<String> strings = null;
 
+        /**
+         * Merges the contained sets into one single set.
+         * <p>
+         * String routes are converted to {@link Route routes} using the provided separator. <b>The returned object
+         * might (but not necessarily) be immutable.</b>
+         *
+         * @param separator route key separator (see {@link Route#fromString(String, char)})
+         * @return the merged set
+         */
         public Set<Route> merge(char separator) {
             if ((routes == null || routes.isEmpty()) && (strings == null || strings.isEmpty()))
                 return Collections.emptySet();
@@ -658,10 +712,20 @@ public class UpdaterSettings {
             return set;
         }
 
+        /**
+         * Returns the set of {@link Route} objects.
+         *
+         * @return the set of {@link Route} objects
+         */
         public Set<Route> getRouteSet() {
             return routes == null ? routes = new HashSet<>() : routes;
         }
 
+        /**
+         * Returns the set of {@link String} objects.
+         *
+         * @return the set of {@link String} objects
+         */
         public Set<String> getStringSet() {
             return strings == null ? strings = new HashSet<>() : strings;
         }
