@@ -16,19 +16,19 @@
 package dev.dejvokep.boostedyaml.settings.updater;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import dev.dejvokep.boostedyaml.route.Route;
-import dev.dejvokep.boostedyaml.route.RouteFactory;
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
-import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.dvs.Pattern;
 import dev.dejvokep.boostedyaml.dvs.versioning.AutomaticVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.ManualVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
+import dev.dejvokep.boostedyaml.route.Route;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Updater settings cover all options related explicitly (only) to file updating.
@@ -110,11 +110,9 @@ public class UpdaterSettings {
     //Merge rules
     private final Map<MergeRule, Boolean> mergeRules;
     //Routes to ignore
-    private final Map<String, Set<Route>> ignored;
-    private final Map<String, Set<String>> stringIgnored;
+    private final Map<String, RouteSet> ignored;
     //Relocations
-    private final Map<String, Map<Route, Route>> relocations;
-    private final Map<String, Map<String, String>> stringRelocations;
+    private final Map<String, RouteMap<Route, String>> relocations;
     //Versioning
     private final Versioning versioning;
     //Option sorting
@@ -132,9 +130,7 @@ public class UpdaterSettings {
         this.optionSorting = builder.optionSorting;
         this.mergeRules = builder.mergeRules;
         this.ignored = builder.ignored;
-        this.stringIgnored = builder.stringIgnored;
         this.relocations = builder.relocations;
-        this.stringRelocations = builder.stringRelocations;
         this.versioning = builder.versioning;
     }
 
@@ -159,20 +155,8 @@ public class UpdaterSettings {
      * @return the set of routes representing blocks to ignore at the version ID
      */
     public Set<Route> getIgnoredRoutes(@NotNull String versionId, char separator) {
-        //Set
-        Set<Route> ignored = new HashSet<>(this.ignored.getOrDefault(versionId, Collections.emptySet()));
-
-        //If string relocations are defined
-        if (stringIgnored.containsKey(versionId)) {
-            //Create factory
-            RouteFactory factory = new RouteFactory(separator);
-            //All entries
-            for (String route : stringIgnored.get(versionId))
-                ignored.add(factory.create(route));
-        }
-
-        //Return
-        return ignored;
+        RouteSet ignored = this.ignored.get(versionId);
+        return ignored == null ? Collections.emptySet() : ignored.merge(separator);
     }
 
     /**
@@ -183,18 +167,8 @@ public class UpdaterSettings {
      * @return the relocations that took effect at the version ID
      */
     public Map<Route, Route> getRelocations(@NotNull String versionId, char separator) {
-        //Map
-        Map<Route, Route> relocations = new HashMap<>(this.relocations.getOrDefault(versionId, Collections.emptyNavigableMap()));
-        //If string relocations are defined
-        if (stringRelocations.containsKey(versionId)) {
-            //Create factory
-            RouteFactory factory = new RouteFactory(separator);
-            //Add all
-            for (Map.Entry<String, String> entry : stringRelocations.get(versionId).entrySet())
-                relocations.computeIfAbsent(factory.create(entry.getKey()), route -> factory.create(entry.getValue()));
-        }
-
-        return relocations;
+        RouteMap<Route, String> relocations = this.relocations.get(versionId);
+        return relocations == null ? Collections.emptyMap() : relocations.merge(Function.identity(), route -> Route.fromString(route, separator), separator);
     }
 
     /**
@@ -265,10 +239,8 @@ public class UpdaterSettings {
                 .setKeepAll(settings.keepAll)
                 .setOptionSorting(settings.optionSorting)
                 .setMergeRules(settings.mergeRules)
-                .setIgnoredRoutes(settings.ignored)
-                .setIgnoredStringRoutes(settings.stringIgnored)
-                .setRelocations(settings.relocations)
-                .setStringRelocations(settings.stringRelocations)
+                .setIgnoredRoutesInternal(settings.ignored)
+                .setRelocationsInternal(settings.relocations)
                 .setVersioning(settings.versioning);
     }
 
@@ -286,11 +258,9 @@ public class UpdaterSettings {
         //Merge rules
         private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
         //Routes to ignore
-        private final Map<String, Set<Route>> ignored = new HashMap<>();
-        private final Map<String, Set<String>> stringIgnored = new HashMap<>();
+        private final Map<String, RouteSet> ignored = new HashMap<>();
         //Relocations
-        private final Map<String, Map<Route, Route>> relocations = new HashMap<>();
-        private final Map<String, Map<String, String>> stringRelocations = new HashMap<>();
+        private final Map<String, RouteMap<Route, String>> relocations = new HashMap<>();
         //Versioning
         private Versioning versioning = DEFAULT_VERSIONING;
         //Option sorting
@@ -406,6 +376,11 @@ public class UpdaterSettings {
             return this;
         }
 
+        public Builder setIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
+            this.ignored.putAll(routes);
+            return this;
+        }
+
         /**
          * Sets which blocks (represented by their routes) to ignore (including their contents) while updating to a
          * certain version ID. If there already are routes defined for version ID, which is also present in the given
@@ -422,7 +397,7 @@ public class UpdaterSettings {
          * @see #setIgnoredRoutes(String, Set)
          */
         public Builder setIgnoredRoutes(@NotNull Map<String, Set<Route>> routes) {
-            this.ignored.putAll(routes);
+            routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
             return this;
         }
 
@@ -441,7 +416,7 @@ public class UpdaterSettings {
          * @return the builder
          */
         public Builder setIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
-            this.ignored.put(versionId, routes);
+            this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(routes);
             return this;
         }
 
@@ -461,7 +436,7 @@ public class UpdaterSettings {
          * @see #setIgnoredStringRoutes(String, Set)
          */
         public Builder setIgnoredStringRoutes(@NotNull Map<String, Set<String>> routes) {
-            this.stringIgnored.putAll(routes);
+            routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(set));
             return this;
         }
 
@@ -481,7 +456,12 @@ public class UpdaterSettings {
          * @return the builder
          */
         public Builder setIgnoredStringRoutes(@NotNull String versionId, @NotNull Set<String> routes) {
-            this.stringIgnored.put(versionId, routes);
+            this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(routes);
+            return this;
+        }
+
+        public Builder setRelocationsInternal(@NotNull Map<String, RouteMap<Route, String>> relocations) {
+            this.relocations.putAll(relocations);
             return this;
         }
 
@@ -501,7 +481,7 @@ public class UpdaterSettings {
          * @see #setRelocations(String, Map)
          */
         public Builder setRelocations(@NotNull Map<String, Map<Route, Route>> relocations) {
-            this.relocations.putAll(relocations);
+            relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
             return this;
         }
 
@@ -520,7 +500,7 @@ public class UpdaterSettings {
          * @return the builder
          */
         public Builder setRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
-            this.relocations.put(versionId, relocations);
+           this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(relocations);
             return this;
         }
 
@@ -543,7 +523,7 @@ public class UpdaterSettings {
          * @see #setStringRelocations(String, Map)
          */
         public Builder setStringRelocations(@NotNull Map<String, Map<String, String>> relocations) {
-            this.stringRelocations.putAll(relocations);
+            relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(map));
             return this;
         }
 
@@ -565,7 +545,7 @@ public class UpdaterSettings {
          * @return the builder
          */
         public Builder setStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
-            this.stringRelocations.put(versionId, relocations);
+            this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(relocations);
             return this;
         }
 
@@ -629,5 +609,62 @@ public class UpdaterSettings {
         public UpdaterSettings build() {
             return new UpdaterSettings(this);
         }
+    }
+
+    private static class RouteMap<R, S> {
+        private static final RouteMap<?, ?> EMPTY = new RouteMap<>();
+
+        private Map<Route, R> routes = null;
+        private Map<String, S> strings = null;
+
+        public <T> Map<Route, T> merge(Function<R, T> routeMapper, Function<S, T> stringMapper, char separator) {
+            if ((routes == null || routes.isEmpty()) && (strings == null || strings.isEmpty()))
+                return Collections.emptyMap();
+            Map<Route, T> map = new HashMap<>();
+            if (strings != null)
+                strings.forEach((key, value) -> map.put(Route.fromString(key, separator), stringMapper.apply(value)));
+            if (routes != null)
+                routes.forEach((key, value) -> map.put(key, routeMapper.apply(value)));
+            return map;
+        }
+
+        public Map<Route, R> getRouteMap() {
+            return routes == null ? routes = new HashMap<>() : routes;
+        }
+
+        public Map<String, S> getStringMap() {
+            return strings == null ? strings = new HashMap<>() : strings;
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <R, S> RouteMap<R, S> empty() {
+            return (RouteMap<R, S>) EMPTY;
+        }
+    }
+
+    private static class RouteSet {
+
+        private Set<Route> routes = null;
+        private Set<String> strings = null;
+
+        public Set<Route> merge(char separator) {
+            if ((routes == null || routes.isEmpty()) && (strings == null || strings.isEmpty()))
+                return Collections.emptySet();
+            Set<Route> set = new HashSet<>();
+            if (strings != null)
+                strings.forEach(route -> set.add(Route.fromString(route, separator)));
+            if (routes != null)
+                set.addAll(routes);
+            return set;
+        }
+
+        public Set<Route> getRouteSet() {
+            return routes == null ? routes = new HashSet<>() : routes;
+        }
+
+        public Set<String> getStringSet() {
+            return strings == null ? strings = new HashSet<>() : strings;
+        }
+
     }
 }
