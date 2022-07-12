@@ -113,6 +113,8 @@ public class UpdaterSettings {
     private final Map<String, RouteSet> ignored;
     //Relocations
     private final Map<String, RouteMap<Route, String>> relocations;
+    //Mappers
+    private final Map<String, RouteMap<ValueMapper, ValueMapper>> mappers;
     //Versioning
     private final Versioning versioning;
     //Option sorting
@@ -131,6 +133,7 @@ public class UpdaterSettings {
         this.mergeRules = builder.mergeRules;
         this.ignored = builder.ignored;
         this.relocations = builder.relocations;
+        this.mappers = builder.mappers;
         this.versioning = builder.versioning;
     }
 
@@ -169,6 +172,11 @@ public class UpdaterSettings {
     public Map<Route, Route> getRelocations(@NotNull String versionId, char separator) {
         RouteMap<Route, String> relocations = this.relocations.get(versionId);
         return relocations == null ? Collections.emptyMap() : relocations.merge(Function.identity(), route -> Route.fromString(route, separator), separator);
+    }
+
+    public Map<Route, ValueMapper> getMappers(@NotNull String versionId, char separator) {
+        RouteMap<ValueMapper, ValueMapper> mappers = this.mappers.get(versionId);
+        return mappers == null ? Collections.emptyMap() : mappers.merge(Function.identity(), Function.identity(), separator);
     }
 
     /**
@@ -241,6 +249,7 @@ public class UpdaterSettings {
                 .setMergeRules(settings.mergeRules)
                 .setIgnoredRoutesInternal(settings.ignored)
                 .setRelocationsInternal(settings.relocations)
+                .setMappersInternal(settings.mappers)
                 .setVersioning(settings.versioning);
     }
 
@@ -261,6 +270,8 @@ public class UpdaterSettings {
         private final Map<String, RouteSet> ignored = new HashMap<>();
         //Relocations
         private final Map<String, RouteMap<Route, String>> relocations = new HashMap<>();
+        //Mappers
+        private final Map<String, RouteMap<ValueMapper, ValueMapper>> mappers = new HashMap<>();
         //Versioning
         private Versioning versioning = DEFAULT_VERSIONING;
         //Option sorting
@@ -500,7 +511,7 @@ public class UpdaterSettings {
          * @return the builder
          */
         public Builder setRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
-           this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(relocations);
+            this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(relocations);
             return this;
         }
 
@@ -546,6 +557,31 @@ public class UpdaterSettings {
          */
         public Builder setStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
             this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(relocations);
+            return this;
+        }
+
+        public Builder setMappersInternal(@NotNull Map<String, RouteMap<ValueMapper, ValueMapper>> mappers) {
+            this.mappers.putAll(mappers);
+            return this;
+        }
+
+        public Builder setMappers(@NotNull Map<String, Map<Route, ValueMapper>> mappers) {
+            mappers.forEach((versionId, map) -> this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
+            return this;
+        }
+
+        public Builder setMappers(@NotNull String versionId, @NotNull Map<Route, ValueMapper> mappers) {
+            this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(mappers);
+            return this;
+        }
+
+        public Builder setStringMappers(@NotNull Map<String, Map<String, ValueMapper>> mappers) {
+            mappers.forEach((versionId, map) -> this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(map));
+            return this;
+        }
+
+        public Builder setStringMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers) {
+            this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(mappers);
             return this;
         }
 
