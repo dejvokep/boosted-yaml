@@ -50,7 +50,7 @@ public class UpdaterSettings {
          * <p>
          * <b>This setting does not introduce any additional memory consumption and should be used if the map
          * implementation defined by {@link GeneralSettings.Builder#setDefaultMap(MapSupplier)} doesn't preserve element
-         * order.</b>
+         * order (for example {@link HashMap}).</b>
          */
         NONE,
 
