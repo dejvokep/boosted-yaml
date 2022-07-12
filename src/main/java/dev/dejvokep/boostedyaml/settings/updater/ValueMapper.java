@@ -28,7 +28,7 @@ public interface ValueMapper {
 
     @Nullable
     default Object map(@NotNull Section section, @NotNull Route key) {
-        return map(section.get(key));
+        return map(section.getBlock(key));
     }
 
     @Nullable
