@@ -13,68 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.updater;
+package dev.dejvokep.boostedyaml.updater.operators;
 
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
-import dev.dejvokep.boostedyaml.dvs.Version;
 import dev.dejvokep.boostedyaml.route.Route;
-import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Relocator is a utility class and one of the updating process operators, responsible for applying relocations while
+ * updating.
+ */
 public class Relocator {
 
-    //The section
-    private final Section section;
-    //Versions
-    private final Version documentVersion, defaultsVersion;
+    /**
+     * Instance for calling non-static methods.
+     */
+    private static final Relocator INSTANCE = new Relocator();
 
     /**
-     * Initializes the relocator with the given section and document versions.
+     * Applies the provided relocations to the given section.
      *
-     * @param section         the section
-     * @param documentVersion version of the document that's updated (parent of the given section)
-     * @param defaultsVersion version of the defaults
+     * @param section     the section
+     * @param relocations the relocations to apply
      */
-    public Relocator(@NotNull Section section, @NotNull Version documentVersion, @NotNull Version defaultsVersion) {
-        this.section = section;
-        this.documentVersion = documentVersion;
-        this.defaultsVersion = defaultsVersion;
-    }
-
-    /**
-     * Applies all appropriate relocations to the given section (in constructor), one by one using {@link #apply(Map,
-     * Route)}.
-     * <p>
-     * More formally, iterates through all version IDs, starting from the just next version ID of the document version
-     * ID, ending (inclusive) when the currently iterated version ID is equal to the version ID of the defaults.
-     *
-     * @param settings  settings used to get relocations
-     * @param separator separator used to split string routes
-     * @see #apply(Map, Route)
-     */
-    public void apply(@NotNull UpdaterSettings settings, char separator) {
-        //Copy
-        Version current = this.documentVersion.copy();
-        //While not at the latest version
-        while (current.compareTo(defaultsVersion) <= 0) {
-            //Move to the next version
-            current.next();
-            //Relocations
-            Map<Route, Route> relocations = settings.getRelocations(current.asID(), separator);
-            //If there is not any
-            if (relocations.isEmpty())
-                continue;
-
-            //Go through all entries
-            while (relocations.size() > 0)
-                //Apply
-                apply(relocations, relocations.keySet().iterator().next());
-        }
+    public static void apply(@NotNull Section section, @NotNull Map<Route, Route> relocations) {
+        //Go through all entries
+        while (relocations.size() > 0)
+            //Apply
+            INSTANCE.apply(section, relocations, relocations.keySet().iterator().next());
     }
 
     /**
@@ -88,7 +59,7 @@ public class Relocator {
      * @param relocations all the relocations
      * @param from        from where to relocate
      */
-    private void apply(@NotNull Map<Route, Route> relocations, @Nullable Route from) {
+    private void apply(@NotNull Section section, @NotNull Map<Route, Route> relocations, @Nullable Route from) {
         //If there is no relocation
         if (from == null || !relocations.containsKey(from))
             return;
@@ -119,7 +90,7 @@ public class Relocator {
         removeParents(parent.get());
 
         //Relocate to
-        apply(relocations, to);
+        apply(section, relocations, to);
 
         //Relocate
         section.set(to, block);

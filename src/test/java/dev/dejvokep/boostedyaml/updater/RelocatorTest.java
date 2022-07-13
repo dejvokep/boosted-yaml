@@ -21,6 +21,7 @@ import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.dvs.Pattern;
 import dev.dejvokep.boostedyaml.dvs.Version;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.updater.operators.Relocator;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;

@@ -6,9 +6,20 @@ import dev.dejvokep.boostedyaml.settings.updater.ValueMapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.Optional;
 
+/**
+ * Mapper is a utility class and one of the updating process operators, responsible for applying value mappings while
+ * updating.
+ */
 public class Mapper {
 
+    /**
+     * Applies the provided mappers to the given section.
+     *
+     * @param section the section
+     * @param mappers the mappers to apply
+     */
     public static void apply(@NotNull Section section, @NotNull Map<Route, ValueMapper> mappers) {
         mappers.forEach(((route, mapper) -> section.getParent(route).ifPresent(parent -> {
             // Single key route

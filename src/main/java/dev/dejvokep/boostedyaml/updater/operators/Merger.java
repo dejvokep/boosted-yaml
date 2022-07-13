@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.updater;
+package dev.dejvokep.boostedyaml.updater.operators;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
@@ -37,14 +37,14 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Class responsible for merging the document with the defaults. Merging is the final stage of the updating process.
+ * Merger is the last of the updating process operators, responsible for merging the document with the defaults.
  */
 public class Merger {
 
     /**
-     * Merger instance for calling non-static methods.
+     * Instance for calling non-static methods.
      */
-    private static final Merger instance = new Merger();
+    private static final Merger INSTANCE = new Merger();
 
     /**
      * Merges the given document with the defaults.
@@ -64,7 +64,7 @@ public class Merger {
      * @see #iterate(Section, Section, UpdaterSettings)
      */
     public static void merge(@NotNull Section document, @NotNull Section defaults, @NotNull UpdaterSettings settings) {
-        instance.iterate(document, defaults, settings);
+        INSTANCE.iterate(document, defaults, settings);
     }
 
     /**
