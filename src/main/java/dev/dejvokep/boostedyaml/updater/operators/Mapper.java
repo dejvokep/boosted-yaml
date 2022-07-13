@@ -6,7 +6,6 @@ import dev.dejvokep.boostedyaml.settings.updater.ValueMapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Mapper is a utility class and one of the updating process operators, responsible for applying value mappings while

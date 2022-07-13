@@ -23,6 +23,7 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import dev.dejvokep.boostedyaml.dvs.Pattern;
+import dev.dejvokep.boostedyaml.settings.updater.ValueMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -46,6 +47,13 @@ class UpdaterTest {
             put(Route.from("o"), Route.from("m"));
             put(Route.from("z"), Route.from("s"));
         }});
+    }}).setMappers(new HashMap<String, Map<Route, ValueMapper>>() {{
+        put("1.5", new HashMap<Route, ValueMapper>(){{
+            put(Route.from("r"), ValueMapper.section((section, route) -> section.getOptionalInt(route).map(value -> value > 0 ? "+" : "else").orElse("unknown")));
+        }});
+        put("2.3", new HashMap<Route, ValueMapper>(){{
+            put(Route.from("m"), ValueMapper.value(value -> value.toString().indexOf(':')));
+        }});
     }}).setVersioning(PATTERN, "a").build();
 
     @Test
@@ -62,8 +70,8 @@ class UpdaterTest {
         assertEquals(true, file.get("y", null));
         assertEquals(5, file.get("s.a", null));
         assertEquals(15, file.get("s.b", null));
-        assertEquals("a: b", file.get("m", null));
-        assertEquals(1, file.get("r", null));
+        assertEquals(1, file.get("m", null));
+        assertEquals("+", file.get("r", null));
         assertEquals(100, file.get("t", null));
         assertEquals(6, file.getKeys().size());
         assertEquals(2, file.getSection("s").getKeys().size());
