@@ -21,22 +21,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.regex.Pattern;
 
 /**
- * Factory used to build routes from string routes in bulk.
+ * Factory used to build {@link Route routes} from string routes with the same separator in bulk.
  * <p>
- * As string routes can also be used to access data, you should <b>never</b> convert string routes using this class,
- * except some situations where it is allowed.
+ * <i>Please note that string routes can also be used as {@link Route} objects, therefore you should not introduce
+ * additional overhead by converting them using methods provided by this class, unless necessarily needed.</i>
  */
 public class RouteFactory {
 
-    //The separator
+    //Separator
     private final char separator;
-    //Escaped separator
     private final String escapedSeparator;
 
     /**
-     * Creates a factory with the separator specified by the given settings.
+     * Creates a factory with the given setting's {@link GeneralSettings#getRouteSeparator() separator}.
      *
-     * @param generalSettings settings from which to get the separator
+     * @param generalSettings provider of the separator to use
      */
     public RouteFactory(@NotNull GeneralSettings generalSettings) {
         this.separator = generalSettings.getRouteSeparator();
@@ -55,8 +54,7 @@ public class RouteFactory {
 
 
     /**
-     * Creates a factory with the defaults specified by {@link GeneralSettings#DEFAULT_ROUTE_SEPARATOR} and {@link
-     * GeneralSettings#DEFAULT_ESCAPED_SEPARATOR}.
+     * Creates a factory with the default separator defined by {@link GeneralSettings#DEFAULT_ROUTE_SEPARATOR}.
      */
     public RouteFactory() {
         this.separator = GeneralSettings.DEFAULT_ROUTE_SEPARATOR;
@@ -64,22 +62,17 @@ public class RouteFactory {
     }
 
     /**
-     * Constructs a route from the given string route, by splitting it by the factory's separator.
+     * Constructs a route by splitting the given string route by the {@link #getSeparator() factory's separator}.
      * <p>
-     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this
-     * method, except some situations where it is allowed.
+     * For example, giving string route <code>"a.b"</code> will return the equivalent route containing 2 keys:
+     * <code>["a", "b"]</code>.
      * <p>
-     * The given keys are traversed in order as they were specified. Assuming route <code>["x", "y"]</code>, processor
-     * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
-     * and then value at key <code>"y"</code> in <b>that</b> section.
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create that certain route only once
-     * and
-     * then reuse it.</i>
+     * <i>Please note that string routes can also be used as {@link Route} objects, therefore you should not introduce
+     * additional overhead by converting them using methods provided by this class, unless necessarily needed.</i>
      *
-     * @param route the string route to split (in format <code>a.b</code> for factory separator <code>'.'</code> to
-     *              create route <code>[a, b]</code>)
-     * @return the immutable route
+     * @param route the string route to split
+     * @return the route
+     * @see Route implementation information
      */
     @NotNull
     public Route create(String route) {
@@ -96,9 +89,9 @@ public class RouteFactory {
     }
 
     /**
-     * Returns the escaped version of {@link #getSeparator()}.
+     * Returns the escaped {@link #getSeparator() separator}.
      *
-     * @return the escaped separator
+     * @return the escaped {@link #getSeparator() separator}
      */
     @NotNull
     public String getEscapedSeparator() {

@@ -18,7 +18,7 @@ package dev.dejvokep.boostedyaml.updater;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import dev.dejvokep.boostedyaml.updater.VersionedOperations;
+import dev.dejvokep.boostedyaml.updater.operators.Mapper;
 import dev.dejvokep.boostedyaml.updater.operators.Merger;
 import dev.dejvokep.boostedyaml.updater.operators.Relocator;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import java.io.IOException;
  * <ol>
  *     <li>loading version IDs of the document and defaults,</li>
  *     <li>comparing the IDs (to check if updating, downgrading...),</li>
- *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+ *     <li>applying relocations and mapping functions to the document (if the files are not the same version ID) - see {@link Relocator} and {@link Mapper},</li>
  *     <li>marking ignored blocks in the document,</li>
  *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
  * </ol>
@@ -42,7 +42,7 @@ public class Updater {
      * <ol>
      *     <li>loading file version IDs,</li>
      *     <li>comparing the IDs (to check if updating, downgrading...),</li>
-     *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+     *     <li>applying relocations and mapping functions to the document (if the files are not the same version ID) - see {@link Relocator} and {@link Mapper},</li>
      *     <li>marking ignored blocks in the document,</li>
      *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
      * </ol>

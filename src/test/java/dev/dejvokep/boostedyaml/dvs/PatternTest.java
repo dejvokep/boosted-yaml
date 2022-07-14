@@ -30,10 +30,10 @@ class PatternTest {
     @Test
     void getPart() {
         // Assert all
-        assertEquals(SEGMENT_FIRST, PATTERN.getPart(0));
-        assertEquals(SEGMENT_SECOND, PATTERN.getPart(1));
-        assertEquals(SEGMENT_THIRD, PATTERN.getPart(2));
-        assertThrows(ArrayIndexOutOfBoundsException.class, () -> PATTERN.getPart(3));
+        assertEquals(SEGMENT_FIRST, PATTERN.getSegment(0));
+        assertEquals(SEGMENT_SECOND, PATTERN.getSegment(1));
+        assertEquals(SEGMENT_THIRD, PATTERN.getSegment(2));
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> PATTERN.getSegment(3));
     }
 
     @Test

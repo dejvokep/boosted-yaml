@@ -23,7 +23,11 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * In-code representation of version IDs; provides a bunch of useful methods.
+ * The in-code representation of version IDs (e.g. <code>1.4</code> or <code>1.2-alpha</code>).
+ * <p>
+ * Each version is defined by a {@link Pattern} and an array of cursors, each corresponding to one pattern {@link
+ * Segment}. A cursor represents the index of the element of that {@link Segment} which is forming the version ID and
+ * each time any cursor changes, the ID representation is rebuilt and cached.
  */
 public class Version implements Comparable<Version> {
 
@@ -37,7 +41,7 @@ public class Version implements Comparable<Version> {
     /**
      * Initializes the version object with the given ID representation (if known), pattern, and cursors parsed.
      *
-     * @param id      the version ID, or <code>null</code> if unknown
+     * @param id      the version ID, or <code>null</code> if unknown (it will be built automatically)
      * @param pattern the pattern
      * @param cursors the cursors
      */
@@ -72,12 +76,12 @@ public class Version implements Comparable<Version> {
     }
 
     /**
-     * Returns the cursor corresponding to pattern's segment at the given index.
+     * Returns the cursor corresponding to {@link #getPattern() pattern} segment at the given index. The given index
+     * must be <code>&gt;= 0</code>, simultaneously less than the amount of segments defining the {@link #getPattern()
+     * pattern}.
      * <p>
-     * The given index must be <code>&gt;= 0</code>, simultaneously less than the amount of segments defining the {@link
-     * #getPattern() pattern}.
-     * <p>
-     * The returned cursor is guaranteed to be <code>&gt;= 0</code> and less than {@link Segment#length()}.
+     * The returned cursor is guaranteed to be <code>&gt;= 0</code> and less than the corresponding {@link
+     * Segment#length() segment's length}.
      *
      * @param index the index of the cursor to return
      * @return the cursor
@@ -89,10 +93,11 @@ public class Version implements Comparable<Version> {
     /**
      * Moves to the next version (accordingly to the {@link #getPattern() pattern}).
      * <p>
-     * More formally, shifts the cursor of the least significant segment (on the right). If it is the last element in
-     * the segment's definition, shifts the cursor of 2nd least significant part (just to the left), etc.
+     * More formally, shifts the cursor of the least significant segment (on the right). If it was the last element in
+     * the segment's definition, resets the cursor to <code>0</code> (first element) and shifts the cursor of 2nd least
+     * significant part (just to the left) the same way.
      * <p>
-     * For example, <code>1.2</code> &gt; <code>1.3</code> (depending on the pattern configuration, just for
+     * For example, <code>1.2</code> -&gt; <code>1.3</code> (depending on the pattern configuration, just for
      * illustration).
      */
     public void next() {
@@ -101,7 +106,7 @@ public class Version implements Comparable<Version> {
             //The cursor
             int cursor = cursors[index];
             //If out of range
-            if (cursor + 1 >= pattern.getPart(index).length()) {
+            if (cursor + 1 >= pattern.getSegment(index).length()) {
                 //Reset
                 cursors[index] = 0;
                 //Continue and update the next cursor
@@ -118,7 +123,7 @@ public class Version implements Comparable<Version> {
     }
 
     /**
-     * Builds the ID for this version.
+     * Builds and caches the ID for this version.
      */
     private void buildID() {
         //The builder
@@ -126,13 +131,14 @@ public class Version implements Comparable<Version> {
         //Go through all indexes
         for (int index = 0; index < cursors.length; index++)
             //Append
-            builder.append(pattern.getPart(index).getElement(cursors[index]));
+            builder.append(pattern.getSegment(index).getElement(cursors[index]));
         //Set
         id = builder.toString();
     }
 
     /**
-     * Returns the version as an ID - according to the current cursors.
+     * Returns the version as an ID (for example <code>"1.2"</code>, <code>"5"</code> etc. according to the {@link
+     * #getPattern() pattern}).
      *
      * @return the version as an ID
      */
@@ -141,8 +147,8 @@ public class Version implements Comparable<Version> {
     }
 
     /**
-     * Creates a copy of this version object. The new object does not refer to this one in anything except the pattern,
-     * which is shared between them.
+     * Creates a copy of this version object. The new object does not keep reference to this one in any means except the
+     * pattern, which is shared between them.
      * <p>
      * More formally, only makes a shallow copy of the cursor indexes.
      *
@@ -153,9 +159,9 @@ public class Version implements Comparable<Version> {
     }
 
     /**
-     * Returns the pattern using which this version was parsed.
+     * Returns the versions' pattern (was also used to parse the version).
      *
-     * @return the pattern using which this version was parsed
+     * @return the versions' pattern
      */
     public Pattern getPattern() {
         return pattern;

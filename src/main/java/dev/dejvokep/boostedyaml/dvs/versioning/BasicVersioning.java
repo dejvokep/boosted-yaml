@@ -30,7 +30,7 @@ public class BasicVersioning extends AutomaticVersioning {
     public static final Pattern PATTERN = new Pattern(Segment.range(1, Integer.MAX_VALUE));
 
     /**
-     * Initializes the versioning with the given route.
+     * Creates a versioning with the given route.
      *
      * @param route the route at which version IDs can be found
      */
