@@ -21,6 +21,7 @@ import dev.dejvokep.boostedyaml.dvs.versioning.AutomaticVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.ManualVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
 import dev.dejvokep.boostedyaml.route.Route;
+import dev.dejvokep.boostedyaml.route.RouteFactory;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
@@ -471,6 +472,22 @@ public class UpdaterSettings {
             return this;
         }
 
+        public Builder setIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, char separator) {
+            setIgnoredRoutes(versionId, routes, new RouteFactory(separator));
+            return this;
+        }
+
+        public Builder setIgnoredRoutes(@NotNull Map<String, Set<String>> routes, char separator) {
+            RouteFactory factory = new RouteFactory(separator);
+            routes.forEach((versionId, collection) -> setIgnoredRoutes(versionId, collection, factory));
+            return this;
+        }
+
+        private void setIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, @NotNull RouteFactory factory) {
+            Set<Route> set = this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet();
+            routes.forEach(route -> set.add(factory.create(route)));
+        }
+
         private Builder setRelocationsInternal(@NotNull Map<String, RouteMap<Route, String>> relocations) {
             this.relocations.putAll(relocations);
             return this;
@@ -560,6 +577,22 @@ public class UpdaterSettings {
             return this;
         }
 
+        public Builder setRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations, char separator) {
+            setRelocations(versionId, relocations, new RouteFactory(separator));
+            return this;
+        }
+
+        public Builder setRelocations(@NotNull Map<String, Map<String, String>> relocations, char separator) {
+            RouteFactory factory = new RouteFactory(separator);
+            relocations.forEach((versionId, collection) -> setRelocations(versionId, collection, factory));
+            return this;
+        }
+
+        private void setRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations, @NotNull RouteFactory factory) {
+            Map<Route, Route> map = this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap();
+            relocations.forEach((from, to) -> map.put(factory.create(from), factory.create(to)));
+        }
+
         private Builder setMappersInternal(@NotNull Map<String, RouteMap<ValueMapper, ValueMapper>> mappers) {
             this.mappers.putAll(mappers);
             return this;
@@ -575,14 +608,20 @@ public class UpdaterSettings {
             return this;
         }
 
-        public Builder setStringMappers(@NotNull Map<String, Map<String, ValueMapper>> mappers) {
-            mappers.forEach((versionId, map) -> this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(map));
+        public Builder setMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers, char separator) {
+            setMappers(versionId, mappers, new RouteFactory(separator));
             return this;
         }
 
-        public Builder setStringMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers) {
-            this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(mappers);
+        public Builder setMappers(@NotNull Map<String, Map<String, ValueMapper>> mappers, char separator) {
+            RouteFactory factory = new RouteFactory(separator);
+            mappers.forEach((versionId, collection) -> setMappers(versionId, collection, factory));
             return this;
+        }
+
+        private void setMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers, @NotNull RouteFactory factory) {
+            Map<Route, ValueMapper> map = this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap();
+            mappers.forEach((route, mapper) -> map.put(factory.create(route), mapper));
         }
 
         /**
