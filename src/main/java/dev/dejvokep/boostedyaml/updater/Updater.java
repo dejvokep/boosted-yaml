@@ -16,22 +16,21 @@
 package dev.dejvokep.boostedyaml.updater;
 
 import dev.dejvokep.boostedyaml.block.implementation.Section;
-import dev.dejvokep.boostedyaml.dvs.Version;
-import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
-import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.updater.operators.Mapper;
+import dev.dejvokep.boostedyaml.updater.operators.Merger;
+import dev.dejvokep.boostedyaml.updater.operators.Relocator;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * Updater class responsible for executing the whole process:
  * <ol>
  *     <li>loading version IDs of the document and defaults,</li>
  *     <li>comparing the IDs (to check if updating, downgrading...),</li>
- *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+ *     <li>applying relocations and mapping functions to the document (if the files are not the same version ID) - see {@link Relocator} and {@link Mapper},</li>
  *     <li>marking ignored blocks in the document,</li>
  *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
  * </ol>
@@ -39,16 +38,11 @@ import java.util.Objects;
 public class Updater {
 
     /**
-     * Updater instance for calling non-static methods.
-     */
-    private static final Updater instance = new Updater();
-
-    /**
      * Updates the given document against the given defaults and settings. The process consists of:
      * <ol>
      *     <li>loading file version IDs,</li>
      *     <li>comparing the IDs (to check if updating, downgrading...),</li>
-     *     <li>applying relocations to the document (if the files are not the same version ID) - see {@link Relocator#apply(UpdaterSettings, char)},</li>
+     *     <li>applying relocations and mapping functions to the document (if the files are not the same version ID) - see {@link Relocator} and {@link Mapper},</li>
      *     <li>marking ignored blocks in the document,</li>
      *     <li>merging both files - see {@link Merger#merge(Section, Section, UpdaterSettings)}.</li>
      * </ol>
@@ -61,7 +55,7 @@ public class Updater {
      */
     public static void update(@NotNull Section document, @NotNull Section defaults, @NotNull UpdaterSettings updaterSettings, @NotNull GeneralSettings generalSettings) throws IOException {
         //Apply versioning stuff
-        if (instance.runVersionDependent(document, defaults, updaterSettings, generalSettings.getRouteSeparator()))
+        if (VersionedOperations.run(document, defaults, updaterSettings, generalSettings.getRouteSeparator()))
             return;
         //Merge
         Merger.merge(document, defaults, updaterSettings);
@@ -73,60 +67,6 @@ public class Updater {
         //If auto save is enabled
         if (updaterSettings.isAutoSave())
             document.getRoot().save();
-    }
-
-    /**
-     * Runs version-dependent mechanics.
-     * <ol>
-     *     <li>If {@link UpdaterSettings#getVersioning()} is <code>null</code>, does not proceed.</li>
-     *     <li>If the version of the document is not provided (is <code>null</code>), assigns the oldest version specified by the underlying pattern
-     *     (see {@link Versioning#getFirstVersion()}) and automatically forces an update.</li>
-     *     <li>If downgrading and it is disabled, throws an
-     *     {@link UnsupportedOperationException}.</li>
-     *     <li>If version IDs equal, does not proceed.</li>
-     *     <li>If upgrading, applies all relocations needed.</li>
-     *     <li>Marks all ignored blocks.</li>
-     * </ol>
-     *
-     * @param document  the document section that's being updated
-     * @param defaults  section equivalent in the defaults
-     * @param settings  updater settings to use
-     * @param separator the route separator, used to split string-based relocations and force copy routes
-     * @return if the document is already up-to-date, <code>false</code> otherwise
-     */
-    private boolean runVersionDependent(@NotNull Section document, @NotNull Section defaults, @NotNull UpdaterSettings settings, char separator) {
-        //Versioning
-        Versioning versioning = settings.getVersioning();
-        //If the versioning is not set
-        if (versioning == null)
-            return false;
-
-        //Versions
-        Version documentVersion = versioning.getDocumentVersion(document, false), defaultsVersion = Objects.requireNonNull(versioning.getDocumentVersion(defaults, true), "Version ID of the defaults cannot be null! Is it malformed or not specified?");
-
-        //Compare (or force update if not found)
-        int compared = documentVersion != null ? documentVersion.compareTo(defaultsVersion) : -1;
-        //If downgrading
-        if (compared > 0 && !settings.isEnableDowngrading())
-            //Throw an error
-            throw new UnsupportedOperationException(String.format("Downgrading is not enabled (%s > %s)!", defaultsVersion.asID(), documentVersion.asID()));
-
-        //No update needed
-        if (compared == 0)
-            return true;
-
-        //If not downgrading
-        if (compared < 0) {
-            //Initialize relocator
-            Relocator relocator = new Relocator(document, documentVersion != null ? documentVersion : versioning.getFirstVersion(), defaultsVersion);
-            //Apply all
-            relocator.apply(settings, separator);
-        }
-
-        //Ignored routes
-        for (Route route : settings.getIgnoredRoutes(defaultsVersion.asID(), separator))
-            document.getOptionalBlock(route).ifPresent(block -> block.setIgnored(true));
-        return false;
     }
 
 }

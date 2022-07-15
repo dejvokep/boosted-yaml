@@ -22,7 +22,7 @@ import java.util.Arrays;
  */
 public class LiteralSegment implements Segment {
 
-    //The elements
+    //Elements
     private final String[] elements;
 
     /**

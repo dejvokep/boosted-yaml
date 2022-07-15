@@ -30,30 +30,15 @@ public class MultiKeyRoute implements Route {
     private final Object[] route;
 
     /**
-     * Constructs route from the given array of keys/key arguments, enabling usage of wide-range data types as keys. The
-     * given keys <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * Constructs a route from the given <b>non-null</b> keys. The given keys must be <b>immutable</b>; if this cannot
+     * be achieved, it is <b>required</b> that the caller never modifies them.
      * <p>
-     * The given array cannot contain <code>null</code> keys.
-     * <p>
-     * Empty array is considered illegal and will throw an {@link IllegalArgumentException}. Call with <code>null</code>
-     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) will throw a {@link
-     * NullPointerException}.
-     * <p>
-     * The given keys are traversed in order as they were specified - just like folders: assuming route <code>["x",
-     * 1]</code>, processor attempts to get section at key <code>"x"</code> in the section from which the
-     * getter/setter... method was called; and then value at key <code>1</code> in <b>that</b> section.
-     * <p>
-     * If varargs format is used and there is only one argument, it will automatically be interpreted as call to {@link
-     * #from(Object)}, saving time and memory consumption.
-     * <p>
-     * <b>If passing an array as the only key, do not forget to cast it to {@link Object}, otherwise it will be
-     * interpreted as multi-key route according to the array's contents. Alternatively, to avoid confusion, use {@link
-     * #fromSingleKey(Object)}</b>
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
-     * and then reuse them.</i>
+     * No keys or an empty array is considered illegal and will throw an {@link IllegalArgumentException}. As indicated,
+     * <code>null</code> keys or attempt to pass a <code>null</code> array (to avoid varargs functionality, e.g.
+     * <code>from((Object[]) null)</code>) will throw a {@link NullPointerException}.
      *
-     * @param route the route array
+     * @param route the route keys
+     * @see Route implementation information
      */
     public MultiKeyRoute(@NotNull Object... route) {
         //If empty

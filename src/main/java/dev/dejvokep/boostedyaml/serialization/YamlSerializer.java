@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Interface used by custom serializer implementations.
+ * Interface used by custom serializer implementations. If you are looking into building your own implementation, it is
+ * recommended that you read the <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
  */
 public interface YamlSerializer {
 

@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Interface used to (de-)serialize custom types with {@link StandardSerializer}.
  * <p>
- * Please note that classes implementing this interface must also be registered at the serializer instance used. See
+ * Please note that classes implementing this interface must also be registered to the used serializer instance. See
  * {@link StandardSerializer#register(Class, TypeAdapter)}.
  *
  * @param <T> type of the adapter
@@ -34,11 +34,11 @@ public interface TypeAdapter<T> {
     /**
      * Serializes the given instance into a map.
      * <p>
-     * The returned map does not need to (but may) contain the type identifier <a href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a>.
-     * Type identifier is one entry in the top-level map (the one returned), where the key is defined by the serializer
-     * (<code>==</code> for {@link StandardSerializer#getDefault()}) and the value identifies the serialized type - either by
-     * the full canonical classname (e.g. <code>me.name.project.objects.CustomObject</code>) or it's alias. <b>Both must
-     * also be registered</b>.
+     * The returned map does not need to (but may) contain the type identifier: one entry in the top-level map (the one
+     * returned), where the key is defined by the serializer (<code>==</code> for {@link
+     * StandardSerializer#getDefault()}) and the value identifies the serialized type - either by the full canonical
+     * classname (e.g. <code>me.name.project.objects.CustomObject</code>) or it's alias. <b>If you decide to include a
+     * type identifier, it must be registered (this requirement is not verified).</b>
      * <p>
      * If the returned map does not contain the identifier, the {@link StandardSerializer serializer} will automatically
      * use the full classname.
@@ -52,7 +52,7 @@ public interface TypeAdapter<T> {
     /**
      * Deserializes the given map into instance of this type.
      * <p>
-     * The given map is a raw object map; there are no {@link Block} instances, just native Java objects themselves.
+     * The given map is a raw object map; there are no {@link Block blocks}, just native Java objects themselves.
      * <p>
      * Use {@link #toStringKeyedMap(Map)} to convert the map.
      *

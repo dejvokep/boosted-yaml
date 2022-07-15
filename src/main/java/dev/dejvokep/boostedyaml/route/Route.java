@@ -26,40 +26,30 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * Route objects are URIs used to access data in {@link Section sections}.
+ * Routes are {@link java.net.URI URI}-like objects used to access and modify data stored in {@link Section sections},
+ * backed by a simple array.
  * <p>
- * Route objects are immutable, but handful of methods are provided to create derivations.
+ * Routes are immutable objects - it is recommended to create individual objects only once and reuse them. Route's keys
+ * are traversed in order as given: assuming route <code>["x", 1]</code>, the processing method ({@link Section}
+ * getter/setter...) attempts to obtain {@link Section section} at key <code>"x"</code> in the {@link Section section}
+ * from which the method was called; and then value at key <code>1</code> in <b>that</b> {@link Section section}.
  */
 public interface Route {
 
     /**
-     * Constructs route from the given array of keys/key arguments, enabling usage of wide-range data types as keys. The
-     * given keys
-     * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * Constructs a route from the given <b>non-null</b> keys. The given keys must be <b>immutable</b>; if this cannot
+     * be achieved, it is <b>required</b> that the caller never modifies them.
      * <p>
-     * The given array cannot contain <code>null</code> keys.
+     * No keys or an empty array is considered illegal and will throw an {@link IllegalArgumentException}. As indicated,
+     * <code>null</code> keys or attempt to pass a <code>null</code> array (to avoid varargs functionality, e.g.
+     * <code>from((Object[]) null)</code>) will throw a {@link NullPointerException}.
      * <p>
-     * Empty array is considered illegal and will throw an {@link IllegalArgumentException}. Call with <code>null</code>
-     * supplied as the route argument (e.g. <code>from((Object[]) null)</code>) will throw a {@link
-     * NullPointerException}.
-     * <p>
-     * The given keys are traversed in order as they were specified. Assuming route <code>["x", 1]</code>, processor
-     * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
-     * and then value at key <code>1</code> in <b>that</b> section.
-     * <p>
-     * If varargs format is used and there is only one argument, it will automatically be interpreted as call to {@link
-     * #from(Object)}, saving time and memory consumption.
-     * <p>
-     * <b>If passing an array as the only key, do not forget to cast it to {@link Object}, otherwise it will be
-     * interpreted as multi-key route according to the array's contents. Alternatively, to avoid confusion, use {@link
-     * #fromSingleKey(Object)}.</b>
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
-     * and
-     * then reuse them.</i>
+     * <b>If passing an array as the only key,</b> do not forget to cast it to {@link Object}, or use {@link
+     * #fromSingleKey(Object)} instead.
      *
-     * @param route the route array
-     * @return the immutable route
+     * @param route the route keys
+     * @return the route
+     * @see Route implementation information
      */
     @NotNull
     static Route from(@NotNull Object... route) {
@@ -71,20 +61,16 @@ public interface Route {
     }
 
     /**
-     * Constructs route from the given single key, enabling usage of wide-range data types as keys. The given key
-     * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * Constructs a route from the given <b>non-null</b> key. The given key must be <b>immutable</b>; if this cannot be
+     * achieved, it is <b>required</b> that the caller never modifies it.
      * <p>
-     * The given key cannot be <code>null</code>.
-     * <p>
-     * Alternatively, to avoid confusion, use {@link #fromSingleKey(Object)}.
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
-     * and
-     * then reuse them.</i>
+     * As indicated, the given key cannot be <code>null</code>. Such attempt will result in a {@link
+     * NullPointerException}.
      *
-     * @param key the single element in the returned route
-     * @return the immutable route
+     * @param key the single key in the route
+     * @return the single key route
      * @see #fromSingleKey(Object) alias
+     * @see Route implementation information
      */
     @NotNull
     static Route from(@NotNull Object key) {
@@ -92,19 +78,15 @@ public interface Route {
     }
 
     /**
-     * Constructs route from the given single key, enabling usage of wide-range data types as keys. The given key
-     * <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * Constructs a route from the given <b>non-null</b> key. The given key must be <b>immutable</b>; if this cannot be
+     * achieved, it is <b>required</b> that the caller never modifies it.
      * <p>
-     * The given key cannot be <code>null</code>.
-     * <p>
-     * This method is an alias of {@link #from(Object)}.
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create individual routes only once
-     * and
-     * then reuse them.</i>
+     * As indicated, the given key cannot be <code>null</code>. Such attempt will result in a {@link
+     * NullPointerException}.
      *
-     * @param key the single element in the returned route
-     * @return the immutable route
+     * @param key the single key in the route
+     * @return the single key route
+     * @see Route implementation information
      */
     @NotNull
     static Route fromSingleKey(@NotNull Object key) {
@@ -112,24 +94,19 @@ public interface Route {
     }
 
     /**
-     * Constructs a route from the given string route, by splitting it by {@link GeneralSettings#DEFAULT_ROUTE_SEPARATOR}.
+     * Constructs a route by splitting the given string route by {@link GeneralSettings#DEFAULT_ROUTE_SEPARATOR}. To
+     * split using a custom separator, use {@link #fromString(String, char)} instead.
      * <p>
-     * To split using a custom separator, please use {@link #fromString(String, char)}.
+     * For example, giving string route <code>"a.b"</code> will return the equivalent route containing 2 keys:
+     * <code>["a", "b"]</code>.
      * <p>
-     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this
-     * method, except some situations where it is allowed.
-     * <p>
-     * The given keys are traversed in order as they were specified. Assuming route <code>["x", "y"]</code>, processor
-     * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
-     * and then value at key <code>"y"</code> in <b>that</b> section.
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create that certain route only once
-     * and then reuse it.</i>
+     * <i>Please note that string routes can also be used as {@link Route} objects, therefore you should not introduce
+     * additional overhead by converting them using methods provided by this class, unless necessarily needed.</i>
      *
-     * @param route the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to create
-     *              route
-     *              <code>[a, b]</code>)
-     * @return the immutable route
+     * @param route the string route to split
+     * @return the route
+     * @see #fromString(String, char)
+     * @see Route implementation information
      */
     @NotNull
     static Route fromString(@NotNull String route) {
@@ -137,25 +114,20 @@ public interface Route {
     }
 
     /**
-     * Constructs a route from the given string route, by splitting it by the given separator.
+     * Constructs a route by splitting the given string route by the provided separator.
      * <p>
-     * Specifying the same separator again and again might sometimes violate the DRY principle - if that's the case, use
-     * {@link RouteFactory} instead.
+     * For example, giving string route <code>"a/b"</code> and separator <code>/</code> will return the equivalent route
+     * containing 2 keys - <code>["a", "b"]</code>.
      * <p>
-     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this
-     * method, except some situations where it is allowed.
-     * <p>
-     * The given keys are traversed in order as they were specified. Assuming route <code>["x", "y"]</code>, processor
-     * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
-     * and then value at key <code>"y"</code> in <b>that</b> section.
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create that certain route only once
-     * and then reuse it.</i>
+     * <i>Please note that string routes can also be used as {@link Route} objects, therefore you should not introduce
+     * additional overhead by converting them using methods provided by this class, unless necessarily needed. If that's
+     * the case for multiple routes, you can use {@link RouteFactory} to abstract the separator.</i>
      *
-     * @param route     the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to create
-     *                  route <code>[a, b]</code>)
+     * @param route     the string route to split
      * @param separator separator to split the route by
-     * @return the immutable route
+     * @return the route
+     * @see #fromString(String, char)
+     * @see Route implementation information
      */
     @NotNull
     static Route fromString(@NotNull String route, char separator) {
@@ -163,24 +135,20 @@ public interface Route {
     }
 
     /**
-     * Constructs a route from the given string route, by splitting it by separator supplied by the factory.
+     * Constructs a route by splitting the given string route by the provided factory's {@link
+     * RouteFactory#getSeparator() separator}.
      * <p>
-     * This is an alias, use {@link RouteFactory} instead.
+     * For example, giving string route <code>"a/b"</code> and separator <code>/</code> will return the equivalent route
+     * containing 2 keys - <code>["a", "b"]</code>.
      * <p>
-     * As string routes can also be used to access data, you should <b>never</b> convert string routes using this
-     * method, except some situations where it is allowed.
-     * <p>
-     * The given keys are traversed in order as they were specified. Assuming route <code>["x", "y"]</code>, processor
-     * attempts to get section at key <code>"x"</code> in the section from which the getter/setter... method was called;
-     * and then value at key <code>"y"</code> in <b>that</b> section.
-     * <p>
-     * <i>As routes are immutable objects, to save resources, it is recommended to create that certain route only once
-     * and then reuse it.</i>
+     * <i>Please note that string routes can also be used as {@link Route} objects, therefore you should not introduce
+     * additional overhead by converting them using methods provided by this class, unless necessarily needed.</i>
      *
-     * @param route        the string route to split (in format <code>a.b</code> for separator <code>'.'</code> to
-     *                     create route <code>[a, b]</code>)
-     * @param routeFactory supplies the separator to split the route by
-     * @return the immutable route
+     * @param route        the string route to split
+     * @param routeFactory provider of the separator
+     * @return the route
+     * @see #fromString(String, char)
+     * @see Route implementation information
      */
     @NotNull
     static Route fromString(@NotNull String route, @NotNull RouteFactory routeFactory) {
@@ -188,22 +156,25 @@ public interface Route {
     }
 
     /**
-     * Performs the same operation on the given route as {@link Route#add(Object)} (and returns the result); if the
-     * given route is <code>null</code>, creates and returns a single-key route containing only the given key.
+     * Adds the given <code>non-null</code> key to the route and returns the new object, if the route is
+     * <code>null</code>, creates and returns a single key route containing only the key. The given key must be
+     * <b>immutable</b>; if this cannot be achieved, it is <b>required</b> that the caller never modifies it.
      * <p>
-     * The given key cannot be <code>null</code>.
+     * For example, if you add key <code>1</code> to route <code>["a", "b"]</code>, the resulting route will be
+     * represented by <code>["a", "b", 1]</code>. However, if you add the same key to a <code>null</code> route, the
+     * result will be a single key route equivalent to <code>[1]</code>.
      * <p>
-     * The given keys <b>should</b> be immutable; otherwise, it is <b>required</b> that the caller never modifies them.
+     * More formally, if a <code>non-null</code> route is given, copies this route's backing array (keys), adds the
+     * given key at the end and returns the new route.
      *
-     * @param route the route to add another key (element) to, or <code>null</code> to create new one
-     * @param key   the key to add, or create a single key route from
-     * @return the new route based on the given one with the given key added at the end, or a single key route according
-     * to the documentation above
-     * @see Route#add(Object)
+     * @param route route to add the key to, or <code>null</code> to create a single key route
+     * @param key   the key to add
+     * @return the new route with same keys as this one, except with the given key added as the last one
+     * @see Route#addTo(Route, Object)
      */
     @NotNull
     static Route addTo(@Nullable Route route, @NotNull Object key) {
-        return route == null ? Route.from(key) : route.add(key);
+        return route == null ? Route.fromSingleKey(key) : route.add(key);
     }
 
     /**
@@ -216,15 +187,15 @@ public interface Route {
     String join(char separator);
 
     /**
-     * Returns the length of the route (backing array) - amount of keys forming this route.
+     * Returns the length of the route (backing array) - amount of keys forming the route.
      *
      * @return the length
      */
     int length();
 
     /**
-     * Returns key in this route (from the backing array), at the given position. Always verify if the index is within
-     * the range of the backing array by calling {@link #length()}.
+     * Returns key at the given index. Always verify if the requested index is within the range of the backing array's
+     * {@link #length() length}.
      *
      * @param i the index
      * @return the key at the given index
@@ -233,29 +204,29 @@ public interface Route {
     Object get(int i);
 
     /**
-     * Creates a new route, copies this route's backing array, adds the given key at the end and returns the new route
-     * created from the new array.
+     * Adds the given <code>non-null</code> key to the route and returns the new object. The given key must be
+     * <b>immutable</b>; if this cannot be achieved, it is <b>required</b> that the caller never modifies it.
      * <p>
-     * The given key cannot be <code>null</code>, <b>it is required to verify that</b>.
+     * For example, if you add key <code>1</code> to route <code>["a", "b"]</code>, the resulting route will be
+     * represented by <code>["a", "b", 1]</code>.
      * <p>
-     * <b>It is in the caller's best interest to never modify the objects given (and their contents), as it might cause
-     * several issues (inequalities between routes...).</b>
+     * More formally, copies this route's backing array (keys), adds the given key at the end and returns the new
+     * route.
      *
      * @param key the key to add
-     * @return the new route with same keys as this one, except with the given key added at the end
+     * @return the new route with same keys as this one, except with the given key added as the last one
      */
     @NotNull
     Route add(@NotNull Object key);
 
     /**
-     * Returns the parent route of this one.
+     * Returns the parent route of this one. More formally, creates a new route and copies this route's backing array
+     * without the last element.
      * <p>
-     * More formally, creates a new route and copies this route's backing array without the last element.
-     * <p>
-     * Please note that if this route's {@link #length()} is <code>1</code>, invoking this method will create an {@link
-     * IllegalArgumentException}, as it is illegal to have empty routes. See more at {@link Route#from(Object...)}.
+     * Per documentation of {@link Route#from(Object...)}, invoking this method if <code>{@link #length()} == 1</code>
+     * will throw an {@link IllegalArgumentException}.
      *
-     * @return the parent route of this one
+     * @return the parent route
      */
     @NotNull
     Route parent();

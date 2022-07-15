@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.updater;
+package dev.dejvokep.boostedyaml.updater.operators;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
@@ -75,8 +75,7 @@ class MergerTest {
             Merger.merge(file, file.getDefaults(), settings);
             // Verify
             assertEquals("x: 1.2\nz: 1\ny: false\n", file.dump());
-        } catch (
-                IOException ex) {
+        } catch (IOException ex) {
             fail(ex);
         }
     }

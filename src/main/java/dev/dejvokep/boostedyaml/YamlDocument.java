@@ -793,7 +793,7 @@ public class YamlDocument extends Section {
     }
 
     /**
-     * Class used to write to a string.
+     * An implementation of {@link StreamDataWriter} used to write to a string.
      */
     private static class SerializedStream extends StringWriter implements StreamDataWriter {
     }
