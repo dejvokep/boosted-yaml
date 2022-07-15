@@ -116,6 +116,7 @@ class SectionTest {
             add(Route.from("x"));
             add(Route.from("y"));
             add(Route.from(7));
+            add(Route.from("c"));
         }}, file.getRoutes(false));
         assertEquals(new HashSet<Route>() {{
             add(Route.from("x"));
@@ -123,6 +124,7 @@ class SectionTest {
             add(Route.from("y", "a"));
             add(Route.from("y", "b"));
             add(Route.from(7));
+            add(Route.from("c"));
         }}, file.getRoutes(true));
     }
 
@@ -135,6 +137,7 @@ class SectionTest {
             add("x");
             add("y");
             add("7");
+            add("c");
         }}, file.getRoutesAsStrings(false));
         assertEquals(new HashSet<String>() {{
             add("x");
@@ -142,6 +145,7 @@ class SectionTest {
             add("y.a");
             add("y.b");
             add("7");
+            add("c");
         }}, file.getRoutesAsStrings(true));
     }
 
@@ -154,6 +158,7 @@ class SectionTest {
             add("x");
             add("y");
             add(7);
+            add("c");
         }}, file.getKeys());
         assertEquals(new HashSet<Object>() {{
             add("a");
@@ -167,6 +172,7 @@ class SectionTest {
             add("x");
             add("y");
             add("7");
+            add("c");
         }}, file.getKeys());
         assertEquals(new HashSet<Object>() {{
             add("a");
@@ -183,6 +189,7 @@ class SectionTest {
             put(Route.from("x"), 5);
             put(Route.from("y"), file.getSection("y"));
             put(Route.from(7), false);
+            put(Route.from("c"), "A");
         }}, file.getRouteMappedValues(false));
         assertEquals(new HashMap<Route, Object>() {{
             put(Route.from("x"), 5);
@@ -190,6 +197,7 @@ class SectionTest {
             put(Route.from("y", "a"), true);
             put(Route.from("y", "b"), "abc");
             put(Route.from(7), false);
+            put(Route.from("c"), "A");
         }}, file.getRouteMappedValues(true));
     }
 
@@ -202,6 +210,7 @@ class SectionTest {
             put("x", 5);
             put("y", file.getSection("y"));
             put("7", false);
+            put("c", "A");
         }}, file.getStringRouteMappedValues(false));
         assertEquals(new HashMap<String, Object>() {{
             put("x", 5);
@@ -209,6 +218,7 @@ class SectionTest {
             put("y.a", true);
             put("y.b", "abc");
             put("7", false);
+            put("c", "A");
         }}, file.getStringRouteMappedValues(true));
     }
 
@@ -221,6 +231,7 @@ class SectionTest {
             put(Route.from("x"), file.getStoredValue().get("x"));
             put(Route.from("y"), file.getSection("y"));
             put(Route.from(7), file.getStoredValue().get(7));
+            put(Route.from("c"), file.getStoredValue().get("c"));
         }}, file.getRouteMappedBlocks(false));
         assertEquals(new HashMap<Route, Block<?>>() {{
             put(Route.from("x"), file.getStoredValue().get("x"));
@@ -228,6 +239,7 @@ class SectionTest {
             put(Route.from("y", "a"), file.getSection("y").getStoredValue().get("a"));
             put(Route.from("y", "b"), file.getSection("y").getStoredValue().get("b"));
             put(Route.from(7), file.getStoredValue().get(7));
+            put(Route.from("c"), file.getStoredValue().get("c"));
         }}, file.getRouteMappedBlocks(true));
     }
 
@@ -240,6 +252,7 @@ class SectionTest {
             put("x", file.getStoredValue().get("x"));
             put("y", file.getSection("y"));
             put("7", file.getStoredValue().get("7"));
+            put("c", file.getStoredValue().get("c"));
         }}, file.getStringRouteMappedBlocks(false));
         assertEquals(new HashMap<String, Block<?>>() {{
             put("x", file.getStoredValue().get("x"));
@@ -247,6 +260,7 @@ class SectionTest {
             put("y.a", file.getSection("y").getStoredValue().get("a"));
             put("y.b", file.getSection("y").getStoredValue().get("b"));
             put("7", file.getStoredValue().get("7"));
+            put("c", file.getStoredValue().get("c"));
         }}, file.getStringRouteMappedBlocks(true));
     }
 
@@ -287,10 +301,12 @@ class SectionTest {
         // Set
         file.set("z.c", true);
         file.set(Route.from(4, 6), 9);
+        file.set("c", Alphabet.B);
         // Assert
         assertTrue(file.contains("z.c"));
         assertTrue(file.contains(Route.from(4, 6)));
         assertTrue(file.getBoolean("z.c"));
+        assertEquals(Alphabet.B, file.getEnum("c", Alphabet.class));
         assertEquals(9, file.getInt(Route.from(4, 6)));
     }
 
@@ -351,6 +367,7 @@ class SectionTest {
         assertEquals(true, file.get("y.a"));
         assertEquals(GeneralSettings.DEFAULT_OBJECT, file.get(Route.from("a", "c")));
         assertEquals(false, file.get(Route.from(7)));
+        assertEquals(Alphabet.A, file.getEnum("c", Alphabet.class));
         assertNull(file.get("z", null));
     }
 
@@ -420,6 +437,10 @@ class SectionTest {
     }
 
     private YamlDocument createFile(GeneralSettings settings) throws IOException {
-        return YamlDocument.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false".getBytes(StandardCharsets.UTF_8)), settings, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+        return YamlDocument.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false\nc: A".getBytes(StandardCharsets.UTF_8)), settings, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    }
+
+    private enum Alphabet {
+        A, B, C
     }
 }
