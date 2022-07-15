@@ -2265,7 +2265,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if a value at the given route exists and is a character
+     * @return if a value at the given route exists and is a character, or any other compatible type
      * @see #get(Route)
      */
     public boolean isChar(@NotNull Route route) {
@@ -2278,7 +2278,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if a value at the given route exists and is a character
+     * @return if a value at the given route exists and is a character, or any other compatible type
      * @see #get(String)
      */
     public boolean isChar(@NotNull String route) {
