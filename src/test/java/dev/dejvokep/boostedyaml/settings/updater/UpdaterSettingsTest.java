@@ -153,20 +153,20 @@ class UpdaterSettingsTest {
                         put(Route.from("c"), blockMapper);
                     }});
                 }})
-                .setStringMappers(new HashMap<String, Map<String, ValueMapper>>() {{
+                .setMappers(new HashMap<String, Map<String, ValueMapper>>() {{
                     put("1.2", new HashMap<String, ValueMapper>() {{
                         put("b", valueMapper);
                     }});
                     put("1.4", new HashMap<String, ValueMapper>() {{
                         put("d", blockMapper);
                     }});
-                }})
+                }}, '.')
                 .setMappers("1.5", new HashMap<Route, ValueMapper>() {{
                     put(Route.from("e"), valueMapper);
                 }})
-                .setStringMappers("1.5", new HashMap<String, ValueMapper>() {{
+                .setMappers("1.5", new HashMap<String, ValueMapper>() {{
                     put("f", blockMapper);
-                }}).build();
+                }}, '.').build();
         // Assert
         assertEquals(new HashMap<Route, ValueMapper>() {{
             put(Route.from("a"), valueMapper);
