@@ -1572,7 +1572,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
      * <code>int</code>).
      *
@@ -1597,7 +1597,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns an empty optional.
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
      * <code>int</code>).
      *
@@ -1621,7 +1621,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code><a
      * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
      * <code>int</code>).
      *
@@ -1642,7 +1642,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code><a
      * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
      * <code>int</code>).
      *
@@ -1662,7 +1662,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
      * <code>int</code>).
      *
@@ -1683,7 +1683,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * If there is no block present at the given route (therefore no value can be returned), or the value (block's
      * actual value or {@link Section} instance) is not castable to the given type, returns the provided default.
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
      * <code>int</code>).
      *
@@ -1702,7 +1702,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * it is an instance of the given class. <a href="#note-2">If no value is at the route, checks the defaults
      * (#2).</a>
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>).
      *
      * @param route the route to check the value at
@@ -1720,7 +1720,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * it is an instance of the given class. <a href="#note-2">If no value is at the route, checks the defaults
      * (#2).</a>
      * <p>
-     * <b>This method supports</b> casting between a primitive types and their non-primitive representations (e.g.
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
      * {@link Double} - <code>double</code>).
      *
      * @param route the route to check the value at
