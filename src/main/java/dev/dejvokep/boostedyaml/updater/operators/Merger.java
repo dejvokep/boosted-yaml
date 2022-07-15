@@ -186,7 +186,7 @@ public class Merger {
     }
 
     /**
-     * Resets ignored setting for sub-blocks of the given section
+     * Resets ignored setting for sub-blocks of the given section.
      *
      * @param section the section
      */

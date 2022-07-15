@@ -60,11 +60,7 @@ public class Pattern {
 
 
     /**
-     * Returns segment at the given index (index <code>0</code> refers to the most significant one on the left).
-     *
-     * @param index the index
-     * @return segment at the given index
-     * @deprecated Method with confusing name and subject for removal, use {@link #getSegment(int)} instead.
+     * @deprecated Method with confusing name, use {@link #getSegment(int)} instead. Subject for removal.
      */
     @Deprecated
     @NotNull

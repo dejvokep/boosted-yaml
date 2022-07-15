@@ -29,10 +29,8 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -57,7 +55,7 @@ class UpdaterSettingsTest {
     void getIgnoredRoutes() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .setIgnoredRoutes(new HashMap<String, Set<Route>>() {{
+                .addIgnoredRoutes(new HashMap<String, Set<Route>>() {{
                     put("1.2", new HashSet<Route>() {{
                         add(Route.from("a"));
                     }});
@@ -65,20 +63,20 @@ class UpdaterSettingsTest {
                         add(Route.from("c"));
                     }});
                 }})
-                .setIgnoredStringRoutes(new HashMap<String, Set<String>>() {{
+                .addIgnoredRoutes(new HashMap<String, Set<String>>() {{
                     put("1.2", new HashSet<String>() {{
                         add("b");
                     }});
                     put("1.4", new HashSet<String>() {{
                         add("d");
                     }});
-                }})
-                .setIgnoredRoutes("1.5", new HashSet<Route>() {{
+                }}, '.')
+                .addIgnoredRoutes("1.5", new HashSet<Route>() {{
                     add(Route.from("e"));
                 }})
-                .setIgnoredStringRoutes("1.5", new HashSet<String>() {{
+                .addIgnoredRoutes("1.5", new HashSet<String>() {{
                     add("f");
-                }}).build();
+                }}, '.').build();
         // Assert
         assertEquals(new HashSet<Route>() {{
             add(Route.from("a"));
@@ -100,7 +98,7 @@ class UpdaterSettingsTest {
     void getRelocations() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .setRelocations(new HashMap<String, Map<Route, Route>>() {{
+                .addRelocations(new HashMap<String, Map<Route, Route>>() {{
                     put("1.2", new HashMap<Route, Route>() {{
                         put(Route.from("a"), Route.from("g"));
                     }});
@@ -108,20 +106,20 @@ class UpdaterSettingsTest {
                         put(Route.from("c"), Route.from("i"));
                     }});
                 }})
-                .setStringRelocations(new HashMap<String, Map<String, String>>() {{
+                .addRelocations(new HashMap<String, Map<String, String>>() {{
                     put("1.2", new HashMap<String, String>() {{
                         put("b", "h");
                     }});
                     put("1.4", new HashMap<String, String>() {{
                         put("d", "j");
                     }});
-                }})
-                .setRelocations("1.5", new HashMap<Route, Route>() {{
+                }}, '.')
+                .addRelocations("1.5", new HashMap<Route, Route>() {{
                     put(Route.from("e"), Route.from("k"));
                 }})
-                .setStringRelocations("1.5", new HashMap<String, String>() {{
+                .addRelocations("1.5", new HashMap<String, String>() {{
                     put("f", "l");
-                }}).build();
+                }}, '.').build();
         // Assert
         assertEquals(new HashMap<Route, Route>() {{
             put(Route.from("a"), Route.from("g"));
@@ -145,7 +143,7 @@ class UpdaterSettingsTest {
         ValueMapper valueMapper = ValueMapper.value(object -> object), blockMapper = ValueMapper.block(block -> block.getStoredValue().toString());
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .setMappers(new HashMap<String, Map<Route, ValueMapper>>() {{
+                .addMappers(new HashMap<String, Map<Route, ValueMapper>>() {{
                     put("1.2", new HashMap<Route, ValueMapper>() {{
                         put(Route.from("a"), valueMapper);
                     }});
@@ -153,7 +151,7 @@ class UpdaterSettingsTest {
                         put(Route.from("c"), blockMapper);
                     }});
                 }})
-                .setMappers(new HashMap<String, Map<String, ValueMapper>>() {{
+                .addMappers(new HashMap<String, Map<String, ValueMapper>>() {{
                     put("1.2", new HashMap<String, ValueMapper>() {{
                         put("b", valueMapper);
                     }});
@@ -161,10 +159,10 @@ class UpdaterSettingsTest {
                         put("d", blockMapper);
                     }});
                 }}, '.')
-                .setMappers("1.5", new HashMap<Route, ValueMapper>() {{
+                .addMappers("1.5", new HashMap<Route, ValueMapper>() {{
                     put(Route.from("e"), valueMapper);
                 }})
-                .setMappers("1.5", new HashMap<String, ValueMapper>() {{
+                .addMappers("1.5", new HashMap<String, ValueMapper>() {{
                     put("f", blockMapper);
                 }}, '.').build();
         // Assert
@@ -182,6 +180,34 @@ class UpdaterSettingsTest {
             put(Route.from("e"), valueMapper);
             put(Route.from("f"), blockMapper);
         }}, settings.getMappers("1.5", '.'));
+    }
+
+    @Test
+    void getCustomLogic() {
+        // Build
+        UpdaterSettings settings = UpdaterSettings.builder()
+                .addCustomLogic(new HashMap<String, List<Consumer<YamlDocument>>>() {{
+                    put("1.2", createList(2));
+                    put("1.3", createList(3));
+                }})
+                .addCustomLogic(new HashMap<String, List<Consumer<YamlDocument>>>() {{
+                    put("1.2", createList(4));
+                    put("1.4", createList(5));
+                }})
+                .addCustomLogic("1.5", createList(6))
+                .addCustomLogic("1.5", yamlDocument -> {}).build();
+        // Assert
+        assertEquals(createList(6), settings.getCustomLogic("1.2"));
+        assertEquals(createList(3), settings.getCustomLogic("1.3"));
+        assertEquals(createList(5), settings.getCustomLogic("1.4"));
+        assertEquals(7, settings.getCustomLogic("1.5").size());
+    }
+
+    private List<Consumer<YamlDocument>> createList(int size) {
+        List<Consumer<YamlDocument>> list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++)
+            list.add(yamlDocument -> {});
+        return list;
     }
 
     @Test

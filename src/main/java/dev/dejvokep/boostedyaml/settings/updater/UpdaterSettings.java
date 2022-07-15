@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -115,7 +116,9 @@ public class UpdaterSettings {
     //Relocations
     private final Map<String, RouteMap<Route, String>> relocations;
     //Mappers
-    private final Map<String, RouteMap<ValueMapper, ValueMapper>> mappers;
+    private final Map<String, Map<Route, ValueMapper>> mappers;
+    //Custom logic
+    private final Map<String, List<Consumer<YamlDocument>>> customLogic;
     //Versioning
     private final Versioning versioning;
     //Option sorting
@@ -135,6 +138,7 @@ public class UpdaterSettings {
         this.ignored = builder.ignored;
         this.relocations = builder.relocations;
         this.mappers = builder.mappers;
+        this.customLogic = builder.customLogic;
         this.versioning = builder.versioning;
     }
 
@@ -151,11 +155,10 @@ public class UpdaterSettings {
     }
 
     /**
-     * Returns which blocks (represented by their routes) to ignore (including their contents) while updating to the
-     * specified version ID.
+     * Returns which routes to ignore if updating to the specified version ID.
      *
      * @param versionId version for which to return the routes
-     * @param separator separator to split string routes by
+     * @param separator separator used to parse the string routes
      * @return the set of routes representing blocks to ignore at the version ID
      */
     public Set<Route> getIgnoredRoutes(@NotNull String versionId, char separator) {
@@ -166,18 +169,34 @@ public class UpdaterSettings {
     /**
      * Returns relocations (in <code>from route = to route</code> format) that took effect at the given version ID.
      *
-     * @param versionId version for which to return the relocations
-     * @param separator separator to split string route relocations by
-     * @return the relocations that took effect at the version ID
+     * @param versionId the version ID for which to return relocations
+     * @param separator separator used to parse the string routes
+     * @return relocations that took effect at the version ID
      */
     public Map<Route, Route> getRelocations(@NotNull String versionId, char separator) {
         RouteMap<Route, String> relocations = this.relocations.get(versionId);
         return relocations == null ? Collections.emptyMap() : relocations.merge(Function.identity(), route -> Route.fromString(route, separator), separator);
     }
 
+    /**
+     * Returns mappers to apply at the given version ID.
+     *
+     * @param versionId the version ID for which to return mappers
+     * @param separator separator used to parse the string routes
+     * @return the mappers to apply at the given version ID
+     */
     public Map<Route, ValueMapper> getMappers(@NotNull String versionId, char separator) {
-        RouteMap<ValueMapper, ValueMapper> mappers = this.mappers.get(versionId);
-        return mappers == null ? Collections.emptyMap() : mappers.merge(Function.identity(), Function.identity(), separator);
+        return mappers.getOrDefault(versionId, Collections.emptyMap());
+    }
+
+    /**
+     * Returns custom logic to run at the given version ID.
+     *
+     * @param versionId the version ID for which to return custom logic
+     * @return the custom logic to run at the given version ID
+     */
+    public List<Consumer<YamlDocument>> getCustomLogic(@NotNull String versionId) {
+        return customLogic.getOrDefault(versionId, Collections.emptyList());
     }
 
     /**
@@ -250,7 +269,8 @@ public class UpdaterSettings {
                 .setMergeRules(settings.mergeRules)
                 .setIgnoredRoutesInternal(settings.ignored)
                 .setRelocationsInternal(settings.relocations)
-                .setMappersInternal(settings.mappers)
+                .addMappers(settings.mappers)
+                .addCustomLogic(settings.customLogic)
                 .setVersioning(settings.versioning);
     }
 
@@ -272,7 +292,9 @@ public class UpdaterSettings {
         //Relocations
         private final Map<String, RouteMap<Route, String>> relocations = new HashMap<>();
         //Mappers
-        private final Map<String, RouteMap<ValueMapper, ValueMapper>> mappers = new HashMap<>();
+        private final Map<String, Map<Route, ValueMapper>> mappers = new HashMap<>();
+        //Custom logic
+        private final Map<String, List<Consumer<YamlDocument>>> customLogic = new HashMap<>();
         //Versioning
         private Versioning versioning = DEFAULT_VERSIONING;
         //Option sorting
@@ -388,240 +410,567 @@ public class UpdaterSettings {
             return this;
         }
 
+        /**
+         * Sets initial ignored routes. <b>Internal method.</b>
+         *
+         * @param routes the routes to set
+         * @return the builder
+         */
         private Builder setIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
             this.ignored.putAll(routes);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their routes) to ignore (including their contents) while updating to a
-         * certain version ID. If there already are routes defined for version ID, which is also present in the given
-         * map, they are overwritten.
-         * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
-         * you should specify a version ID of the document and routes of such sections (which were in the document with
-         * the ID).
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param routes routes to ignore, per version ID
-         * @return the builder
-         * @see #setIgnoredRoutes(String, Set)
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setIgnoredRoutes(@NotNull Map<String, Set<Route>> routes) {
             routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their routes) to ignore (including their contents) while updating to the
-         * specified version ID. If there already are routes defined for the given ID, they are overwritten.
-         * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
-         * you should specify a version ID of the document and routes of such sections (which were in the document with
-         * the ID).
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param versionId the version ID
-         * @param routes    the set of routes representing blocks to ignore at the version ID
-         * @return the builder
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
             this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(routes);
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
-         * updating to a certain version ID. If there already are <i>string</i> routes defined for version ID, which is
-         * also present in the given map, they are overwritten.
-         * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
-         * you should specify a version ID of the document and routes of such sections (which were in the document with
-         * the ID).
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param routes <i>string</i> routes to ignore, per version ID
-         * @return the builder
-         * @see #setIgnoredStringRoutes(String, Set)
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setIgnoredStringRoutes(@NotNull Map<String, Set<String>> routes) {
             routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(set));
             return this;
         }
 
         /**
-         * Sets which blocks (represented by their <i>string</i> routes) to ignore (including their contents) while
-         * updating to a certain version ID. If there already are <i>string</i> routes defined for the given ID, they
-         * are overwritten.
-         * <p>
-         * <b>This is generally useful for sections which users can freely extend.</b> In this sense, we can say that
-         * you should specify a version ID of the document and routes of such sections (which were in the document with
-         * the ID).
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param versionId the version ID
-         * @param routes    the set of <i>string</i> routes representing blocks to ignore at the version ID
-         * @return the builder
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setIgnoredStringRoutes(@NotNull String versionId, @NotNull Set<String> routes) {
             this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(routes);
             return this;
         }
 
-        public Builder setIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, char separator) {
-            setIgnoredRoutes(versionId, routes, new RouteFactory(separator));
+        /**
+         * Adds a route to ignore if updating to the provided version ID. Ignored routes and their corresponding {@link
+         * dev.dejvokep.boostedyaml.block.Block blocks} and contents will be excluded from merging and will appear in
+         * the updated document (no matter the merge rules).
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param versionId the version ID
+         * @param route     the route to ignore
+         * @return the builder
+         */
+        public Builder addIgnoredRoute(@NotNull String versionId, @NotNull Route route) {
+            return addIgnoredRoutes(versionId, Collections.singleton(route));
+        }
+
+        /**
+         * Adds routes to ignore if updating to the provided version ID. Ignored routes and their corresponding {@link
+         * dev.dejvokep.boostedyaml.block.Block blocks} and contents will be excluded from merging and will appear in
+         * the updated document (no matter the merge rules).
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param versionId the version ID
+         * @param routes    the routes to ignore
+         * @return the builder
+         */
+        public Builder addIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
+            return addIgnoredRoutes(Collections.singletonMap(versionId, routes));
+        }
+
+        /**
+         * Adds routes to ignore if updating to a certain version ID. Ignored routes and their corresponding {@link
+         * dev.dejvokep.boostedyaml.block.Block blocks} and contents will be excluded from merging and will appear in
+         * the updated document (no matter the merge rules).
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param routes the routes to ignore, per version ID
+         * @return the builder
+         */
+        public Builder addIgnoredRoutes(@NotNull Map<String, Set<Route>> routes) {
+            routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
             return this;
         }
 
-        public Builder setIgnoredRoutes(@NotNull Map<String, Set<String>> routes, char separator) {
+        /**
+         * Adds a route to ignore if updating to the provided version ID. Ignored routes and their corresponding {@link
+         * dev.dejvokep.boostedyaml.block.Block blocks} and contents will be excluded from merging and will appear in
+         * the updated document (no matter the merge rules).
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param versionId the version ID
+         * @param route     the route to ignore
+         * @param separator separator used to parse the route
+         * @return the builder
+         */
+        public Builder addIgnoredRoute(@NotNull String versionId, @NotNull String route, char separator) {
+            return addIgnoredRoutes(versionId, Collections.singleton(route), separator);
+        }
+
+        /**
+         * Adds routes to ignore if updating to the provided version ID. Ignored routes and their corresponding {@link
+         * dev.dejvokep.boostedyaml.block.Block blocks} and contents will be excluded from merging and will appear in
+         * the updated document (no matter the merge rules).
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param versionId the version ID
+         * @param routes    the routes to ignore
+         * @param separator separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, char separator) {
+            addIgnoredRoutes(versionId, routes, new RouteFactory(separator));
+            return this;
+        }
+
+        /**
+         * Adds routes to ignore if updating to a certain version ID. Ignored routes and their corresponding {@link
+         * dev.dejvokep.boostedyaml.block.Block blocks} and contents will be excluded from merging and will appear in
+         * the updated document (no matter the merge rules).
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param routes    the routes to ignore, per version ID
+         * @param separator separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addIgnoredRoutes(@NotNull Map<String, Set<String>> routes, char separator) {
             RouteFactory factory = new RouteFactory(separator);
-            routes.forEach((versionId, collection) -> setIgnoredRoutes(versionId, collection, factory));
+            routes.forEach((versionId, collection) -> addIgnoredRoutes(versionId, collection, factory));
             return this;
         }
 
-        private void setIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, @NotNull RouteFactory factory) {
+        /**
+         * Adds routes to ignore if updating to the provided version ID. <b>Internal method.</b>
+         *
+         * @param versionId the version ID
+         * @param routes    the routes to ignore
+         * @param factory   provider of the separator used to parse the routes
+         */
+        private void addIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, @NotNull RouteFactory factory) {
             Set<Route> set = this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet();
             routes.forEach(route -> set.add(factory.create(route)));
         }
 
+        /**
+         * Sets initial relocations. <b>Internal method.</b>
+         *
+         * @param relocations the relocations to set
+         * @return the builder
+         */
         private Builder setRelocationsInternal(@NotNull Map<String, RouteMap<Route, String>> relocations) {
             this.relocations.putAll(relocations);
             return this;
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) per version ID, at which they took place. If
-         * there already are relocations defined for version ID which is also present in the given map, they are
-         * overwritten.
-         * <p>
-         * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b> The ID at which a relocation took effect is equal to ID
-         * of the file which included the changes.
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param relocations the relocations, per version ID
-         * @return the builder
-         * @see #setRelocations(String, Map)
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setRelocations(@NotNull Map<String, Map<Route, Route>> relocations) {
             relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
             return this;
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) that took effect at the given version ID. If
-         * there already are relocations defined for the version ID, they are overwritten.
-         * <p>
-         * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b>The ID at which a relocation took effect is equal to ID of
-         * the file which included the changes.
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param versionId   the version ID
-         * @param relocations relocations that took effect at the version ID
-         * @return the builder
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
             this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(relocations);
             return this;
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) per version ID, at which they took place. If
-         * there already are relocations defined for version ID which is also present in the given map, they are
-         * overwritten.
-         * <p>
-         * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b>The ID at which a relocation took effect is equal to ID of
-         * the file which included the changes.
-         * <p>
-         * <b>Please note</b> that all relocations will be merged when updating, with {@link Route}-based relocations
-         * having higher priority.
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param relocations the relocations, per version ID
-         * @return the builder
-         * @see #setStringRelocations(String, Map)
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setStringRelocations(@NotNull Map<String, Map<String, String>> relocations) {
             relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(map));
             return this;
         }
 
         /**
-         * Sets relocations (in <code>from route = to route</code> format) that took effect at the given version ID. If
-         * there already are relocations defined for the version ID, they are overwritten.
-         * <p>
-         * <b>Relocations define that some setting was moved from route <i>x</i> to <i>y</i>, enabling the updater to
-         * reproduce those steps without any content loss.</b>The ID at which a relocation took effect is equal to ID of
-         * the file which included the changes.
-         * <p>
-         * <b>Please note</b> that all relocations will be merged when updating, with {@link Route}-based relocations
-         * having higher priority.
-         * <p>
-         * <b>Effective if and only a versioning is specified.</b>
-         *
-         * @param versionId   the version ID
-         * @param relocations relocations that took effect at the version ID
-         * @return the builder
+         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
+         * removal.
          */
+        @Deprecated
         public Builder setStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
             this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(relocations);
             return this;
         }
 
-        public Builder setRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations, char separator) {
-            setRelocations(versionId, relocations, new RouteFactory(separator));
+        /**
+         * Adds a relocation that took effect at the provided version ID.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for the version ID which is from the provided route, it is
+         * overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param fromRoute route from which a mapping was relocated
+         * @param toRoute   route to which the mapping was relocated
+         * @return the builder
+         */
+        public Builder addRelocation(@NotNull String versionId, @NotNull Route fromRoute, @NotNull Route toRoute) {
+            return addRelocations(versionId, Collections.singletonMap(fromRoute, toRoute));
+        }
+
+        /**
+         * Adds relocations (in <code>from route = to route</code> format) that took effect at the provided version ID.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for the version ID and for a from route contained within
+         * the given map, it is overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId   the version ID
+         * @param relocations relocations which took effect at the version ID
+         * @return the builder
+         */
+        public Builder addRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
+            return addRelocations(Collections.singletonMap(versionId, relocations));
+        }
+
+        /**
+         * Adds relocations (in <code>from route = to route</code> format) per version ID, at which they took effect.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for a version ID and from route contained within the given
+         * map, it is overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param relocations the relocations, per version ID
+         * @return the builder
+         */
+        public Builder addRelocations(@NotNull Map<String, Map<Route, Route>> relocations) {
+            relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
             return this;
         }
 
-        public Builder setRelocations(@NotNull Map<String, Map<String, String>> relocations, char separator) {
+        /**
+         * Adds a relocation that took effect at the provided version ID.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for the version ID which is from the provided route, it is
+         * overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param fromRoute route from which a mapping was relocated
+         * @param toRoute   route to which the mapping was relocated
+         * @param separator separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addRelocation(@NotNull String versionId, @NotNull String fromRoute, @NotNull String toRoute, char separator) {
+            return addRelocations(versionId, Collections.singletonMap(fromRoute, toRoute), separator);
+        }
+
+        /**
+         * Adds relocations (in <code>from route = to route</code> format) that took effect at the provided version ID.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for the version ID and for a from route contained within
+         * the given map, it is overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId   the version ID
+         * @param relocations relocations which took effect at the version ID
+         * @param separator   separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations, char separator) {
+            addRelocations(Collections.singletonMap(versionId, relocations), separator);
+            return this;
+        }
+
+        /**
+         * Adds relocations (in <code>from route = to route</code> format) per version ID, at which they took effect.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for a version ID and from route contained within the given
+         * map, it is overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param relocations the relocations, per version ID
+         * @param separator   separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addRelocations(@NotNull Map<String, Map<String, String>> relocations, char separator) {
             RouteFactory factory = new RouteFactory(separator);
-            relocations.forEach((versionId, collection) -> setRelocations(versionId, collection, factory));
+            relocations.forEach((versionId, collection) -> {
+                Map<Route, Route> map = this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap();
+                collection.forEach((from, to) -> map.put(factory.create(from), factory.create(to)));
+            });
             return this;
         }
 
-        private void setRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations, @NotNull RouteFactory factory) {
-            Map<Route, Route> map = this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap();
-            relocations.forEach((from, to) -> map.put(factory.create(from), factory.create(to)));
+        /**
+         * Adds a mapper to apply to the given route at the provided version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for the version ID and the provided route,
+         * it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param route     route to apply the mapper at
+         * @param mapper    mapper to apply at the version ID
+         * @return the builder
+         */
+        public Builder addMapper(@NotNull String versionId, @NotNull Route route, @NotNull ValueMapper mapper) {
+            return addMappers(versionId, Collections.singletonMap(route, mapper));
         }
 
-        private Builder setMappersInternal(@NotNull Map<String, RouteMap<ValueMapper, ValueMapper>> mappers) {
-            this.mappers.putAll(mappers);
+
+        /**
+         * Adds mappers to apply to their respective routes at the provided version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for the version ID and for a route
+         * contained within the given map, it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param mappers   mappers to apply at the version ID
+         * @return the builder
+         */
+        public Builder addMappers(@NotNull String versionId, @NotNull Map<Route, ValueMapper> mappers) {
+            return addMappers(Collections.singletonMap(versionId, mappers));
+        }
+
+        /**
+         * Adds mappers to apply to their respective routes, per version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for a version ID and route contained
+         * within the given map, it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param mappers the mappers, per version ID
+         * @return the builder
+         */
+        public Builder addMappers(@NotNull Map<String, Map<Route, ValueMapper>> mappers) {
+            mappers.forEach((versionId, map) -> this.mappers.computeIfAbsent(versionId, key -> new HashMap<>()).putAll(map));
             return this;
         }
 
-        public Builder setMappers(@NotNull Map<String, Map<Route, ValueMapper>> mappers) {
-            mappers.forEach((versionId, map) -> this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
-            return this;
+        /**
+         * Adds a mapper to apply to the given route at the provided version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for the version ID and the provided route,
+         * it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param route     route to apply the mapper at
+         * @param mapper    mapper to apply at the version ID
+         * @param separator separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addMapper(@NotNull String versionId, @NotNull String route, @NotNull ValueMapper mapper, char separator) {
+            return addMappers(versionId, Collections.singletonMap(route, mapper), separator);
         }
 
-        public Builder setMappers(@NotNull String versionId, @NotNull Map<Route, ValueMapper> mappers) {
-            this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(mappers);
-            return this;
+        /**
+         * Adds mappers to apply to their respective routes at the provided version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for the version ID and for a route
+         * contained within the given map, it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param mappers   mappers to apply at the version ID
+         * @param separator separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers, char separator) {
+            return addMappers(Collections.singletonMap(versionId, mappers), separator);
         }
 
-        public Builder setMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers, char separator) {
-            setMappers(versionId, mappers, new RouteFactory(separator));
-            return this;
-        }
-
-        public Builder setMappers(@NotNull Map<String, Map<String, ValueMapper>> mappers, char separator) {
+        /**
+         * Adds mappers to apply to their respective routes, per version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for a version ID and route contained
+         * within the given map, it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param mappers   the mappers, per version ID
+         * @param separator separator used to parse the routes
+         * @return the builder
+         */
+        public Builder addMappers(@NotNull Map<String, Map<String, ValueMapper>> mappers, char separator) {
             RouteFactory factory = new RouteFactory(separator);
-            mappers.forEach((versionId, collection) -> setMappers(versionId, collection, factory));
+            mappers.forEach((versionId, collection) -> {
+                Map<Route, ValueMapper> map = this.mappers.computeIfAbsent(versionId, key -> new HashMap<>());
+                collection.forEach((route, mapper) -> map.put(factory.create(route), mapper));
+            });
             return this;
         }
 
-        private void setMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers, @NotNull RouteFactory factory) {
-            Map<Route, ValueMapper> map = this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap();
-            mappers.forEach((route, mapper) -> map.put(factory.create(route), mapper));
+        /**
+         * Adds custom logic to run on the document at the provided version ID.
+         * <p>
+         * You can use your own logic to make changes to the document which are not available via the ignored routes,
+         * relocations or mappers. The order in which the consumers are run is undefined and may vary.
+         * <p>
+         * <b>Effective if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param consumer  consumer to run
+         * @return the builder
+         */
+        public Builder addCustomLogic(@NotNull String versionId, @NotNull Consumer<YamlDocument> consumer) {
+            return addCustomLogic(versionId, Collections.singletonList(consumer));
+        }
+
+        /**
+         * Adds custom logic to run on the document, per version ID.
+         * <p>
+         * You can use your own logic to make changes to the document which are not available via the ignored routes,
+         * relocations or mappers. The order in which the consumers are run is undefined and may vary.
+         * <p>
+         * <b>Effective if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param consumers consumers to run, per version ID
+         * @return the builder
+         */
+        public Builder addCustomLogic(@NotNull Map<String, List<Consumer<YamlDocument>>> consumers) {
+            consumers.forEach(this::addCustomLogic);
+            return this;
+        }
+
+        /**
+         * Adds custom logic to run on the document at the provided version ID.
+         * <p>
+         * You can use your own logic to make changes to the document which are not available via the ignored routes,
+         * relocations or mappers. The order in which the consumers are run is undefined and may vary.
+         * <p>
+         * <b>Effective if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param consumers consumers to run at the version ID
+         * @return the builder
+         */
+        public Builder addCustomLogic(@NotNull String versionId, @NotNull Collection<Consumer<YamlDocument>> consumers) {
+            customLogic.computeIfAbsent(versionId, key -> new ArrayList<>()).addAll(consumers);
+            return this;
         }
 
         /**

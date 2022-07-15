@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,18 +35,23 @@ class VersionedOperationsTest {
             // Operator application
             YamlDocument document = YamlDocument.create(new ByteArrayInputStream("v: 1\na: 1".getBytes(StandardCharsets.UTF_8)));
             assertFalse(VersionedOperations.run(document, YamlDocument.create(new ByteArrayInputStream("v: 3".getBytes(StandardCharsets.UTF_8))),
-                    UpdaterSettings.builder().setVersioning(new BasicVersioning("v")).setRelocations(new HashMap<String, Map<Route, Route>>(){{
+                    UpdaterSettings.builder().setVersioning(new BasicVersioning("v")).addRelocations(new HashMap<String, Map<Route, Route>>(){{
                         put("1", Collections.singletonMap(Route.from("a"), Route.from("d")));
                         put("2", Collections.singletonMap(Route.from("a"), Route.from("b")));
                         put("3", Collections.singletonMap(Route.from("b"), Route.from("c")));
-                    }}).setMappers(new HashMap<String, Map<Route, ValueMapper>>(){{
+                    }}).addMappers(new HashMap<String, Map<Route, ValueMapper>>(){{
                         put("1", Collections.singletonMap(Route.from("d"), ValueMapper.value(value -> -1)));
                         put("2", Collections.singletonMap(Route.from("b"), ValueMapper.value(value -> 2)));
                         put("3", Collections.singletonMap(Route.from("c"), ValueMapper.value(value -> ((Integer) value) + 1)));
+                    }}).addCustomLogic(new HashMap<String, List<Consumer<YamlDocument>>>(){{
+                        put("1", Collections.singletonList(document -> document.set("e", -1)));
+                        put("2", Collections.singletonList(document -> document.set("e", 1)));
+                        put("3", Collections.singletonList(document -> document.set("e", 2)));
                     }}).build(), '.'));
             assertEquals(3, document.get("c"));
+            assertEquals(2, document.get("e"));
             assertTrue(document.contains("v"));
-            assertEquals(2, document.getKeys().size());
+            assertEquals(3, document.getKeys().size());
         } catch (IOException ex) {
             fail(ex);
         }

@@ -87,6 +87,8 @@ public class VersionedOperations {
             //Apply
             Relocator.apply(document, settings.getRelocations(current.asID(), separator));
             Mapper.apply(document, settings.getMappers(current.asID(), separator));
+            //Run logic
+            settings.getCustomLogic(current.asID()).forEach(consumer -> consumer.accept(document.getRoot()));
         }
     }
 
