@@ -35,7 +35,7 @@ public class RangeSegment implements Segment {
      * <p>
      * Filling defines how long (in digits) must each integer in the range be. If an integer in the range has fewer
      * digits than defined by the parameter, additional zeros (<code>0</code>) are prepended to fulfill the requirement
-     * (<code>5</code> -> <code>005</code> for <code>fill=3</code>). Set to non-positive (<code>&lt;= 0</code>) value to
+     * (<code>5</code> -&gt; <code>005</code> for <code>fill=3</code>). Set to non-positive (<code>&lt;= 0</code>) value to
      * disable.
      * <p>
      * <b>Please mind following:</b>
@@ -119,7 +119,7 @@ public class RangeSegment implements Segment {
             //If fits already
             if (maxFillValue >= maxValue)
                 return true;
-            //Add 9 at the end (e.g. 9 -> 99)
+            //Add 9 at the end (e.g. 9 -&gt; 99)
             maxFillValue *= 10;
             maxFillValue += 9;
         }

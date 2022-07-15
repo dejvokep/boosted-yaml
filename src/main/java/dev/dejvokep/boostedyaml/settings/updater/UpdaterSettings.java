@@ -636,7 +636,7 @@ public class UpdaterSettings {
          * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
          * versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID
@@ -659,7 +659,7 @@ public class UpdaterSettings {
          * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
          * versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId   the version ID
@@ -681,7 +681,7 @@ public class UpdaterSettings {
          * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
          * versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param relocations the relocations, per version ID
@@ -703,7 +703,7 @@ public class UpdaterSettings {
          * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
          * versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID
@@ -727,7 +727,7 @@ public class UpdaterSettings {
          * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
          * versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId   the version ID
@@ -751,7 +751,7 @@ public class UpdaterSettings {
          * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
          * versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param relocations the relocations, per version ID
@@ -779,7 +779,7 @@ public class UpdaterSettings {
          * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
          * if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID
@@ -804,7 +804,7 @@ public class UpdaterSettings {
          * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
          * if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID
@@ -827,7 +827,7 @@ public class UpdaterSettings {
          * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
          * if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param mappers the mappers, per version ID
@@ -850,7 +850,7 @@ public class UpdaterSettings {
          * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
          * if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID
@@ -875,7 +875,7 @@ public class UpdaterSettings {
          * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
          * if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID
@@ -899,7 +899,7 @@ public class UpdaterSettings {
          * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
          * if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param mappers   the mappers, per version ID
@@ -923,7 +923,7 @@ public class UpdaterSettings {
          * <p>
          * <b>Effective if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID
@@ -942,7 +942,7 @@ public class UpdaterSettings {
          * <p>
          * <b>Effective if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param consumers consumers to run, per version ID
@@ -961,7 +961,7 @@ public class UpdaterSettings {
          * <p>
          * <b>Effective if and only a versioning is specified.</b>
          * <p>
-         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -> mappers ->
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
          * custom logic.</i>
          *
          * @param versionId the version ID

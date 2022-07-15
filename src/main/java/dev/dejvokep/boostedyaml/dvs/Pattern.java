@@ -47,7 +47,7 @@ public class Pattern {
      *     ({@link Segment#range(int, int, int, int) range} with 2+ numbers, {@link Segment#literal(String...) literal}
      *     segment with 2+ elements) with this segment, for example:<br>
      *     <code>new Pattern({@link Segment#range(int, int) Segment.range}(0, {@link Integer#MAX_VALUE}), {@link Segment#literal(String...) Segment.literal(".")}, {@link Segment#range(int, int) Segment.range}(0, 10))</code><br>
-     *     This way you will still be able to maintain great version ID semantics: <code>1.0</code> -> <code>1.1</code>...
+     *     This way you will still be able to maintain great version ID semantics: <code>1.0</code> -&gt; <code>1.1</code>...
      *     <li>Ensure all elements within all segments are of the same length in characters. For range segments, you can
      *     use <i>filling</i>.</li>
      * </ol>
