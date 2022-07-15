@@ -43,11 +43,13 @@ class RelocatorTest {
                 put(Route.from("x"), Route.from("g"));
                 put(Route.from("y"), Route.from("x"));
                 put(Route.from("j"), Route.from("k"));
+                put(Route.from("z", "a"), Route.from("z", "b"));
+                put(Route.from("z", "b"), Route.from("z", "a"));
             }});
             assertEquals("a", document.get("g", null));
             assertEquals("b", document.get("x", null));
-            assertEquals(1, document.get("z.a", null));
-            assertEquals(10, document.get("z.b", null));
+            assertEquals(10, document.get("z.a", null));
+            assertEquals(1, document.get("z.b", null));
             assertEquals(3, document.getKeys().size());
             assertEquals(2, document.getSection("z").getKeys().size());
         } catch (IOException ex) {
