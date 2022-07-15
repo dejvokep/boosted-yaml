@@ -1825,7 +1825,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a section
+     * @return if a value at the given route exists and is a section
      * @see #get(Route)
      */
     public boolean isSection(@NotNull Route route) {
@@ -1837,7 +1837,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a section
+     * @return if a value at the given route exists and is a section
      * @see #get(String)
      */
     public boolean isSection(@NotNull String route) {
@@ -1955,7 +1955,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a string
+     * @return if a value at the given route exists and is a string
      * @see #get(Route)
      */
     public boolean isString(@NotNull Route route) {
@@ -1967,48 +1967,168 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a string
+     * @return if a value at the given route exists and is a string
      * @see #get(String)
      */
     public boolean isString(@NotNull String route) {
         return get(route) instanceof String;
     }
 
+    /**
+     * Returns enum at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given route, it is not an enum constant of {@link T} or cannot be converted to one (see below), returns an empty
+     * optional.
+     * <p>
+     * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
+     * constants defined by the {@link T}, the corresponding constant is returned.
+     *
+     * @param route the route to get the enum at
+     * @param clazz class of the target type
+     * @param <T>   the target enum type
+     * @return the enum constant at the given route
+     * @see #getOptional(Route)
+     */
     public <T extends Enum<T>> Optional<T> getOptionalEnum(@NotNull Route route, @NotNull Class<T> clazz) {
         return getOptional(route).map(name -> toEnum(name, clazz));
     }
 
+    /**
+     * Returns enum at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
+     * given route, it is not an enum constant of {@link T} or cannot be converted to one (see below), returns an empty
+     * optional.
+     * <p>
+     * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
+     * constants defined by the {@link T}, the corresponding constant is returned.
+     *
+     * @param route the route to get the enum at
+     * @param clazz class of the target type
+     * @param <T>   the target enum type
+     * @return the enum constant at the given route
+     * @see #getOptional(String)
+     */
     public <T extends Enum<T>> Optional<T> getOptionalEnum(@NotNull String route, @NotNull Class<T> clazz) {
         return getOptionalString(route).map(name -> toEnum(name, clazz));
     }
 
+    /**
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
+     * T} or cannot be converted to one (see below), returns <code>null</code> <a href="#note-1"><sup>or value from
+     * defaults (#1)</sup></a>.
+     * <p>
+     * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
+     * constants defined by the {@link T}, the corresponding constant is returned.
+     *
+     * @param route the route to get the enum at
+     * @param clazz class of the target type
+     * @param <T>   the target enum type
+     * @return the enum constant at the given route
+     * @see #getOptionalEnum(Route, Class)
+     */
     public <T extends Enum<T>> T getEnum(@NotNull Route route, @NotNull Class<T> clazz) {
         return getOptionalEnum(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getEnum(route, clazz) : null);
     }
 
+    /**
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
+     * T} or cannot be converted to one (see below), returns <code>null</code> <a href="#note-1"><sup>or value from
+     * defaults (#1)</sup></a>.
+     * <p>
+     * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
+     * constants defined by the {@link T}, the corresponding constant is returned.
+     *
+     * @param route the route to get the enum at
+     * @param clazz class of the target type
+     * @param <T>   the target enum type
+     * @return the enum constant at the given route
+     * @see #getOptionalEnum(String, Class)
+     */
     public <T extends Enum<T>> T getEnum(@NotNull String route, @NotNull Class<T> clazz) {
         return getOptionalEnum(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getEnum(route, clazz) : null);
     }
 
+    /**
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
+     * T} or cannot be converted to one (see below), returns the provided default.
+     * <p>
+     * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
+     * constants defined by the {@link T}, the corresponding constant is returned.
+     *
+     * @param route the route to get the enum at
+     * @param clazz class of the target type
+     * @param def   the default value
+     * @param <T>   the target enum type
+     * @return the enum constant at the given route
+     * @see #getOptionalEnum(Route, Class)
+     */
     public <T extends Enum<T>> T getEnum(@NotNull Route route, @NotNull Class<T> clazz, @Nullable T def) {
         return getOptionalEnum(route, clazz).orElse(def);
     }
 
+    /**
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
+     * T} or cannot be converted to one (see below), returns the provided default.
+     * <p>
+     * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
+     * constants defined by the {@link T}, the corresponding constant is returned.
+     *
+     * @param route the route to get the enum at
+     * @param clazz class of the target type
+     * @param def   the default value
+     * @param <T>   the target enum type
+     * @return the enum constant at the given route
+     * @see #getOptionalEnum(String, Class)
+     */
     public <T extends Enum<T>> T getEnum(@NotNull String route, @NotNull Class<T> clazz, @Nullable T def) {
         return getOptionalEnum(route, clazz).orElse(def);
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given route exists, and it is an enum constant of {@link T},
+     * or object other than an enum whose {@link Object#toString() string representation} matches any of the constants
+     * defined by {@link T}. <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     *
+     * @param route the route to check the value at
+     * @param clazz class of the target type
+     * @param <T>   the target enum type
+     * @return if a value at the given route exists and is an instance, or convertible to an enum of the target type
+     * @see #get(Route)
+     */
     public <T extends Enum<T>> boolean isEnum(@NotNull Route route, @NotNull Class<T> clazz) {
         return toEnum(get(route), clazz) != null;
     }
 
+    /**
+     * Returns <code>true</code> if and only a value at the given route exists, and it is an enum constant of {@link T},
+     * or object other than an enum whose {@link Object#toString() string representation} matches any of the constants
+     * defined by {@link T}. <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     *
+     * @param route the route to check the value at
+     * @param clazz class of the target type
+     * @param <T>   the target enum type
+     * @return if a value at the given route exists and is a constant of, or convertible to an enum of the target type
+     * @see #get(String)
+     */
     public <T extends Enum<T>> boolean isEnum(@NotNull String route, @NotNull Class<T> clazz) {
         return toEnum(get(route), clazz) != null;
     }
 
+    /**
+     * Converts the given object to an enum of the specified type.
+     * <p>
+     * If the object already is of the target type, returns it. If it is not, but is an {@link Enum}, returns
+     * <code>null</code>. Finally, attempts to parse the enum from {@link Object#toString()}.
+     *
+     * @param object the object to convert
+     * @param clazz  target enum
+     * @param <T>    the target enum type
+     * @return the enum, or <code>null</code> if inconvertible
+     */
     @SuppressWarnings("unchecked")
-    private <T extends Enum<T>> T toEnum(@NotNull Object object, @NotNull Class<T> clazz) {
-        // Targeted enum
+    private <T extends Enum<T>> T toEnum(@Nullable Object object, @NotNull Class<T> clazz) {
+        // Null
+        if (object == null)
+            return null;
+        // Target enum
         if (clazz.isInstance(object))
             return (T) object;
         // Other enum
@@ -2145,7 +2265,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a character
+     * @return if a value at the given route exists and is a character
      * @see #get(Route)
      */
     public boolean isChar(@NotNull Route route) {
@@ -2158,7 +2278,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a character
+     * @return if a value at the given route exists and is a character
      * @see #get(String)
      */
     public boolean isChar(@NotNull String route) {
@@ -2170,7 +2290,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * <code>null</code> otherwise.
      *
      * @param object the object to convert
-     * @return the character, or <code>null</code>
+     * @return the character, or <code>null</code> if inconvertible
      */
     private Character toChar(@Nullable Object object) {
         if (object == null)
@@ -2277,7 +2397,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a number
+     * @return if a value at the given route exists and is a number
      * @see #get(Route)
      */
     public boolean isNumber(@NotNull Route route) {
@@ -2289,7 +2409,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a number
+     * @return if a value at the given route exists and is a number
      * @see #get(String)
      */
     public boolean isNumber(@NotNull String route) {
@@ -2407,7 +2527,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is an integer
+     * @return if a value at the given route exists and is an integer
      * @see #get(Route)
      */
     public boolean isInt(@NotNull Route route) {
@@ -2419,7 +2539,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is an integer
+     * @return if a value at the given route exists and is an integer
      * @see #get(String)
      */
     public boolean isInt(@NotNull String route) {
@@ -2543,7 +2663,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a big integer
+     * @return if a value at the given route exists and is a big integer
      * @see #get(Route)
      */
     public boolean isBigInt(@NotNull Route route) {
@@ -2555,7 +2675,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a big integer
+     * @return if a value at the given route exists and is a big integer
      * @see #get(String)
      */
     public boolean isBigInt(@NotNull String route) {
@@ -2655,7 +2775,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a boolean
+     * @return if a value at the given route exists and is a boolean
      * @see #get(Route)
      */
     public boolean isBoolean(@NotNull Route route) {
@@ -2667,7 +2787,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a boolean
+     * @return if a value at the given route exists and is a boolean
      * @see #get(String)
      */
     public boolean isBoolean(@NotNull String route) {
@@ -2785,7 +2905,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a double
+     * @return if a value at the given route exists and is a double
      * @see #get(Route)
      */
     public boolean isDouble(@NotNull Route route) {
@@ -2797,7 +2917,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a double
+     * @return if a value at the given route exists and is a double
      * @see #get(String)
      */
     public boolean isDouble(@NotNull String route) {
@@ -2915,7 +3035,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a float
+     * @return if a value at the given route exists and is a float
      * @see #get(Route)
      */
     public boolean isFloat(@NotNull Route route) {
@@ -2927,7 +3047,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a float
+     * @return if a value at the given route exists and is a float
      * @see #get(String)
      */
     public boolean isFloat(@NotNull String route) {
@@ -3045,7 +3165,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a byte
+     * @return if a value at the given route exists and is a byte
      * @see #get(Route)
      */
     public boolean isByte(@NotNull Route route) {
@@ -3057,7 +3177,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a byte
+     * @return if a value at the given route exists and is a byte
      * @see #get(String)
      */
     public boolean isByte(@NotNull String route) {
@@ -3175,7 +3295,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a long
+     * @return if a value at the given route exists and is a long
      * @see #get(Route)
      */
     public boolean isLong(@NotNull Route route) {
@@ -3187,7 +3307,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a long
+     * @return if a value at the given route exists and is a long
      * @see #get(String)
      */
     public boolean isLong(@NotNull String route) {
@@ -3305,7 +3425,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a short
+     * @return if a value at the given route exists and is a short
      * @see #get(Route)
      */
     public boolean isShort(@NotNull Route route) {
@@ -3317,7 +3437,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * primitive variant). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a short
+     * @return if a value at the given route exists and is a short
      * @see #get(String)
      */
     public boolean isShort(@NotNull String route) {
@@ -3341,7 +3461,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a decimal
+     * @return if a value at the given route exists and is a decimal
      * @see #get(Route)
      */
     public boolean isDecimal(@NotNull Route route) {
@@ -3354,7 +3474,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a decimal
+     * @return if a value at the given route exists and is a decimal
      * @see #get(String)
      */
     public boolean isDecimal(@NotNull String route) {
@@ -3455,7 +3575,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a list
+     * @return if a value at the given route exists and is a list
      * @see #get(Route)
      */
     public boolean isList(@NotNull Route route) {
@@ -3467,7 +3587,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="#note-2">If no value is at the route, checks the defaults (#2).</a>
      *
      * @param route the route to check the value at
-     * @return if the value at the given route exists and is a list
+     * @return if a value at the given route exists and is a list
      * @see #get(String)
      */
     public boolean isList(@NotNull String route) {
