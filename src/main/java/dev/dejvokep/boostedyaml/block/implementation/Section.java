@@ -1977,33 +1977,45 @@ public class Section extends Block<Map<Object, Block<?>>> {
     public <T extends Enum<T>> Optional<T> getOptionalEnum(@NotNull Route route, @NotNull Class<T> clazz) {
         return getOptional(route).map(name -> toEnum(name, clazz));
     }
+
     public <T extends Enum<T>> Optional<T> getOptionalEnum(@NotNull String route, @NotNull Class<T> clazz) {
         return getOptionalString(route).map(name -> toEnum(name, clazz));
     }
+
     public <T extends Enum<T>> T getEnum(@NotNull Route route, @NotNull Class<T> clazz) {
         return getOptionalEnum(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getEnum(route, clazz) : null);
     }
+
     public <T extends Enum<T>> T getEnum(@NotNull String route, @NotNull Class<T> clazz) {
         return getOptionalEnum(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getEnum(route, clazz) : null);
     }
+
     public <T extends Enum<T>> T getEnum(@NotNull Route route, @NotNull Class<T> clazz, @Nullable T def) {
         return getOptionalEnum(route, clazz).orElse(def);
     }
+
     public <T extends Enum<T>> T getEnum(@NotNull String route, @NotNull Class<T> clazz, @Nullable T def) {
         return getOptionalEnum(route, clazz).orElse(def);
     }
+
     public <T extends Enum<T>> boolean isEnum(@NotNull Route route, @NotNull Class<T> clazz) {
         return toEnum(get(route), clazz) != null;
     }
+
     public <T extends Enum<T>> boolean isEnum(@NotNull String route, @NotNull Class<T> clazz) {
         return toEnum(get(route), clazz) != null;
     }
 
     @SuppressWarnings("unchecked")
     private <T extends Enum<T>> T toEnum(@NotNull Object object, @NotNull Class<T> clazz) {
+        // Targeted enum
         if (clazz.isInstance(object))
             return (T) object;
+        // Other enum
+        if (object instanceof Enum)
+            return null;
 
+        // Parse from name
         try {
             return Enum.valueOf(clazz, object.toString());
         } catch (IllegalArgumentException ex) {
