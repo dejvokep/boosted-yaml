@@ -56,6 +56,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
         //Add representers
         super.representers.put(Section.class, representSection);
         super.representers.put(YamlDocument.class, representSection);
+        super.representers.put(Enum.class, new RepresentEnum());
         //Add all types
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedClasses())
             super.representers.put(clazz, representSerializable);
@@ -64,31 +65,43 @@ public class ExtendedRepresenter extends StandardRepresenter {
     }
 
     /**
-     * Node representer for serializable objects.
+     * Node representer implementation for serializable objects.
      */
     private class RepresentSerializable implements RepresentToNode {
 
         @Override
-        public Node representData(Object o) {
+        public Node representData(Object data) {
             //Serialize
-            Object serialized = generalSettings.getSerializer().serialize(o, generalSettings.getDefaultMapSupplier());
+            Object serialized = generalSettings.getSerializer().serialize(data, generalSettings.getDefaultMapSupplier());
             //Return
-            return ExtendedRepresenter.this.representData(serialized == null ? o : serialized);
+            return ExtendedRepresenter.this.representData(serialized == null ? data : serialized);
         }
 
     }
 
     /**
-     * Node representer for sections.
+     * Node representer implementation for {@link Section sections}.
      */
     private class RepresentSection implements RepresentToNode {
 
         @Override
-        public Node representData(Object o) {
+        public Node representData(Object data) {
             //Cast
-            Section section = (Section) o;
+            Section section = (Section) data;
             //Return
             return applyKeyComments(section, ExtendedRepresenter.this.representData(section.getStoredValue()));
+        }
+
+    }
+
+    /**
+     * Node representer implementation for {@link Enum enums}.
+     */
+    private class RepresentEnum implements RepresentToNode {
+
+        @Override
+        public Node representData(Object data) {
+            return ExtendedRepresenter.this.representData(((Enum<?>) data).name());
         }
 
     }
