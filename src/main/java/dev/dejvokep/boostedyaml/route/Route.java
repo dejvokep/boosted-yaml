@@ -40,8 +40,7 @@ public interface Route {
      * Constructs a route from the given <b>non-null</b> keys. The given keys must be <b>immutable</b>; if this cannot
      * be achieved, it is <b>required</b> that the caller never modifies them.
      * <p>
-     * No keys or an empty array is considered illegal and will throw an {@link IllegalArgumentException}. As
-     * indicated,
+     * No keys or an empty array is considered illegal and will throw an {@link IllegalArgumentException}. As indicated,
      * <code>null</code> keys or attempt to pass a <code>null</code> array (to avoid varargs functionality, e.g.
      * <code>from((Object[]) null)</code>) will throw a {@link NullPointerException}.
      * <p>
