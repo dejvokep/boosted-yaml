@@ -38,7 +38,6 @@ public class ExtendedRepresenter extends StandardRepresenter {
     //General settings
     private final GeneralSettings generalSettings;
 
-
     /**
      * Creates an instance of the representer.
      *
