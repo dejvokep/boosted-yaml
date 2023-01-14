@@ -238,7 +238,7 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new ExtendedRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
+        BaseRepresenter representer = new ExtendedRepresenter(generalSettings, root.getDumperSettings());
         //Create the constructor
         ExtendedConstructor constructor = new ExtendedConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
         //Represent
@@ -271,7 +271,7 @@ public class Merger {
         GeneralSettings generalSettings = root.getGeneralSettings();
 
         //Create the representer
-        BaseRepresenter representer = new ExtendedRepresenter(generalSettings, root.getDumperSettings().buildEngineSettings());
+        BaseRepresenter representer = new ExtendedRepresenter(generalSettings, root.getDumperSettings());
         //Create the constructor
         ExtendedConstructor constructor = new ExtendedConstructor(root.getLoaderSettings().buildEngineSettings(generalSettings), generalSettings.getSerializer());
         //Represent

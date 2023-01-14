@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
  *
  * @param <T> type of the value stored
  */
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public abstract class Block<T> {
 
     //Comments
@@ -131,8 +132,8 @@ public abstract class Block<T> {
     }
 
     /**
-     * Collects all comments from this (only if not the initial node) and all sub-nodes; assigns them to {@link
-     * Comments.NodeType#KEY} at {@link Comments.Position#BEFORE}.
+     * Collects all comments from this (only if not the initial node) and all sub-nodes; assigns them to
+     * {@link Comments.NodeType#KEY} at {@link Comments.Position#BEFORE}.
      *
      * @param node    the node to collect from
      * @param initial if this node is the initial one in the recursive call stack
@@ -173,11 +174,13 @@ public abstract class Block<T> {
     }
 
     /**
-     * Converts a list of the given comment lines to block comments, that is, replaces comments of type {@link
-     * CommentType#IN_LINE} with their {@link CommentType#BLOCK} equivalent.
+     * Converts all comments of type {@link CommentType#IN_LINE} within this list to their {@link CommentType#BLOCK}
+     * equivalent.
+     * <p>
+     * This method mutates the given list and returns it.
      *
      * @param commentLines lines to convert
-     * @return converted list of lines
+     * @return the given list
      */
     private List<CommentLine> toBlockComments(@NotNull List<CommentLine> commentLines) {
         // Index

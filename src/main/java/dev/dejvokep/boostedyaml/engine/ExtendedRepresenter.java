@@ -19,12 +19,15 @@ import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.Comments;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
-import org.snakeyaml.engine.v2.nodes.*;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.nodes.Node;
+import org.snakeyaml.engine.v2.nodes.NodeTuple;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
 import java.util.Map;
@@ -37,19 +40,22 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     //General settings
     private final GeneralSettings generalSettings;
-
+    //Dumper settings
+    private final DumperSettings dumperSettings;
 
     /**
      * Creates an instance of the representer.
      *
      * @param generalSettings general settings of the root's file, whose contents are going to be represented
-     * @param dumpSettings    dumper settings
+     * @param dumperSettings  dumper settings
+     * @param engineSettings  engine dump settings already built by the dumper settings
      */
-    public ExtendedRepresenter(@NotNull GeneralSettings generalSettings, @NotNull DumpSettings dumpSettings) {
+    public ExtendedRepresenter(@NotNull GeneralSettings generalSettings, @NotNull DumperSettings dumperSettings, @NotNull DumpSettings engineSettings) {
         //Call the superclass constructor
-        super(dumpSettings);
+        super(engineSettings);
         //Set
         this.generalSettings = generalSettings;
+        this.dumperSettings = dumperSettings;
 
         //Representers
         RepresentToNode representSection = new RepresentSection(), representSerializable = new RepresentSerializable();
@@ -57,11 +63,23 @@ public class ExtendedRepresenter extends StandardRepresenter {
         super.representers.put(Section.class, representSection);
         super.representers.put(YamlDocument.class, representSection);
         super.representers.put(Enum.class, new RepresentEnum());
+        super.representers.put(String.class, new RepresentString(super.representers.get(String.class)));
         //Add all types
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedClasses())
             super.representers.put(clazz, representSerializable);
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedParentClasses())
             super.parentClassRepresenters.put(clazz, representSerializable);
+    }
+
+    /**
+     * Creates an instance of the representer.
+     *
+     * @param generalSettings general settings of the root's file, whose contents are going to be represented
+     * @param dumperSettings  dumper settings
+     * @see #ExtendedRepresenter(GeneralSettings, DumperSettings)
+     */
+    public ExtendedRepresenter(@NotNull GeneralSettings generalSettings, @NotNull DumperSettings dumperSettings) {
+        this(generalSettings, dumperSettings, dumperSettings.buildEngineSettings());
     }
 
     /**
@@ -102,6 +120,34 @@ public class ExtendedRepresenter extends StandardRepresenter {
         @Override
         public Node representData(Object data) {
             return ExtendedRepresenter.this.representData(((Enum<?>) data).name());
+        }
+
+    }
+
+    private class RepresentString implements RepresentToNode {
+
+        // Previous representer
+        private final RepresentToNode previous;
+
+        /**
+         * Creates an instance of the custom string representer.
+         *
+         * @param previous the previous representer, used to represent the string itself
+         */
+        private RepresentString(@NotNull RepresentToNode previous) {
+            this.previous = previous;
+        }
+
+        @Override
+        public Node representData(Object data) {
+            // Update the style
+            ScalarStyle previousStyle = defaultScalarStyle;
+            defaultScalarStyle = dumperSettings.getStringStyle();
+            // Represent
+            Node node = previous.representData(data);
+            // Revert back
+            defaultScalarStyle = previousStyle;
+            return node;
         }
 
     }
