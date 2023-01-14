@@ -99,7 +99,7 @@ public class ExtendedConstructor extends StandardConstructor {
         private final ConstructYamlMap previous;
 
         /**
-         * Creates an instance of custom map constructor.
+         * Creates an instance of the custom map constructor.
          *
          * @param previous the previous constructor, used to construct the map itself
          */
