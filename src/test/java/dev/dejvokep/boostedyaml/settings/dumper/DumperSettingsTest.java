@@ -67,6 +67,9 @@ class DumperSettingsTest {
         // Scalar style
         assertEquals(ScalarStyle.LITERAL, DumperSettings.builder().setScalarStyle(ScalarStyle.LITERAL).build().buildEngineSettings().getDefaultScalarStyle());
         assertEquals(ScalarStyle.DOUBLE_QUOTED, DumperSettings.builder().setScalarStyle(ScalarStyle.DOUBLE_QUOTED).build().buildEngineSettings().getDefaultScalarStyle());
+        // String style
+        assertEquals(ScalarStyle.SINGLE_QUOTED, DumperSettings.builder().setStringStyle(ScalarStyle.SINGLE_QUOTED).build().getStringStyle());
+        assertEquals(ScalarStyle.FOLDED, DumperSettings.builder().setStringStyle(ScalarStyle.FOLDED).build().getStringStyle());
         // Scalar resolver
         ScalarResolver scalarResolver = new JsonScalarResolver();
         assertEquals(scalarResolver, DumperSettings.builder().setScalarResolver(scalarResolver).build().buildEngineSettings().getScalarResolver());
