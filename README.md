@@ -46,7 +46,7 @@ Add the following shading section to prevent class loader conflicts:
     <plugin>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-shade-plugin</artifactId>
-      <version>3.2.4</version>
+      <version>3.3.0</version>
       <configuration>
         <relocations>
           <relocation>
