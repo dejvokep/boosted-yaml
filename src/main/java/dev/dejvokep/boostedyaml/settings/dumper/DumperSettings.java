@@ -15,6 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.dumper;
 
+import dev.dejvokep.boostedyaml.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -39,7 +40,7 @@ import java.util.function.Supplier;
  * <code>DumperSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public class DumperSettings {
+public class DumperSettings implements Settings {
 
     /**
      * Represents supported encoding. Please learn more <a
