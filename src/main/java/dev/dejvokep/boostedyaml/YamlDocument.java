@@ -64,9 +64,12 @@ public class YamlDocument extends Section {
     private UpdaterSettings updaterSettings;
 
     /**
-     * Creates and loads a YAML document from the given stream using the given settings. Loads the defaults (another
-     * YAML document) from the <code>defaults</code> stream using the same settings. The provided settings will be
-     * stored and used by this document (you can overwrite them using {@link #setSettings(Settings...)}).
+     * Creates and loads a YAML document from the given stream and loads the defaults (another YAML document, later
+     * accessible via {@link #getDefaults()}) from the <code>defaults</code> stream, if provided.
+     * <p>
+     * The provided settings will be stored and used by this document and the defaults. You can overwrite them using
+     * {@link #setSettings(Settings...)}). If settings of any type are not provided, their defaults (e.g.
+     * {@link GeneralSettings#DEFAULT}) are used.
      * <p>
      * If any of the given objects is not an instance of {@link GeneralSettings}, {@link LoaderSettings},
      * {@link DumperSettings} nor {@link UpdaterSettings}, an {@link IllegalArgumentException} will be thrown. If there
@@ -80,7 +83,7 @@ public class YamlDocument extends Section {
      * @param settings settings
      * @throws IOException an IO error
      */
-    protected YamlDocument(@NotNull InputStream document, @Nullable InputStream defaults, @Nullable Settings... settings) throws IOException {
+    protected YamlDocument(@NotNull InputStream document, @Nullable InputStream defaults, @NotNull Settings... settings) throws IOException {
         //Call superclass
         super(Collections.emptyMap());
 
@@ -95,9 +98,12 @@ public class YamlDocument extends Section {
     }
 
     /**
-     * Creates and loads a YAML document from the given stream using the given settings. Loads the defaults (another
-     * YAML document) from the <code>defaults</code> stream using the same settings. The provided settings will be
-     * stored and used by this document (you can overwrite them using {@link #setSettings(Settings...)}).
+     * Creates and loads a YAML document from the given file and loads the defaults (another YAML document, later
+     * accessible via {@link #getDefaults()}) from the <code>defaults</code> stream, if provided.
+     * <p>
+     * The provided settings will be stored and used by this document and the defaults. You can overwrite them using
+     * {@link #setSettings(Settings...)}). If settings of any type are not provided, their defaults (e.g.
+     * {@link GeneralSettings#DEFAULT}) are used.
      * <p>
      * If any of the given objects is not an instance of {@link GeneralSettings}, {@link LoaderSettings},
      * {@link DumperSettings} nor {@link UpdaterSettings}, an {@link IllegalArgumentException} will be thrown. If there
@@ -111,7 +117,7 @@ public class YamlDocument extends Section {
      * @param settings settings
      * @throws IOException an IO error
      */
-    protected YamlDocument(@NotNull File document, @Nullable InputStream defaults, @Nullable Settings... settings) throws IOException {
+    protected YamlDocument(@NotNull File document, @Nullable InputStream defaults, @NotNull Settings... settings) throws IOException {
         //Call superclass
         super(Collections.emptyMap());
 
@@ -143,22 +149,20 @@ public class YamlDocument extends Section {
      *
      * @param settings the settings to set
      */
-    private void setSettingsInternal(@Nullable Settings... settings) {
-        if (settings != null) {
-            for (Settings obj : settings) {
-                if (obj instanceof GeneralSettings) {
-                    if (generalSettings != null && generalSettings.getKeyFormat() != ((GeneralSettings) obj).getKeyFormat())
-                        throw new IllegalArgumentException("Cannot change the key format! Recreate the file if needed to do so.");
-                    this.generalSettings = (GeneralSettings) obj;
-                } else if (obj instanceof LoaderSettings) {
-                    this.loaderSettings = (LoaderSettings) obj;
-                } else if (obj instanceof DumperSettings) {
-                    this.dumperSettings = (DumperSettings) obj;
-                } else if (obj instanceof UpdaterSettings) {
-                    this.updaterSettings = (UpdaterSettings) obj;
-                } else {
-                    throw new IllegalArgumentException("Unknown settings object!");
-                }
+    private void setSettingsInternal(@NotNull Settings... settings) {
+        for (Settings obj : settings) {
+            if (obj instanceof GeneralSettings) {
+                if (generalSettings != null && generalSettings.getKeyFormat() != ((GeneralSettings) obj).getKeyFormat())
+                    throw new IllegalArgumentException("Cannot change the key format! Recreate the file if needed to do so.");
+                this.generalSettings = (GeneralSettings) obj;
+            } else if (obj instanceof LoaderSettings) {
+                this.loaderSettings = (LoaderSettings) obj;
+            } else if (obj instanceof DumperSettings) {
+                this.dumperSettings = (DumperSettings) obj;
+            } else if (obj instanceof UpdaterSettings) {
+                this.updaterSettings = (UpdaterSettings) obj;
+            } else {
+                throw new IllegalArgumentException("Unknown settings object!");
             }
         }
 
@@ -526,7 +530,7 @@ public class YamlDocument extends Section {
     //
 
     /**
-     * Sets new settings to be used by the document, overwriting the previous settings associated with this document.
+     * Sets new settings to be used by this document, overwriting the previous settings associated with this document.
      * <p>
      * <b>If you are changing {@link GeneralSettings}:</b>
      * <ul>
@@ -695,173 +699,99 @@ public class YamlDocument extends Section {
     //
 
     /**
-     * Creates and initially loads YAML document from the given file using the given settings. The defaults will also be
-     * loaded using the same settings.
+     * Creates and loads a YAML document from the given file and loads the defaults (another YAML document, later
+     * accessible via {@link #getDefaults()}) from the <code>defaults</code> stream.
      * <p>
-     * The given settings will now be associated with the created document and loaded defaults. You will be able to use
-     * {@link #save()} and {@link #reload()}.
+     * The provided settings will be stored and used by this document and the defaults. You can overwrite them using
+     * {@link #setSettings(Settings...)}). If settings of any type are not provided, their defaults (e.g.
+     * {@link GeneralSettings#DEFAULT}) are used.
      * <p>
-     * If the given {@link File} does not exist, the document will be loaded from a <b>copy</b> of the defaults. If
-     * {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created and
-     * saved.
-     *
-     * @param document        document (does not need to {@link File#exists() exist})
-     * @param defaults        defaults
-     * @param generalSettings general settings
-     * @param loaderSettings  loader settings
-     * @param dumperSettings  dumper settings
-     * @param updaterSettings updater settings
-     * @return the created and loaded document
-     * @throws IOException an IO error
-     */
-    public static YamlDocument create(@NotNull File document, @NotNull InputStream defaults, @NotNull GeneralSettings generalSettings, @NotNull LoaderSettings loaderSettings, @NotNull DumperSettings dumperSettings, @NotNull UpdaterSettings updaterSettings) throws IOException {
-        return new YamlDocument(document, defaults, generalSettings, loaderSettings, dumperSettings, updaterSettings);
-    }
-
-    /**
-     * Creates and initially loads YAML document from the given file using default settings
-     * ({@link GeneralSettings#DEFAULT}...). The defaults will also be loaded using the default settings.
-     * <p>
-     * The default settings will now be associated with the created document and loaded defaults. You will be able to
-     * use {@link #save()} and {@link #reload()}.
+     * If any of the given objects is not an instance of {@link GeneralSettings}, {@link LoaderSettings},
+     * {@link DumperSettings} nor {@link UpdaterSettings}, an {@link IllegalArgumentException} will be thrown. If there
+     * are multiple instances of the same settings type, the last one will take effect.
      * <p>
      * If the given {@link File} does not exist, the document will be loaded from a <b>copy</b> of the defaults. If
-     * {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created and
-     * saved.
+     * {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created.
      *
      * @param document document (does not need to {@link File#exists() exist})
      * @param defaults defaults
+     * @param settings settings
      * @return the created and loaded document
      * @throws IOException an IO error
      */
-    public static YamlDocument create(@NotNull File document, @NotNull InputStream defaults) throws IOException {
-        return create(document, defaults, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    public static YamlDocument create(@NotNull File document, @NotNull InputStream defaults, @NotNull Settings... settings) throws IOException {
+        return new YamlDocument(document, defaults, settings);
     }
 
     /**
-     * Creates and initially loads YAML document from the given stream using the given settings. The defaults will also
-     * be loaded using the same settings.
+     * Creates and loads a YAML document from the given stream and loads the defaults (another YAML document, later
+     * accessible via {@link #getDefaults()}) from the <code>defaults</code> stream.
      * <p>
-     * The given settings will now be associated with the created document and loaded defaults. As you are not providing
-     * a {@link File}, you will need to provide data input/output each time you're reloading/saving.
-     *
-     * @param document        document
-     * @param defaults        defaults
-     * @param generalSettings general settings
-     * @param loaderSettings  loader settings
-     * @param dumperSettings  dumper settings
-     * @param updaterSettings updater settings
-     * @return the created and loaded document
-     * @throws IOException an IO error
-     */
-    public static YamlDocument create(@NotNull InputStream document, @NotNull InputStream defaults, @NotNull GeneralSettings generalSettings, @NotNull LoaderSettings loaderSettings, @NotNull DumperSettings dumperSettings, @NotNull UpdaterSettings updaterSettings) throws IOException {
-        return new YamlDocument(document, defaults, generalSettings, loaderSettings, dumperSettings, updaterSettings);
-    }
-
-    /**
-     * Creates and initially loads YAML document from the given file using default settings
-     * ({@link GeneralSettings#DEFAULT}...). The defaults will also be loaded using the default settings.
+     * The provided settings will be stored and used by this document and the defaults. You can overwrite them using
+     * {@link #setSettings(Settings...)}). If settings of any type are not provided, their defaults (e.g.
+     * {@link GeneralSettings#DEFAULT}) are used.
      * <p>
-     * The default settings will now be associated with the created document and loaded defaults. As you are not
-     * providing a {@link File}, you will need to provide data input/output each time you're reloading/saving.
+     * If any of the given objects is not an instance of {@link GeneralSettings}, {@link LoaderSettings},
+     * {@link DumperSettings} nor {@link UpdaterSettings}, an {@link IllegalArgumentException} will be thrown. If there
+     * are multiple instances of the same settings type, the last one will take effect.
+     * <p>
+     * <b>Please note that methods without an I/O parameter will not be usable.</b> Refer to the method documentation
+     * for more information.
      *
      * @param document document
      * @param defaults defaults
+     * @param settings settings
      * @return the created and loaded document
      * @throws IOException an IO error
      */
-    public static YamlDocument create(@NotNull InputStream document, @NotNull InputStream defaults) throws IOException {
-        return create(document, defaults, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    public static YamlDocument create(@NotNull InputStream document, @NotNull InputStream defaults, @NotNull Settings... settings) throws IOException {
+        return new YamlDocument(document, defaults, settings);
     }
 
     /**
-     * Creates and initially loads YAML document from the given file using the given settings.
+     * Creates and loads a YAML document from the given file. The returned document will not have any defaults.
      * <p>
-     * The given settings will now be associated with the created document. You will be able to use {@link #save()} and
-     * {@link #reload()}. As you are not providing any defaults, you will need to provide them each time you're
-     * updating.
+     * The provided settings will be stored and used by this document and the defaults. You can overwrite them using
+     * {@link #setSettings(Settings...)}). If settings of any type are not provided, their defaults (e.g.
+     * {@link GeneralSettings#DEFAULT}) are used.
      * <p>
-     * If the given {@link File} does not exist, the document will be empty. Unless
-     * {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created
-     * and saved.
+     * If any of the given objects is not an instance of {@link GeneralSettings}, {@link LoaderSettings},
+     * {@link DumperSettings} nor {@link UpdaterSettings}, an {@link IllegalArgumentException} will be thrown. If there
+     * are multiple instances of the same settings type, the last one will take effect.
      * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use
-     * of them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
-     *
-     * @param document        document (does not need to {@link File#exists() exist})
-     * @param generalSettings general settings
-     * @param loaderSettings  loader settings
-     * @param dumperSettings  dumper settings
-     * @param updaterSettings updater settings
-     * @return the created and loaded document
-     * @throws IOException an IO error
-     */
-    public static YamlDocument create(@NotNull File document, @NotNull GeneralSettings generalSettings, @NotNull LoaderSettings loaderSettings, @NotNull DumperSettings dumperSettings, @NotNull UpdaterSettings updaterSettings) throws IOException {
-        return new YamlDocument(document, null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
-    }
-
-    /**
-     * Creates and initially loads YAML document from the given file using default settings
-     * ({@link GeneralSettings#DEFAULT}...).
-     * <p>
-     * The default settings will now be associated with the created document. You will be able to use {@link #save()}
-     * and {@link #reload()}. As you are not providing any defaults, you will need to provide them each time you're
-     * updating.
-     * <p>
-     * If the given {@link File} does not exist, the document will be empty. Unless
-     * {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) disabled}, the file will automatically be created
-     * and saved.
-     * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use
-     * of them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
+     * If the given {@link File} does not exist, the document will be loaded from a <b>copy</b> of the defaults. If
+     * {@link LoaderSettings.Builder#setCreateFileIfAbsent(boolean) enabled}, the file will automatically be created.
      *
      * @param document document (does not need to {@link File#exists() exist})
+     * @param settings settings
      * @return the created and loaded document
      * @throws IOException an IO error
      */
-    public static YamlDocument create(@NotNull File document) throws IOException {
-        return create(document, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    public static YamlDocument create(@NotNull File document, @NotNull Settings... settings) throws IOException {
+        return new YamlDocument(document, null, settings);
     }
 
     /**
-     * Creates and initially loads YAML document from the given stream using the given settings.
+     * Creates and loads a YAML document from the given stream. The returned document will not have any defaults.
      * <p>
-     * The given settings will now be associated with the created document. As you are not providing a {@link File}, you
-     * will need to provide data input/output each time you're reloading/saving. As you are not providing any defaults,
-     * you will need to provide them each time you're updating.
+     * The provided settings will be stored and used by this document and the defaults. You can overwrite them using
+     * {@link #setSettings(Settings...)}). If settings of any type are not provided, their defaults (e.g.
+     * {@link GeneralSettings#DEFAULT}) are used.
      * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use
-     * of them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
-     *
-     * @param document        document
-     * @param generalSettings general settings
-     * @param loaderSettings  loader settings
-     * @param dumperSettings  dumper settings
-     * @param updaterSettings updater settings
-     * @return the created and loaded document
-     * @throws IOException an IO error
-     */
-    public static YamlDocument create(@NotNull InputStream document, @NotNull GeneralSettings generalSettings, @NotNull LoaderSettings loaderSettings, @NotNull DumperSettings dumperSettings, @NotNull UpdaterSettings updaterSettings) throws IOException {
-        return new YamlDocument(document, null, generalSettings, loaderSettings, dumperSettings, updaterSettings);
-    }
-
-    /**
-     * Creates and initially loads YAML document from the given stream using default settings
-     * ({@link GeneralSettings#DEFAULT}...).
+     * If any of the given objects is not an instance of {@link GeneralSettings}, {@link LoaderSettings},
+     * {@link DumperSettings} nor {@link UpdaterSettings}, an {@link IllegalArgumentException} will be thrown. If there
+     * are multiple instances of the same settings type, the last one will take effect.
      * <p>
-     * The default settings will now be associated with the created document. As you are not providing a {@link File},
-     * you will need to provide data input/output each time you're reloading/saving. As you are not providing any
-     * defaults, you will need to provide them each time you're updating.
-     * <p>
-     * <b>If you'd like to update, but don't want the defaults to be used in any other means,</b> you can disable use
-     * of them via {@link GeneralSettings.Builder#setUseDefaults(boolean)} and provide the defaults right here.
+     * <b>Please note that methods without an I/O parameter will not be usable.</b> Refer to the method documentation
+     * for more information.
      *
      * @param document document
+     * @param settings settings
      * @return the created and loaded document
      * @throws IOException an IO error
      */
-    public static YamlDocument create(@NotNull InputStream document) throws IOException {
-        return create(document, GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
+    public static YamlDocument create(@NotNull InputStream document, @NotNull Settings... settings) throws IOException {
+        return new YamlDocument(document, null, settings);
     }
 
     /**
