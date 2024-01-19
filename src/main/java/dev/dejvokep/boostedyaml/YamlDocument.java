@@ -551,7 +551,9 @@ public class YamlDocument extends Section {
      * Associates new loader settings.
      *
      * @param loaderSettings the new loader settings
+     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
      */
+    @Deprecated
     public void setLoaderSettings(@NotNull LoaderSettings loaderSettings) {
         this.loaderSettings = loaderSettings;
     }
@@ -560,6 +562,7 @@ public class YamlDocument extends Section {
      * Associates new dumper settings.
      *
      * @param dumperSettings the new dumper settings
+     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
      */
     public void setDumperSettings(@NotNull DumperSettings dumperSettings) {
         this.dumperSettings = dumperSettings;
@@ -577,6 +580,7 @@ public class YamlDocument extends Section {
      * </ul>
      *
      * @param generalSettings the new general settings
+     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
      */
     public void setGeneralSettings(@NotNull GeneralSettings generalSettings) {
         //Validate
@@ -590,6 +594,7 @@ public class YamlDocument extends Section {
      * Associates new updater settings.
      *
      * @param updaterSettings the new updater settings
+     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
      */
     public void setUpdaterSettings(@NotNull UpdaterSettings updaterSettings) {
         this.updaterSettings = updaterSettings;
