@@ -121,51 +121,21 @@ class YamlDocumentTest {
     }
 
     @Test
-    void setLoaderSettings() throws IOException {
+    void setSettings() throws IOException {
         // Create
         YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
         // Settings
-        LoaderSettings settings = LoaderSettings.builder().setAutoUpdate(true).build();
-        // Set
-        file.setLoaderSettings(settings);
+        GeneralSettings generalSettings = GeneralSettings.builder().setDefaultNumber(3).build();
+        LoaderSettings loaderSettings = LoaderSettings.builder().setAutoUpdate(true).build();
+        DumperSettings dumperSettings = DumperSettings.builder().setLineBreak("\n\n").build();
+        UpdaterSettings updaterSettings = UpdaterSettings.builder().setKeepAll(true).build();
         // Assert
-        Assertions.assertEquals(settings, file.getLoaderSettings());
-    }
-
-    @Test
-    void setDumperSettings() throws IOException {
-        // Create
-        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
-        // Settings
-        DumperSettings settings = DumperSettings.builder().setLineBreak("\n\n").build();
-        // Set
-        file.setDumperSettings(settings);
-        // Assert
-        Assertions.assertEquals(settings, file.getDumperSettings());
-    }
-
-    @Test
-    void setGeneralSettings() throws IOException {
-        // Create
-        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
-        // Settings
-        GeneralSettings settings = GeneralSettings.builder().setDefaultNumber(3).build();
-        // Set
-        file.setGeneralSettings(settings);
-        // Assert
-        Assertions.assertEquals(settings, file.getGeneralSettings());
-    }
-
-    @Test
-    void setUpdaterSettings() throws IOException {
-        // Create
-        YamlDocument file = YamlDocument.create(createStream("x: y\nb: 5"));
-        // Settings
-        UpdaterSettings settings = UpdaterSettings.builder().setKeepAll(true).build();
-        // Set
-        file.setUpdaterSettings(settings);
-        // Assert
-        Assertions.assertEquals(settings, file.getUpdaterSettings());
+        file.setSettings(generalSettings, loaderSettings, dumperSettings, updaterSettings);
+        assertEquals(generalSettings, file.getGeneralSettings());
+        assertEquals(loaderSettings, file.getLoaderSettings());
+        assertEquals(dumperSettings, file.getDumperSettings());
+        assertEquals(updaterSettings, file.getUpdaterSettings());
+        assertThrows(IllegalArgumentException.class, () -> file.setSettings(GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build()));
     }
 
     @Test
