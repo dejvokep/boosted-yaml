@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 https://dejvokep.dev/
+ * Copyright 2024 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.settings.dumper;
 
+import dev.dejvokep.boostedyaml.settings.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -39,7 +40,7 @@ import java.util.function.Supplier;
  * <code>DumperSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public class DumperSettings {
+public class DumperSettings implements Settings {
 
     /**
      * Represents supported encoding. Please learn more <a

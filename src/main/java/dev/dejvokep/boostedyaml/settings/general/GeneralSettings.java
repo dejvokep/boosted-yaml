@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 https://dejvokep.dev/
+ * Copyright 2024 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.serialization.YamlSerializer;
 import dev.dejvokep.boostedyaml.serialization.standard.StandardSerializer;
+import dev.dejvokep.boostedyaml.settings.Settings;
 import dev.dejvokep.boostedyaml.utils.supplier.ListSupplier;
 import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
 import dev.dejvokep.boostedyaml.utils.supplier.SetSupplier;
@@ -36,7 +37,7 @@ import java.util.regex.Pattern;
  * <code>GeneralSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings("unused")
-public class GeneralSettings {
+public class GeneralSettings implements Settings {
 
     /**
      * Key format for sections to use; specifies how the loaded/supplied keys should be formatted.

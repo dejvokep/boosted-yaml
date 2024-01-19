@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 https://dejvokep.dev/
+ * Copyright 2024 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package dev.dejvokep.boostedyaml.settings.loader;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.settings.Settings;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
@@ -39,7 +40,7 @@ import java.util.Optional;
  * <code>LoaderSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public class LoaderSettings {
+public class LoaderSettings implements Settings {
 
     /**
      * Default loader settings.

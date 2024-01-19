@@ -1,3 +1,18 @@
+/*
+ * Copyright 2024 https://dejvokep.dev/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package dev.dejvokep.boostedyaml.engine;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
@@ -26,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ExtendedRepresenterTest {
 
@@ -47,8 +63,8 @@ class ExtendedRepresenterTest {
         assertEquals("b", represented.getBlockComments().get(3).getValue());
         assertEquals("c", represented.getBlockComments().get(4).getValue());
         assertEquals(5, represented.getBlockComments().size());
-        assertEquals(null, represented.getInLineComments());
-        assertEquals(null, represented.getEndComments());
+        assertNull(represented.getInLineComments());
+        assertNull(represented.getEndComments());
     }
 
     @Test
@@ -57,8 +73,8 @@ class ExtendedRepresenterTest {
         assertEquals(represented, buildRepresenter().applyValueComments(buildCommentedBlock(), represented));
         assertEquals("a", represented.getBlockComments().get(0).getValue());
         assertEquals(1, represented.getBlockComments().size());
-        assertEquals(null, represented.getInLineComments());
-        assertEquals(null, represented.getEndComments());
+        assertNull(represented.getInLineComments());
+        assertNull(represented.getEndComments());
     }
 
     @Test

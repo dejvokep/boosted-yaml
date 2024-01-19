@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 https://dejvokep.dev/
+ * Copyright 2024 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import dev.dejvokep.boostedyaml.dvs.versioning.ManualVersioning;
 import dev.dejvokep.boostedyaml.dvs.versioning.Versioning;
 import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.route.RouteFactory;
+import dev.dejvokep.boostedyaml.settings.Settings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
@@ -39,7 +40,7 @@ import java.util.function.Function;
  * <code>UpdaterSettings.builder() //configure// .build()</code>
  */
 @SuppressWarnings("unused")
-public class UpdaterSettings {
+public class UpdaterSettings implements Settings {
 
     /**
      * Enum defining how options in sections should be sorted during merging.

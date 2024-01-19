@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 https://dejvokep.dev/
+ * Copyright 2024 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public abstract class Block<T> {
     //Comments
     List<CommentLine> beforeKeyComments = new ArrayList<>(0), inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
     //Value
-    private final T value;
+    private T value;
     //If to ignore
     private boolean ignored;
 
@@ -190,6 +190,15 @@ public abstract class Block<T> {
             commentLines.set(++i, commentLine.getCommentType() != CommentType.IN_LINE ? commentLine : new CommentLine(commentLine.getStartMark(), commentLine.getEndMark(), commentLine.getValue(), CommentType.BLOCK));
         // Return
         return commentLines;
+    }
+
+    /**
+     * Sets a new value.
+     *
+     * @param value the new value
+     */
+    public void setValue(T value) {
+        this.value = value;
     }
 
     /**

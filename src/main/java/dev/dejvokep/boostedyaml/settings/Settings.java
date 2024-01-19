@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dev.dejvokep.boostedyaml.utils.supplier;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Set;
+package dev.dejvokep.boostedyaml.settings;
 
 /**
- * Supplier used to supply sets of any type.
+ * A marker interface implemented by all settings defined by the library.
+ * <p>
+ * Should you create custom settings implementations, always extend existing implementations of this class defined by
+ * the library, as objects not implementing any of these will be rejected by
+ * {@link dev.dejvokep.boostedyaml.YamlDocument} methods.
  */
-public interface SetSupplier {
-
-    /**
-     * Supplies set of the given type and (initial) size.
-     *
-     * @param size the (initial) size of the returned set, if supported by the set implementation returned
-     * @param <T>  the type of the list
-     * @return the set of the given size
-     */
-    @NotNull
-    <T> Set<T> supply(int size);
-
+public interface Settings {
 }
