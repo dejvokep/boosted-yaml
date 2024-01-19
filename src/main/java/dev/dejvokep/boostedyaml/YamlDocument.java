@@ -131,7 +131,9 @@ public class YamlDocument extends Section {
     }
 
     /**
-     * Sets the given settings internally, into their respective fields.
+     * Sets the given settings internally, into their respective fields. If any of the setting fields in this document
+     * instance are <code>null</code>, this method automatically uses their defaults (e.g.
+     * {@link GeneralSettings#DEFAULT}).
      * <p>
      * <b>If you are changing {@link GeneralSettings}:</b>
      * <ul>
