@@ -1141,6 +1141,107 @@ public class Section extends Block<Map<Object, Block<?>>> {
         getStoredValue().put(key, new TerminatedBlock(previous, value));
     }
 
+    public Block<?> move(@NotNull Route source, @NotNull Route destination) {
+        return traverse(source, false).map(leaf -> {
+            Block<?> block = leaf.parent.getStoredValue().remove(leaf.key);
+
+            if (block != null)
+                this.set(destination, block);
+
+            return block;
+        }).orElse(null);
+    }
+    public Block<?> move(@NotNull String source, @NotNull String destination) {
+        return traverse(source, false).map(leaf -> {
+            Block<?> block = leaf.parent.getStoredValue().remove(leaf.key);
+
+            if (block != null)
+                this.set(destination, block);
+
+            return block;
+        }).orElse(null);
+    }
+
+    private Optional<TraversalLeaf> traverse(@NotNull Route route, boolean createParents) {
+        //Starting index
+        int i = -1;
+        //Section
+        Section section = this;
+
+        //While not out of bounds
+        while (true) {
+            i++;
+
+            //The key
+            Object key = adaptKey(route.get(i));
+
+            //If at the last index
+            if (i + 1 == route.length())
+                return Optional.of(new TraversalLeaf(section, key));
+
+            //The block at the key
+            Block<?> block = section.getStoredValue().getOrDefault(key, null);
+
+            if (block instanceof Section) {
+                section = (Section) block;
+                continue;
+            }
+
+            //Do not create parent section
+            if (!createParents)
+                return Optional.empty();
+
+            //Set next section
+            section = section.createSectionInternal(key, block);
+        }
+    }
+
+    private Optional<TraversalLeaf> traverse(@NotNull String route, boolean createParents) {
+        //Index of the last separator + 1
+        int lastSeparator = 0;
+        //Section
+        Section section = this;
+
+        //While true (control statements are inside)
+        while (true) {
+            //Next separator
+            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
+
+            //If at the last key
+            if (nextSeparator == -1)
+                return Optional.of(new TraversalLeaf(section, route.substring(lastSeparator)));
+
+            //The key
+            String key = route.substring(lastSeparator, nextSeparator);
+
+            //The block at the key
+            Block<?> block = section.getStoredValue().getOrDefault(key, null);
+
+            if (block instanceof Section) {
+                section = (Section) block;
+                continue;
+            }
+
+            //Do not create parent section
+            if (!createParents)
+                return Optional.empty();
+
+            //Set
+            section = section.createSectionInternal(key, block);
+            lastSeparator = nextSeparator + 1;
+        }
+    }
+
+    private static class TraversalLeaf {
+        private final Section parent;
+        private final Object key;
+
+        private TraversalLeaf(Section parent, Object key) {
+            this.parent = parent;
+            this.key = key;
+        }
+    }
+
     //
     //
     //      -----------------------
