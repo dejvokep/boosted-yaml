@@ -440,6 +440,21 @@ class SectionTest {
         return YamlDocument.create(new ByteArrayInputStream("x: 5\ny:\n  a: true\n  b: abc\n7: false\nc: A".getBytes(StandardCharsets.UTF_8)), settings, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UpdaterSettings.DEFAULT);
     }
 
+    @Test
+    void move() throws IOException {
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("x: \"y\"\ny:\n  a: true\n  b: false\n7: f".getBytes(StandardCharsets.UTF_8)), GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build());
+
+        Block moved = document.getBlock(Route.from(7));
+        assertEquals(moved, document.move(Route.from(7), Route.from("z", true)));
+        assertEquals(moved, document.getBlock(Route.from("z", true)));
+        assertNull(document.getBlock(Route.from(7)));
+
+        moved = document.getBlock("x.a");
+        assertEquals(moved, document.move("x.a", "d"));
+        assertEquals(moved, document.getBlock("d"));
+        assertNull(document.getBlock("x.a"));
+    }
+
     private enum Alphabet {
         A, B, C
     }
