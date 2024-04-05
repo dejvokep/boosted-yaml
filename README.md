@@ -28,7 +28,7 @@ All of that with quick and kind support. Convinced? Let's get you onboard.
 
 # 🔧 Quick setup
 Setup takes only about 5 minutes. Example software built using this guide is available at https://github.com/dejvokep/boosted-yaml-example.
-## 1. Add using Maven (Gradle):
+## 1. Add using Maven:
 BoostedYAML is hosted by Maven Central Repository. That means, you only need to add a dependency:
 ```xml
 <dependency>
@@ -66,6 +66,39 @@ Add the following shading section to prevent class loader conflicts:
   </plugins>
 </build>
 ```
+## 1.1. Add using Gradle:
+BoostedYAML is hosted by Maven Central Repository. That means, you only need to add a dependency (and the maven central repo):
+```gradle
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+   implementation "dev.dejvokep:boosted-yaml:1.3"
+}
+```
+
+Add the following shadowing section to prevent class loader conflicts:
+- Add this at the very start of your build.gradle file: (Gradle 7.3)
+```gradle
+plugins {
+  id 'com.github.johnrengelman.shadow' version '7.1.2'
+  id 'java'
+}
+```
+- To use the shadowing project, this will help with relocating,
+- if this is not available for your gradle version, please [take a look here](https://imperceptiblethoughts.com/shadow/getting-started/)
+
+Then at the end of your build.gradle file:
+```gradle
+// Relocating a Package
+shadowJar {
+   // The second string is where you will locate dev.dejvokep.boostedyaml
+   relocate 'dev.dejvokep.boostedyaml', 'me.plugin.libs'
+}
+```
+Learn more about shadow for gradle [here](https://imperceptiblethoughts.com/shadow/introduction/#benefits-of-shadow)
+
 ## 2. Routes and how to access content
 Routes are immutable objects used to address content - similar to URIs (Universe Resource Identifier). Please read more about them [here](https://dejvokep.gitbook.io/boostedyaml/routing/routes).
 ## 3. Create your document:
