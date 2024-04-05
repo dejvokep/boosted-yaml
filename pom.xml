@@ -24,7 +24,7 @@
     <!-- Artifact data -->
     <artifactId>boosted-yaml</artifactId>
     <groupId>dev.dejvokep</groupId>
-    <version>1.3.2</version>
+    <version>1.3.3</version>
     <name>BoostedYAML</name>
     <description>A simple-to-use library delivering boosted experience while working with YAML files.</description>
     <url>https://github.com/dejvokep/boosted-yaml</url>
