@@ -173,8 +173,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Initializes this section as an empty one.
      * <p>
-     * This method must only be called if {@link #isRoot()} returns <code>true</code>. Expect an {@link
-     * IllegalStateException} otherwise.
+     * This method must only be called if {@link #isRoot()} returns <code>true</code>. Expect an
+     * {@link IllegalStateException} otherwise.
      *
      * @param root the root file
      */
@@ -466,8 +466,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns if methods can use defaults. That is, if there {@link #hasDefaults() are any} and it is {@link
-     * GeneralSettings#isUseDefaults() enabled by the settings}.
+     * Returns if methods can use defaults. That is, if there {@link #hasDefaults() are any} and it is
+     * {@link GeneralSettings#isUseDefaults() enabled by the settings}.
      *
      * @return if methods can use defaults
      */
@@ -530,8 +530,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Otherwise, also iterates through <b>all</b> sub-sections, while returning <b>truly</b> complete set of routes
      * within this section.
      * <p>
-     * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getRouteSeparator()}).
+     * The returned routes will have the keys separated by the root's separator
+     * ({@link GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #contains(String)} with any route from the returned set will return
      * <code>true</code> (unless modified in between).
@@ -558,8 +558,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Returns set of direct keys (in this section only - not deep); while not keeping any reference to this section.
      * <p>
-     * More formally, returns the key set of the underlying map. The returned set is an instance of {@link
-     * GeneralSettings#getDefaultSet()}.
+     * More formally, returns the key set of the underlying map. The returned set is an instance of
+     * {@link GeneralSettings#getDefaultSet()}.
      * <p>
      * The returned map will also contain keys from the {@link #getDefaults() equivalent section in the defaults}, if
      * any. <a href="#note-3">Disable use of defaults (#3).</a>
@@ -639,8 +639,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Otherwise, also iterates through <b>all</b> sub-sections, while returning <b>truly</b> complete map of
      * <i>route=value</i> pairs within this section.
      * <p>
-     * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getRouteSeparator()}).
+     * The returned routes will have the keys separated by the root's separator
+     * ({@link GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #get(String)} with any route from the returned map will return the value
      * assigned to that route in the returned map (unless modified in between).
@@ -722,8 +722,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Otherwise, also iterates through <b>all</b> sub-sections, while returning <b>truly</b> complete map of
      * <i>route=block</i> pairs within this section.
      * <p>
-     * The returned routes will have the keys separated by the root's separator ({@link
-     * GeneralSettings#getRouteSeparator()}).
+     * The returned routes will have the keys separated by the root's separator
+     * ({@link GeneralSettings#getRouteSeparator()}).
      * <p>
      * It is guaranteed that call to {@link #getBlock(String)} with any route from the returned map will return the
      * block assigned to that route in the returned map (unless modified in between).
@@ -966,12 +966,12 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * section in order as returned by the given map's iterator.
      * <p>
      * Direct mappings mean that the given mappings will be inserted directly into this map. Therefore, this
-     * implementation does not support {@link Route routes} as keys and will not be able to process them (use {@link
-     * #setAll(Map)} instead). All the mappings can then be retrieved via {@link #getStoredValue()} exactly in form as
-     * they were given.
+     * implementation does not support {@link Route routes} as keys and will not be able to process them (use
+     * {@link #setAll(Map)} instead). All the mappings can then be retrieved via {@link #getStoredValue()} exactly in
+     * form as they were given.
      * <p>
-     * The setting of the values including the limitations follows the documentation defined by {@link #set(Route,
-     * Object)}.
+     * The setting of the values including the limitations follows the documentation defined by
+     * {@link #set(Route, Object)}.
      *
      * @param mappings mappings to repopulate the section with
      * @see #set(Route, Object)
@@ -984,8 +984,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     /**
      * Sets all the given mappings into this section in order as returned by the given map's iterator.
      * <p>
-     * The setting of the values including the limitations follows the documentation defined by {@link #set(Route,
-     * Object)}.
+     * The setting of the values including the limitations follows the documentation defined by
+     * {@link #set(Route, Object)}.
      *
      * @param mappings mappings to set
      */
@@ -1141,6 +1141,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
         getStoredValue().put(key, new TerminatedBlock(previous, value));
     }
 
+    /**
+     * Moves a {@link Block block} (comments and value) from the source to the destination route and returns the moved
+     * instance, if any. Please note that <b>moving</b> does not mean <b>cloning</b> (or <code>copying</code>), as the
+     * moved content will no longer be present at its original location.
+     *
+     * @param source      the source route
+     * @param destination the destination route
+     * @return the moved block, or <code>null</code> if there is no content at the source route
+     */
+    @Nullable
     public Block<?> move(@NotNull Route source, @NotNull Route destination) {
         return traverse(source, false).map(leaf -> {
             Block<?> block = leaf.parent.getStoredValue().remove(leaf.key);
@@ -1151,6 +1161,17 @@ public class Section extends Block<Map<Object, Block<?>>> {
             return block;
         }).orElse(null);
     }
+
+    /**
+     * Moves a {@link Block block} (comments and value) from the source to the destination route and returns the moved
+     * instance, if any. Please note that <b>moving</b> does not mean <b>cloning</b> (or <code>copying</code>), as the
+     * moved content will no longer be present at its original location.
+     *
+     * @param source      the source route
+     * @param destination the destination route
+     * @return the moved block, or <code>null</code> if there is no content at the source route
+     */
+    @Nullable
     public Block<?> move(@NotNull String source, @NotNull String destination) {
         return traverse(source, false).map(leaf -> {
             Block<?> block = leaf.parent.getStoredValue().remove(leaf.key);
@@ -1162,7 +1183,22 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }).orElse(null);
     }
 
-    private Optional<TraversalLeaf> traverse(@NotNull Route route, boolean createParents) {
+    /**
+     * Traverses the section tree to the given route. Returns the parent section of the block at <b>that</b> route and
+     * also conveniently the last key in the route, which can be used to access the block from the section.
+     * <p>
+     * The method does not assess if there actually is anything at the route. If there is no parent section of that
+     * route and <code>createParents</code> is <code>false</code>, returns an empty optional.
+     * <p>
+     * If it is <code>true</code>, the method will create parent sections alongside the route (overwriting anything in
+     * the way, see {@link #createSection(Route)} for implementation details) and will always return a nonempty
+     * optional.
+     *
+     * @param route         the route to traverse
+     * @param createParents if to create parent sections along the way, if missing
+     * @return the reference to the block at the route (parent + key), if available
+     */
+    private Optional<BlockReference> traverse(@NotNull Route route, boolean createParents) {
         //Starting index
         int i = -1;
         //Section
@@ -1177,7 +1213,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
             //If at the last index
             if (i + 1 == route.length())
-                return Optional.of(new TraversalLeaf(section, key));
+                return Optional.of(new BlockReference(section, key));
 
             //The block at the key
             Block<?> block = section.getStoredValue().getOrDefault(key, null);
@@ -1196,7 +1232,22 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
     }
 
-    private Optional<TraversalLeaf> traverse(@NotNull String route, boolean createParents) {
+    /**
+     * Traverses the section tree to the given route. Returns the parent section of the block at <b>that</b> route and
+     * also conveniently the last key in the route, which can be used to access the block from the section.
+     * <p>
+     * The method does not assess if there actually is anything at the route. If there is no parent section of that
+     * route and <code>createParents</code> is <code>false</code>, returns an empty optional.
+     * <p>
+     * If it is <code>true</code>, the method will create parent sections alongside the route (overwriting anything in
+     * the way, see {@link #createSection(String)} for implementation details) and will always return a nonempty
+     * optional.
+     *
+     * @param route         the route to traverse
+     * @param createParents if to create parent sections along the way, if missing
+     * @return the reference to the block at the route (parent + key), if available
+     */
+    private Optional<BlockReference> traverse(@NotNull String route, boolean createParents) {
         //Index of the last separator + 1
         int lastSeparator = 0;
         //Section
@@ -1209,7 +1260,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
             //If at the last key
             if (nextSeparator == -1)
-                return Optional.of(new TraversalLeaf(section, route.substring(lastSeparator)));
+                return Optional.of(new BlockReference(section, route.substring(lastSeparator)));
 
             //The key
             String key = route.substring(lastSeparator, nextSeparator);
@@ -1232,11 +1283,22 @@ public class Section extends Block<Map<Object, Block<?>>> {
         }
     }
 
-    private static class TraversalLeaf {
+    /**
+     * Stores reference to a {@link Block}.
+     */
+    private static class BlockReference {
+        @NotNull
         private final Section parent;
+        @NotNull
         private final Object key;
 
-        private TraversalLeaf(Section parent, Object key) {
+        /**
+         * Create {@link Block} reference.
+         *
+         * @param parent the parent section
+         * @param key    the key in the parent section which can be used to access the referred block
+         */
+        private BlockReference(@NotNull Section parent, @NotNull Object key) {
             this.parent = parent;
             this.key = key;
         }
@@ -1284,8 +1346,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * given section. Returns <code>true</code> otherwise.
      *
      * @param parent the parent section, or <code>null</code> if it does not exist
-     * @param key    the last key in the route, key to check in the given section (already adapted using {@link
-     *               #adaptKey(Object)})
+     * @param key    the last key in the route, key to check in the given section (already adapted using
+     *               {@link #adaptKey(Object)})
      * @return if the entry has been removed
      */
     private boolean removeInternal(@Nullable Section parent, @Nullable Object key) {
@@ -1323,8 +1385,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>Functionality notes:</b> When individual elements (keys) of the given route are traversed, they are (without
-     * modifying the route object given - it is immutable) adapted to the current key format setting (see {@link
-     * #adaptKey(Object)}).
+     * modifying the route object given - it is immutable) adapted to the current key format setting (see
+     * {@link #adaptKey(Object)}).
      * <p>
      * <b>This is one of the fundamental methods, upon which the functionality of other methods in this class is
      * built.</b>
@@ -1344,8 +1406,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * href="https://dejvokep.gitbook.io/boostedyaml/">wiki</a> for more information.
      * <p>
      * <b>A direct key</b> means the key is referring to object in this section directly (e.g. does not work like
-     * route, which might - if consisting of multiple keys - refer to subsections) - similar to {@link
-     * Map#get(Object)}.
+     * route, which might - if consisting of multiple keys - refer to subsections) - similar to
+     * {@link Map#get(Object)}.
      * <p>
      * <b>Please note</b> that this class also supports <code>null</code> keys, or empty string keys (<code>""</code>)
      * as allowed by YAML 1.2 spec. This also means that compatibility with Spigot/BungeeCord API is not maintained
@@ -1961,8 +2023,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
-     * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
-     * Object#toString()}.
+     * Natively, {@link String} instance is preferred. Anything else is converted to one using
+     * {@link Object#toString()}.
      *
      * @param route the route to get the string at
      * @return the string at the given route
@@ -1976,8 +2038,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given route encapsulated in an instance of {@link Optional}. If nothing is present at the
      * given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
-     * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
-     * Object#toString()}.
+     * Natively, {@link String} instance is preferred. Anything else is converted to one using
+     * {@link Object#toString()}.
      *
      * @param route the route to get the string at
      * @return the string at the given route
@@ -1992,8 +2054,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultString()}<a
      * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
-     * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
-     * Object#toString()}.
+     * Natively, {@link String} instance is preferred. Anything else is converted to one using
+     * {@link Object#toString()}.
      *
      * @param route the route to get the string at
      * @return the string at the given route, or default according to the documentation above
@@ -2008,8 +2070,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns default defined by root's {@link GeneralSettings#getDefaultString()}<a
      * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
      * <p>
-     * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
-     * Object#toString()}.
+     * Natively, {@link String} instance is preferred. Anything else is converted to one using
+     * {@link Object#toString()}.
      *
      * @param route the route to get the string at
      * @return the string at the given route, or default according to the documentation above
@@ -2023,8 +2085,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given route. If nothing is present at the given route, or is not an instance of any
      * compatible type (see below), returns the provided default.
      * <p>
-     * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
-     * Object#toString()}.
+     * Natively, {@link String} instance is preferred. Anything else is converted to one using
+     * {@link Object#toString()}.
      *
      * @param route the route to get the string at
      * @param def   the default value
@@ -2039,8 +2101,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * Returns string at the given route. If nothing is present at the given route, or is not an instance of any
      * compatible type (see below), returns the provided default.
      * <p>
-     * Natively, {@link String} instance is preferred. Anything else is converted to one using {@link
-     * Object#toString()}.
+     * Natively, {@link String} instance is preferred. Anything else is converted to one using
+     * {@link Object#toString()}.
      *
      * @param route the route to get the string at
      * @param def   the default value
@@ -2112,9 +2174,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
-     * T} or cannot be converted to one (see below), returns <code>null</code> <a href="#note-1"><sup>or value from
-     * defaults (#1)</sup></a>.
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of
+     * {@link T} or cannot be converted to one (see below), returns <code>null</code> <a href="#note-1"><sup>or value
+     * from defaults (#1)</sup></a>.
      * <p>
      * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
      * constants defined by the {@link T}, the corresponding constant is returned.
@@ -2130,9 +2192,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
-     * T} or cannot be converted to one (see below), returns <code>null</code> <a href="#note-1"><sup>or value from
-     * defaults (#1)</sup></a>.
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of
+     * {@link T} or cannot be converted to one (see below), returns <code>null</code> <a href="#note-1"><sup>or value
+     * from defaults (#1)</sup></a>.
      * <p>
      * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
      * constants defined by the {@link T}, the corresponding constant is returned.
@@ -2148,8 +2210,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
-     * T} or cannot be converted to one (see below), returns the provided default.
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of
+     * {@link T} or cannot be converted to one (see below), returns the provided default.
      * <p>
      * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
      * constants defined by the {@link T}, the corresponding constant is returned.
@@ -2166,8 +2228,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of {@link
-     * T} or cannot be converted to one (see below), returns the provided default.
+     * Returns enum at the given route. If nothing is present at the given route, it is not an enum constant of
+     * {@link T} or cannot be converted to one (see below), returns the provided default.
      * <p>
      * If there is an object other than an enum whose {@link Object#toString() string representation} matches any of the
      * constants defined by the {@link T}, the corresponding constant is returned.
@@ -2664,8 +2726,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * the given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)}.
+     * returned is big integer created from the result of {@link Number#longValue()} using
+     * {@link BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
@@ -2680,8 +2742,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * the given route, or is not an instance of any compatible type (see below), returns an empty optional.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)}.
+     * returned is big integer created from the result of {@link Number#longValue()} using
+     * {@link BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
@@ -2697,8 +2759,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * (converted to {@link BigInteger} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)}.
+     * returned is big integer created from the result of {@link Number#longValue()} using
+     * {@link BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
@@ -2714,8 +2776,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * (converted to {@link BigInteger} as defined below), or <a href="#note-1">value from defaults (#1)</a>.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)}.
+     * returned is big integer created from the result of {@link Number#longValue()} using
+     * {@link BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @return the big integer at the given route
@@ -2730,8 +2792,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)}.
+     * returned is big integer created from the result of {@link Number#longValue()} using
+     * {@link BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @param def   the default value
@@ -2747,8 +2809,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * compatible type (see below), returns the provided default.
      * <p>
      * Natively, {@link BigInteger} instance is preferred. However, if there is an instance of {@link Number}, the value
-     * returned is big integer created from the result of {@link Number#longValue()} using {@link
-     * BigInteger#valueOf(long)}.
+     * returned is big integer created from the result of {@link Number#longValue()} using
+     * {@link BigInteger#valueOf(long)}.
      *
      * @param route the route to get the big integer at
      * @param def   the default value
@@ -3558,8 +3620,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     //
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} or {@link
-     * Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} or
+     * {@link Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults
+     * (#2).</a>
      *
      * @param route the route to check the value at
      * @return if a value at the given route exists and is a decimal
@@ -3571,8 +3634,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} or {@link
-     * Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults (#2).</a>
+     * Returns <code>true</code> if and only a value at the given route exists, and it is a {@link Double} or
+     * {@link Float} (or the primitive variants). <a href="#note-2">If no value is at the route, checks the defaults
+     * (#2).</a>
      *
      * @param route the route to check the value at
      * @return if a value at the given route exists and is a decimal
@@ -3992,8 +4056,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns the provided default.
+     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a
+     * {@link List}, returns the provided default.
      * <p>
      * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
      * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
@@ -4011,8 +4075,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns the provided default.
+     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a
+     * {@link List}, returns the provided default.
      * <p>
      * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
      * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
@@ -4030,9 +4094,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value
-     * from defaults</sup></a>.
+     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a
+     * {@link List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or
+     * value from defaults</sup></a>.
      * <p>
      * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
      * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
@@ -4049,9 +4113,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
     }
 
     /**
-     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a {@link
-     * List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or value
-     * from defaults</sup></a>.
+     * Returns list of big integers at the given route. If nothing is present at the given route, or is not a
+     * {@link List}, returns default defined by root's {@link GeneralSettings#getDefaultList()}<a href="#note-1"><sup>or
+     * value from defaults</sup></a>.
      * <p>
      * This method creates and returns a new instance of root's {@link GeneralSettings#getDefaultList()}, with the
      * elements re-added (to the target/returned list) from the (source) list at the given route one by one, in order
@@ -4749,8 +4813,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
-     * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
-     * #set(Route, Object)} afterwards.
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(Route, Object)} afterwards.
      *
      * @param route the route to get the map list at
      * @param def   the default value
@@ -4771,8 +4835,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
-     * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
-     * #set(String, Object)} afterwards.
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(String, Object)} afterwards.
      *
      * @param route the route to get the map list at
      * @param def   the default value
@@ -4794,8 +4858,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
-     * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
-     * #set(Route, Object)} afterwards.
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(Route, Object)} afterwards.
      *
      * @param route the route to get the map list at
      * @return the map list at the given route, or default according to the documentation above
@@ -4816,8 +4880,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * is skipped and will not appear in the returned list.
      * <p>
      * <b>Please note</b> that this method does not clone the maps returned - mutating them affects the list stored in
-     * the section (unless the default value is returned). It is, however, if needed, still recommended to call {@link
-     * #set(String, Object)} afterwards.
+     * the section (unless the default value is returned). It is, however, if needed, still recommended to call
+     * {@link #set(String, Object)} afterwards.
      *
      * @param route the route to get the map list at
      * @return the map list at the given route, or default according to the documentation above
