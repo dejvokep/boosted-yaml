@@ -1018,27 +1018,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param value the value to set
      */
     public void set(@NotNull Route route, @Nullable Object value) {
-        //Starting index
-        int i = -1;
-        //Section
-        Section section = this;
-
-        //While not out of bounds
-        while (++i < route.length()) {
-            //If at the last index
-            if (i + 1 >= route.length()) {
-                //Call the direct method
-                section.setInternal(adaptKey(route.get(i)), value);
-                return;
-            }
-
-            //Key
-            Object key = adaptKey(route.get(i));
-            //The block at the key
-            Block<?> block = section.getStoredValue().getOrDefault(key, null);
-            //Set next section
-            section = !(block instanceof Section) ? section.createSectionInternal(key, block) : (Section) block;
-        }
+        traverse(route, true).ifPresent(reference -> reference.parent.setInternal(reference.key, value));
     }
 
     /**
@@ -1066,27 +1046,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param value the value to set
      */
     public void set(@NotNull String route, @Nullable Object value) {
-        //Index of the last separator + 1
-        int lastSeparator = 0;
-        //Section
-        Section section = this;
-
-        //While true (control statements are inside)
-        while (true) {
-            //Next separator
-            int nextSeparator = route.indexOf(root.getGeneralSettings().getRouteSeparator(), lastSeparator);
-            //If found
-            if (nextSeparator != -1) {
-                //Create section
-                section = section.createSection(route.substring(lastSeparator, nextSeparator));
-            } else {
-                //Set
-                section.setInternal(route.substring(lastSeparator), value);
-                return;
-            }
-            //Set
-            lastSeparator = nextSeparator + 1;
-        }
+        traverse(route, true).ifPresent(reference -> reference.parent.setInternal(reference.key, value));
     }
 
     /**
@@ -1154,8 +1114,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @Nullable
     public Block<?> move(@NotNull Route source, @NotNull Route destination) {
-        return traverse(source, false).map(leaf -> {
-            Block<?> block = leaf.parent.getStoredValue().remove(leaf.key);
+        return traverse(source, false).map(reference -> {
+            Block<?> block = reference.parent.getStoredValue().remove(reference.key);
 
             if (block != null)
                 this.set(destination, block);
@@ -1177,8 +1137,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @Nullable
     public Block<?> move(@NotNull String source, @NotNull String destination) {
-        return traverse(source, false).map(leaf -> {
-            Block<?> block = leaf.parent.getStoredValue().remove(leaf.key);
+        return traverse(source, false).map(reference -> {
+            Block<?> block = reference.parent.getStoredValue().remove(reference.key);
 
             if (block != null)
                 this.set(destination, block);
@@ -1300,7 +1260,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
          * Create {@link Block} reference.
          *
          * @param parent the parent section
-         * @param key    the key in the parent section which can be used to access the referred block
+         * @param key    the (already adapted) key in the parent section which can be used to access the referred block
          */
         private BlockReference(@NotNull Section parent, @NotNull Object key) {
             this.parent = parent;
