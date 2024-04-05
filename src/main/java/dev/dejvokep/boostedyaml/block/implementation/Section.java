@@ -1143,8 +1143,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Moves a {@link Block block} (comments and value) from the source to the destination route and returns the moved
-     * instance, if any. Please note that <b>moving</b> does not mean <b>cloning</b> (or <code>copying</code>), as the
-     * moved content will no longer be present at its original location.
+     * instance, if any.
+     * <p>
+     * Please note that <b>moving</b> does not mean <b>cloning</b> (or <b>copying</b>), as the moved content will no
+     * longer be present at its original location.
      *
      * @param source      the source route
      * @param destination the destination route
@@ -1164,8 +1166,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
 
     /**
      * Moves a {@link Block block} (comments and value) from the source to the destination route and returns the moved
-     * instance, if any. Please note that <b>moving</b> does not mean <b>cloning</b> (or <code>copying</code>), as the
-     * moved content will no longer be present at its original location.
+     * instance, if any.
+     * <p>
+     * Please note that <b>moving</b> does not mean <b>cloning</b> (or <b>copying</b>), as the moved content will no
+     * longer be present at its original location.
      *
      * @param source      the source route
      * @param destination the destination route
