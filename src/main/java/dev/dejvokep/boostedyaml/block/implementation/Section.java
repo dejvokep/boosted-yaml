@@ -1114,12 +1114,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @Nullable
     public Block<?> move(@NotNull Route source, @NotNull Route destination) {
-        return traverse(source, false).map(reference -> {
-            Block<?> block = reference.parent.getStoredValue().remove(reference.key);
-
-            if (block != null)
-                this.set(destination, block);
-
+        return traverse(source, false).map(reference -> reference.parent.getStoredValue().remove(reference.key)).map(block -> {
+            this.set(destination, block);
             return block;
         }).orElse(null);
     }
@@ -1137,12 +1133,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      */
     @Nullable
     public Block<?> move(@NotNull String source, @NotNull String destination) {
-        return traverse(source, false).map(reference -> {
-            Block<?> block = reference.parent.getStoredValue().remove(reference.key);
-
-            if (block != null)
-                this.set(destination, block);
-
+        return traverse(source, false).map(reference -> reference.parent.getStoredValue().remove(reference.key)).map(block -> {
+            this.set(destination, block);
             return block;
         }).orElse(null);
     }
