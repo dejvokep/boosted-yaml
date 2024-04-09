@@ -34,7 +34,7 @@ BoostedYAML is hosted by Maven Central Repository. That means, you only need to 
 <dependency>
   <groupId>dev.dejvokep</groupId>
   <artifactId>boosted-yaml</artifactId>
-  <version>1.3.3</version>
+  <version>1.3.4</version>
 </dependency>
 ```
 Add the following shading section to prevent class loader conflicts:
