@@ -299,13 +299,16 @@ class SectionTest {
         // Create file
         YamlDocument file = createFile(GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build());
         // Set
-        file.set("z.c", true);
+        file.set("a.a.a", true);
+        file.set("a.a.b", "abc");
         file.set(Route.from(4, 6), 9);
         file.set("c", Alphabet.B);
         // Assert
-        assertTrue(file.contains("z.c"));
+        assertTrue(file.contains("a.a.a"));
+        assertTrue(file.contains("a.a.b"));
         assertTrue(file.contains(Route.from(4, 6)));
-        assertTrue(file.getBoolean("z.c"));
+        assertTrue(file.getBoolean("a.a.a"));
+        assertEquals("abc", file.getString("a.a.b"));
         assertEquals(Alphabet.B, file.getEnum("c", Alphabet.class));
         assertEquals(9, file.getInt(Route.from(4, 6)));
     }

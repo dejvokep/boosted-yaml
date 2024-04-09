@@ -1224,6 +1224,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
             //The block at the key
             Block<?> block = section.getStoredValue().getOrDefault(key, null);
 
+            // Move
+            lastSeparator = nextSeparator + 1;
+
             if (block instanceof Section) {
                 section = (Section) block;
                 continue;
@@ -1233,9 +1236,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
             if (!createParents)
                 return Optional.empty();
 
-            //Set
+            //Create
             section = section.createSectionInternal(key, block);
-            lastSeparator = nextSeparator + 1;
         }
     }
 
