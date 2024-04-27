@@ -194,12 +194,16 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * calling {@link Block#init(Node, Node)}.
      *
      * @param root        the root file of this section
-     * @param keyNode     node which represents the key to this section, used <b>only</b> to retrieve comments
+     * @param keyNode     node which represents the key to this section, used <b>only</b> to retrieve comments (will
+     *                    throw an {@link IllegalArgumentException} if provided and this {@link #isRoot() is the root})
      * @param valueNode   node which represents this section's contents
      * @param constructor constructor used to construct all the nodes contained within the root file, used to retrieve
      *                    Java instances of the nodes
      */
     protected void init(@NotNull YamlDocument root, @Nullable Node keyNode, @NotNull MappingNode valueNode, @NotNull ExtendedConstructor constructor) {
+        if (root == this && keyNode != null)
+            throw new IllegalArgumentException("Root sections cannot have a key node!");
+
         //Call superclass
         super.init(keyNode, valueNode);
         //Set
