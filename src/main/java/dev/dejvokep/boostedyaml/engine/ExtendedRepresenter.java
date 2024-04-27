@@ -131,6 +131,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     }
 
+    /**
+     * Node representer implementation for {@link String strings}.
+     */
     private class RepresentString implements RepresentToNode {
 
         // Previous representer
@@ -159,13 +162,23 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     }
 
-    private Node applyComments(@Nullable Block<?> block, @NotNull Comments.NodeType nodeType, @NotNull Node node, boolean isRootSection) {
+    /**
+     * Applies (sets) comments of the block, at the given position to a node. This method overwrites comments previously
+     * associated with the node.
+     *
+     * @param block    the block whose comments to apply
+     * @param nodeType type of the comments to apply from the block
+     * @param node     the node to set the comments to
+     * @param isRoot   if the provided node is the root node - represents the root section
+     * @return the provided node, now with set comments
+     */
+    private Node applyComments(@Nullable Block<?> block, @NotNull Comments.NodeType nodeType, @NotNull Node node, boolean isRoot) {
         // No comments to apply
         if (block == null)
             return node;
 
         // Apply block comments (before+after)
-        if (allowBlockComments(isRootSection)) {
+        if (allowBlockComments(isRoot)) {
             node.setBlockComments(Comments.get(block, nodeType, Comments.Position.BEFORE));
             node.setEndComments(Comments.get(block, nodeType, Comments.Position.AFTER));
         }
@@ -175,7 +188,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
             // If allowed
             if (allowInlineComments(node)) {
                 node.setInLineComments(inline);
-            } else if (allowBlockComments(isRootSection)) {
+            } else if (allowBlockComments(isRoot)) {
                 // Add to before block comments
                 List<CommentLine> before = node.getBlockComments() == null ? new ArrayList<>(inline.size()) : new ArrayList<>(node.getBlockComments());
                 for (CommentLine line : inline)
@@ -199,10 +212,23 @@ public class ExtendedRepresenter extends StandardRepresenter {
         return new NodeTuple(key, value);
     }
 
+    /**
+     * Returns whether block comments ({@link CommentType#BLOCK} and {@link CommentType#BLANK_LINE}) are allowed to be
+     * serialized within the document. The result does not depend on the {@link Node node} that is being serialized.
+     *
+     * @param isRoot if the node is the root node - represents the root section
+     * @return if to allow block comment serialization for this node
+     */
     private boolean allowBlockComments(boolean isRoot) {
         return isRoot || settings.getDefaultFlowStyle() == FlowStyle.BLOCK;
     }
 
+    /**
+     * Returns whether inline comments ({@link CommentType#IN_LINE}) are allowed to be serialized with this node.
+     *
+     * @param node the node whose comments are being serialized
+     * @return if to allow block comment serialization for this node
+     */
     private boolean allowInlineComments(@NotNull Node node) {
         return (settings.getDefaultFlowStyle() == FlowStyle.BLOCK && node instanceof ScalarNode) || (settings.getDefaultFlowStyle() == FlowStyle.FLOW && (node instanceof SequenceNode || node instanceof MappingNode));
     }
