@@ -19,43 +19,74 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
+import org.snakeyaml.engine.v2.common.FlowStyle;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Comment manager for {@link Block blocks}, providing additional methods on top of those already provided by {@link
- * Block}.
+ * Comment manager for {@link Block blocks}.
  * <p>
- * <b>Please note</b> that the methods provided here add possibilities for all implemented {@link Position positions}.
- * However, using positions other than {@link Position#BEFORE} might lead to comment de-alignment and errors. Please
- * read more information at the enum constants.
+ * <b>Please note</b> that the methods provided here support all implemented {@link Position positions} by the engine
+ * as defined by the YAML spec.
+ * <p>
+ * However, when dumping the document, depending on the
+ * {@link dev.dejvokep.boostedyaml.settings.dumper.DumperSettings.Builder#setFlowStyle(FlowStyle) flow style} currently
+ * in use, comments at some positions will be lost. That is a limitation imposed by the engine and might be patched in
+ * future releases. Always refer to the corresponding position documentation for detailed information regarding these
+ * requirements and compatibility notes.
  */
 public class Comments {
 
     /**
-     * Comment position relative to the node (scalar; see {@link NodeType}) to which the comment is attached.
+     * Comment position relative to the key/value node.
      */
     public enum Position {
         /**
-         * Puts the comments before the node.
+         * Puts the comments before the key/value node.
+         * <p>
+         * <b>Serialization:</b>
+         * <ul>
+         *     <li>{@link FlowStyle#BLOCK}: always serialized</li>
+         *     <li>{@link FlowStyle#FLOW}: serialized only with the root section</li>
+         * </ul>
+         * An attempt to dump a document with comments set at this position will cause them to permanently be lost.
+         * <p>
+         * <b>Compatibility:</b>
+         * <p>{@link CommentType#IN_LINE} is not allowed to be used at this position. You can use {@link #create(String, Position)} to create comments with guaranteed compatibility.</p>
          */
         BEFORE,
 
         /**
-         * Puts the comments inline with the node.
+         * Puts the comments inline with the key/value node.
          * <p>
-         * <b>Please note this method may de-align comments to other nodes when reloaded; errors might be thrown in
-         * some cases. It is advised to never use this position.</b>
+         * <b>Serialization:</b>
+         * <ul>
+         *     <li>{@link FlowStyle#BLOCK}: serialized only with keys and values that are represented as a scalar (<b>not</b> a {@link java.util.Map map}, {@link dev.dejvokep.boostedyaml.block.implementation.Section section}, or an array-like object)</li>
+         *     <li>{@link FlowStyle#FLOW}: serialized only with keys and values that are represented as a {@link java.util.Map map}, {@link dev.dejvokep.boostedyaml.block.implementation.Section section} or an array-like object</li>
+         * </ul>
+         * An attempt to dump a document with comments set at this position will cause them to permanently be lost.
+         * <p>
+         * <b>Compatibility:</b>
+         * <p>{@link CommentType#IN_LINE} is the only comment type allowed at this position. You can use {@link #create(String, Position)} to create comments with guaranteed compatibility.</p>
          */
         INLINE,
 
         /**
-         * Puts the comments after the node.
+         * Puts the comments after the key/value node.
          * <p>
-         * <b>Please note this method may de-align comments to other nodes when reloaded; errors might be thrown in
-         * some cases. It is advised to never use this position.</b>
+         * <b>Serialization:</b>
+         * <ul>
+         *     <li>{@link FlowStyle#BLOCK}: always serialized</li>
+         *     <li>{@link FlowStyle#FLOW}: serialized only with the root section</li>
+         * </ul>
+         * <b>If there is any following block in the document, comments at this position might be de-aligned and loaded
+         * as {@link Position#BEFORE} comments for that block.</b> An attempt to dump a document with comments set at
+         * this position will cause them to permanently be lost.
+         * <p>
+         * <b>Compatibility:</b>
+         * <p>{@link CommentType#IN_LINE} is the only comment type allowed at this position. You can use {@link #create(String, Position)} to create comments with guaranteed compatibility.</p>
          */
         AFTER
     }
@@ -75,14 +106,19 @@ public class Comments {
     }
 
     /**
-     * Comment representing a blank line.
+     * Comment representing a blank line. Cannot be used with {@link Position#INLINE}.
      */
     public static final CommentLine BLANK_LINE = new CommentLine(Optional.empty(), Optional.empty(), "", CommentType.BLANK_LINE);
 
     /**
      * Returns comments at the given position.
      * <p>
-     * Please expect <code>null</code> or an empty {@link List}, representing there are no comments at the position.
+     * This method will return <code>null</code> or an empty {@link List}, indicating there are no comments at the
+     * position.
+     * <p>
+     * <b>The returned list can be modified with changes reflected in the document tree immediately. Please note that
+     * not all comment types are allowed at all positions. Always refer to the {@link Position} documentation when
+     * managing comments in order to avoid content loss and runtime exceptions.</b>
      *
      * @param block    the block used to retrieve comments
      * @param node     node from which to retrieve comments
@@ -108,11 +144,18 @@ public class Comments {
      * <p>
      * To remove comments, use {@link #remove(Block, NodeType, Position)} instead. Alternatively, pass either
      * <code>null</code> or an empty {@link List} as the parameter.
+     * <p>
+     * Setting a list returned by {@link #get(Block, NodeType, Position)} is not necessary as the changes made to that
+     * list are automatically reflected in the document structure.
+     * <p>
+     * <b>Please note that not all comment types are allowed at all positions. Always refer to the {@link Position}
+     * documentation when managing comments in order to avoid content loss and runtime exceptions.</b>
      *
      * @param block    the block for which to set
      * @param node     node to attach to
      * @param position position at which to set
      * @param comments the comments to set
+     * @see #create(String, Position)
      */
     public static void set(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @Nullable List<CommentLine> comments) {
         //Replace
@@ -154,11 +197,15 @@ public class Comments {
 
     /**
      * Adds the given comments to <i>already existing</i> comments at the given position.
+     * <p>
+     * <b>Please note that not all comment types are allowed at all positions. Always refer to the {@link Position}
+     * documentation when managing comments in order to avoid content loss and runtime exceptions.</b>
      *
      * @param block    the block to add to
      * @param node     node to which the comments should be added
      * @param position position at which the comments should be added
      * @param comments the comments to add
+     * @see #create(String, Position)
      */
     public static void add(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @NotNull List<CommentLine> comments) {
         comments.forEach(comment -> add(block, node, position, comment));
@@ -166,11 +213,15 @@ public class Comments {
 
     /**
      * Adds the given comment to <i>already existing</i> comments at the given position.
+     * <p>
+     * <b>Please note that not all comment types are allowed at all positions. Always refer to the {@link Position}
+     * documentation when managing comments in order to avoid content loss and runtime exceptions.</b>
      *
      * @param block    the block to add to
      * @param node     node to which the comments should be added
      * @param position position at which the comments should be added
      * @param comment  the comment to add
+     * @see #create(String, Position)
      */
     public static void add(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @NotNull CommentLine comment) {
         switch (position) {

@@ -192,13 +192,12 @@ public abstract class Block<T> {
     }
 
     /**
-     * Returns comments at the given position.
+     * Returns comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
      * <p>
-     * Expect <code>null</code> or an empty {@link List}.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * This method will return <code>null</code> or an empty {@link List}, indicating there are no comments.
      *
      * @return the comments
+     * @see Comments#get(Block, Comments.NodeType, Comments.Position)
      */
     @Nullable
     public List<String> getComments() {
@@ -213,45 +212,44 @@ public abstract class Block<T> {
     }
 
     /**
-     * Sets the given comments at the given node.
+     * Sets the given comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
      * <p>
      * To remove comments, use {@link #removeComments()} instead. Alternatively, pass either
      * <code>null</code> or an empty {@link List} as the parameter.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      *
      * @param comments the comments to set
+     * @see Comments#set(Block, Comments.NodeType, Comments.Position, List)
      */
     public void setComments(@Nullable List<String> comments) {
         Comments.set(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments == null ? null : comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
-     * Removes all comments at the given node.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * Removes all comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
+     *
+     * @see Comments#remove(Block, Comments.NodeType, Comments.Position)
      */
     public void removeComments() {
         Comments.remove(this, Comments.NodeType.KEY, Comments.Position.BEFORE);
     }
 
     /**
-     * Adds the given comments to <i>already existing</i> comments at the given node.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * Adds the given comments to <i>already existing</i> comments (at {@link Comments.NodeType#KEY} node at
+     * {@link Comments.Position#BEFORE} position).
      *
      * @param comments the comments to add
+     * @see Comments#add(Block, Comments.NodeType, Comments.Position, List)
      */
     public void addComments(@NotNull List<String> comments) {
         Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
-     * Adds the given comment to <i>already existing</i> comments at the given node.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * Adds the given comment to <i>already existing</i> comments (at {@link Comments.NodeType#KEY} node at
+     * {@link Comments.Position#BEFORE} position).
      *
      * @param comment the comment to add
+     * @see Comments#add(Block, Comments.NodeType, Comments.Position, CommentLine)
      */
     public void addComment(@NotNull String comment) {
         Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
