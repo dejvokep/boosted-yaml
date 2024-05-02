@@ -28,13 +28,13 @@ All of that with quick and kind support. Convinced? Let's get you onboard.
 
 # 🔧 Quick setup
 Setup takes only about 5 minutes. Example software built using this guide is available at https://github.com/dejvokep/boosted-yaml-example.
-## 1. Add using Maven:
+## 1.1. Add using Maven:
 BoostedYAML is hosted by Maven Central Repository. That means, you only need to add a dependency:
 ```xml
 <dependency>
   <groupId>dev.dejvokep</groupId>
   <artifactId>boosted-yaml</artifactId>
-  <version>1.3.3</version>
+  <version>1.3.5</version>
 </dependency>
 ```
 Add the following shading section to prevent class loader conflicts:
@@ -66,7 +66,7 @@ Add the following shading section to prevent class loader conflicts:
   </plugins>
 </build>
 ```
-## 1.1. Add using Gradle:
+## 1.2. Add using Gradle:
 BoostedYAML is hosted by Maven Central Repository. That means, you only need to add a dependency (and the maven central repo):
 ```gradle
 repositories {
@@ -74,7 +74,7 @@ repositories {
 }
 
 dependencies {
-   implementation "dev.dejvokep:boosted-yaml:1.3"
+   implementation "dev.dejvokep:boosted-yaml:1.3.5"
 }
 ```
 
@@ -147,7 +147,7 @@ Obtain data using `getX(String route)`, alternatively, use functional getters fo
 ```java
 Mode m = config.getStringOptional("mode").map(mode -> Mode.valueOf(mode.toUpperCase())).orElse(Mode.PERFORMANCE);
 ```
-**BoostedYAML also provides** it's own serialization system and other cool options, about which you can read more [at the wiki](https://dejvokep.gitbook.io/boostedyaml/).
+**BoostedYAML also provides** its own serialization system and other cool options, about which you can read more [at the wiki](https://dejvokep.gitbook.io/boostedyaml/).
 
 # 🤖 Support
 You can read the detailed instructions [at the wiki](https://dejvokep.gitbook.io/boostedyaml/). If you need help with anything, feel free join the [Discord server](https://discord.gg/BbhADEy). Or, just to talk with us 👋
