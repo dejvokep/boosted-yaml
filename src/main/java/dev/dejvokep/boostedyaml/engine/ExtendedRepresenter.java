@@ -25,11 +25,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.api.RepresentToNode;
+import org.snakeyaml.engine.v2.comments.CommentLine;
+import org.snakeyaml.engine.v2.comments.CommentType;
+import org.snakeyaml.engine.v2.common.FlowStyle;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
-import org.snakeyaml.engine.v2.nodes.Node;
-import org.snakeyaml.engine.v2.nodes.NodeTuple;
+import org.snakeyaml.engine.v2.nodes.*;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -98,16 +102,19 @@ public class ExtendedRepresenter extends StandardRepresenter {
     }
 
     /**
-     * Node representer implementation for {@link Section sections}.
+     * Node representer implementation for {@link Section sections}. This representer, in fact, is only used to
+     * represent {@link YamlDocument root sections}.
      */
     private class RepresentSection implements RepresentToNode {
 
         @Override
         public Node representData(Object data) {
+            // WILL NEVER BE REACHED BY ANYTHING ELSE
+
             //Cast
             Section section = (Section) data;
             //Return
-            return applyKeyComments(section, ExtendedRepresenter.this.representData(section.getStoredValue()));
+            return applyComments(section, Comments.NodeType.VALUE, ExtendedRepresenter.this.representData(section.getStoredValue()), section.isRoot());
         }
 
     }
@@ -124,6 +131,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     }
 
+    /**
+     * Node representer implementation for {@link String strings}.
+     */
     private class RepresentString implements RepresentToNode {
 
         // Previous representer
@@ -153,44 +163,41 @@ public class ExtendedRepresenter extends StandardRepresenter {
     }
 
     /**
-     * Applies the given block's (if not <code>null</code>) key comments to the given node and returns the given node
-     * itself.
+     * Applies (sets) comments of the block, at the given position to a node. This method overwrites comments previously
+     * associated with the node.
      *
-     * @param block the block whose key comments to apply
-     * @param node  node to apply the comments to
-     * @return the given node
+     * @param block    the block whose comments to apply
+     * @param nodeType type of the comments to apply from the block
+     * @param node     the node to set the comments to
+     * @param isRoot   if the provided node is the root node - represents the root section
+     * @return the provided node, now with set comments
      */
-    @NotNull
-    public Node applyKeyComments(@Nullable Block<?> block, @NotNull Node node) {
-        //If not null
-        if (block != null) {
-            //Set
-            node.setBlockComments(Comments.get(block, Comments.NodeType.KEY, Comments.Position.BEFORE));
-            node.setInLineComments(Comments.get(block, Comments.NodeType.KEY, Comments.Position.INLINE));
-            node.setEndComments(Comments.get(block, Comments.NodeType.KEY, Comments.Position.AFTER));
-        }
-        //Return
-        return node;
-    }
+    private Node applyComments(@Nullable Block<?> block, @NotNull Comments.NodeType nodeType, @NotNull Node node, boolean isRoot) {
+        // No comments to apply
+        if (block == null)
+            return node;
 
-    /**
-     * Applies the given block's (if not <code>null</code>) value comments to the given node and returns the given node
-     * itself.
-     *
-     * @param block the block whose value comments to apply
-     * @param node  node to apply the comments to
-     * @return the given node
-     */
-    @NotNull
-    public Node applyValueComments(@Nullable Block<?> block, @NotNull Node node) {
-        //If not null
-        if (block != null) {
-            //Set
-            node.setBlockComments(Comments.get(block, Comments.NodeType.VALUE, Comments.Position.BEFORE));
-            node.setInLineComments(Comments.get(block, Comments.NodeType.VALUE, Comments.Position.INLINE));
-            node.setEndComments(Comments.get(block, Comments.NodeType.VALUE, Comments.Position.AFTER));
+        // Apply block comments (before+after)
+        if (allowBlockComments(isRoot)) {
+            node.setBlockComments(Comments.get(block, nodeType, Comments.Position.BEFORE));
+            node.setEndComments(Comments.get(block, nodeType, Comments.Position.AFTER));
         }
-        //Return
+
+        List<CommentLine> inline = Comments.get(block, nodeType, Comments.Position.INLINE);
+        if (inline != null && !inline.isEmpty()) {
+            // If allowed
+            if (allowInlineComments(node)) {
+                node.setInLineComments(inline);
+            } else if (allowBlockComments(isRoot)) {
+                // Add to before block comments
+                List<CommentLine> before = node.getBlockComments() == null ? new ArrayList<>(inline.size()) : new ArrayList<>(node.getBlockComments());
+                for (CommentLine line : inline)
+                    before.add(new CommentLine(line.getStartMark(), line.getEndMark(), line.getValue(), line.getCommentType() == CommentType.IN_LINE ? CommentType.BLOCK : line.getCommentType()));
+                node.setBlockComments(before);
+            }
+            // Drop the comments
+        }
+
         return node;
     }
 
@@ -199,10 +206,31 @@ public class ExtendedRepresenter extends StandardRepresenter {
         //Block
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
         //Represent nodes
-        Node key = applyKeyComments(block, representData(entry.getKey()));
-        Node value = applyValueComments(block, representData(block == null ? entry.getValue() : block.getStoredValue()));
+        Node key = applyComments(block, Comments.NodeType.KEY, representData(entry.getKey()), false);
+        Node value = applyComments(block, Comments.NodeType.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);
         //Create
         return new NodeTuple(key, value);
+    }
+
+    /**
+     * Returns whether block comments ({@link CommentType#BLOCK} and {@link CommentType#BLANK_LINE}) are allowed to be
+     * serialized within the document. The result does not depend on the {@link Node node} that is being serialized.
+     *
+     * @param isRoot if the node is the root node - represents the root section
+     * @return if to allow block comment serialization for this node
+     */
+    private boolean allowBlockComments(boolean isRoot) {
+        return isRoot || settings.getDefaultFlowStyle() == FlowStyle.BLOCK;
+    }
+
+    /**
+     * Returns whether inline comments ({@link CommentType#IN_LINE}) are allowed to be serialized with this node.
+     *
+     * @param node the node whose comments are being serialized
+     * @return if to allow block comment serialization for this node
+     */
+    private boolean allowInlineComments(@NotNull Node node) {
+        return (settings.getDefaultFlowStyle() == FlowStyle.BLOCK && node instanceof ScalarNode) || (settings.getDefaultFlowStyle() == FlowStyle.FLOW && (node instanceof SequenceNode || node instanceof MappingNode));
     }
 
 }

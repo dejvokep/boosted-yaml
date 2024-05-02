@@ -15,8 +15,8 @@
  */
 package dev.dejvokep.boostedyaml.block;
 
-import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
+import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
@@ -39,7 +39,8 @@ import java.util.stream.Collectors;
 public abstract class Block<T> {
 
     //Comments
-    List<CommentLine> beforeKeyComments = new ArrayList<>(0), inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
+    @Nullable
+    List<CommentLine> beforeKeyComments = null, inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
     //Value
     private T value;
     //If to ignore
@@ -100,57 +101,46 @@ public abstract class Block<T> {
      * @param key   node which represents the key to the block
      * @param value node which represents the value
      */
+    @SuppressWarnings("ConstantConditions")
     protected void init(@Nullable Node key, @Nullable Node value) {
         //If not null
         if (key != null) {
             // Set
             beforeKeyComments = key.getBlockComments() == null ? new ArrayList<>(0) : key.getBlockComments();
-            // Manage comments
-            if (key.getInLineComments() != null)
-                beforeKeyComments.addAll(toBlockComments(key.getInLineComments()));
-            if (key.getEndComments() != null)
-                beforeKeyComments.addAll(toBlockComments(key.getEndComments()));
+            inlineKeyComments = key.getInLineComments();
+            afterKeyComments = key.getEndComments();
             // Collect
-            collectComments(key, true);
+            collectComments(key, beforeKeyComments, true);
         }
 
         //If not null
         if (value != null) {
             // Set
-            beforeValueComments = value.getBlockComments();
-            // Verify
-            if (beforeKeyComments == null)
-                beforeKeyComments = new ArrayList<>(0);
-            // Manage comments
-            if (value.getInLineComments() != null)
-                beforeKeyComments.addAll(toBlockComments(value.getInLineComments()));
-            if (value.getEndComments() != null)
-                beforeKeyComments.addAll(toBlockComments(value.getEndComments()));
+            beforeValueComments = value.getBlockComments() == null ? new ArrayList<>(0) : value.getBlockComments();
+            inlineValueComments = value.getInLineComments();
+            afterValueComments = value.getEndComments();
             // Collect
-            collectComments(value, true);
+            collectComments(value, beforeValueComments, true);
         }
     }
 
     /**
-     * Collects all comments from this (only if not the initial node) and all sub-nodes; assigns them to
-     * {@link Comments.NodeType#KEY} at {@link Comments.Position#BEFORE}.
+     * Collects all comments from this (only if not the initial node) and all sub-nodes and assigns them to the provided
+     * destination list. Inline comments are automatically converted to block comments.
      *
-     * @param node    the node to collect from
-     * @param initial if this node is the initial one in the recursive call stack
+     * @param node        the node to collect from
+     * @param destination the destination list
+     * @param initial     if this node is the initial one in the recursive call stack
      */
-    private void collectComments(@NotNull Node node, boolean initial) {
+    private void collectComments(@NotNull Node node, @NotNull List<CommentLine> destination, boolean initial) {
         // Add
         if (!initial) {
             if (node.getBlockComments() != null)
-                beforeKeyComments.addAll(toBlockComments(node.getBlockComments()));
+                destination.addAll(toBlockComments(node.getBlockComments()));
             if (node.getInLineComments() != null)
-                beforeKeyComments.addAll(toBlockComments(node.getInLineComments()));
+                destination.addAll(toBlockComments(node.getInLineComments()));
             if (node.getEndComments() != null)
-                beforeKeyComments.addAll(toBlockComments(node.getEndComments()));
-        } else {
-            // Ensure not null
-            if (beforeKeyComments == null)
-                beforeKeyComments = new ArrayList<>(0);
+                destination.addAll(toBlockComments(node.getEndComments()));
         }
 
         // If is a sequence node
@@ -160,15 +150,15 @@ public abstract class Block<T> {
             // Iterate
             for (Node sub : sequenceNode.getValue())
                 // Collect
-                collectComments(sub, false);
+                collectComments(sub, destination, false);
         } else if (!initial && node instanceof MappingNode) {
             // The node
             MappingNode mappingNode = (MappingNode) node;
             // Iterate
             for (NodeTuple sub : mappingNode.getValue()) {
                 // Collect
-                collectComments(sub.getKeyNode(), false);
-                collectComments(sub.getValueNode(), false);
+                collectComments(sub.getKeyNode(), destination, false);
+                collectComments(sub.getValueNode(), destination, false);
             }
         }
     }
@@ -202,13 +192,12 @@ public abstract class Block<T> {
     }
 
     /**
-     * Returns comments at the given position.
+     * Returns comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
      * <p>
-     * Expect <code>null</code> or an empty {@link List}.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * This method will return <code>null</code> or an empty {@link List}, indicating there are no comments.
      *
      * @return the comments
+     * @see Comments#get(Block, Comments.NodeType, Comments.Position)
      */
     @Nullable
     public List<String> getComments() {
@@ -223,45 +212,44 @@ public abstract class Block<T> {
     }
 
     /**
-     * Sets the given comments at the given node.
+     * Sets the given comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
      * <p>
      * To remove comments, use {@link #removeComments()} instead. Alternatively, pass either
      * <code>null</code> or an empty {@link List} as the parameter.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
      *
      * @param comments the comments to set
+     * @see Comments#set(Block, Comments.NodeType, Comments.Position, List)
      */
     public void setComments(@Nullable List<String> comments) {
         Comments.set(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments == null ? null : comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
-     * Removes all comments at the given node.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * Removes all comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
+     *
+     * @see Comments#remove(Block, Comments.NodeType, Comments.Position)
      */
     public void removeComments() {
         Comments.remove(this, Comments.NodeType.KEY, Comments.Position.BEFORE);
     }
 
     /**
-     * Adds the given comments to <i>already existing</i> comments at the given node.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * Adds the given comments to <i>already existing</i> comments (at {@link Comments.NodeType#KEY} node at
+     * {@link Comments.Position#BEFORE} position).
      *
      * @param comments the comments to add
+     * @see Comments#add(Block, Comments.NodeType, Comments.Position, List)
      */
     public void addComments(@NotNull List<String> comments) {
         Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
-     * Adds the given comment to <i>already existing</i> comments at the given node.
-     * <p>
-     * <i>Use methods provided by {@link Comments} for extensive manipulation.</i>
+     * Adds the given comment to <i>already existing</i> comments (at {@link Comments.NodeType#KEY} node at
+     * {@link Comments.Position#BEFORE} position).
      *
      * @param comment the comment to add
+     * @see Comments#add(Block, Comments.NodeType, Comments.Position, CommentLine)
      */
     public void addComment(@NotNull String comment) {
         Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
