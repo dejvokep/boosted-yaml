@@ -47,18 +47,13 @@ class BlockTest {
             add(new CommentLine(Optional.empty(), Optional.empty(), "ghi", CommentType.IN_LINE));
         }};
         // Set comments
-        keyNode.setBlockComments(new ArrayList<>(keyComments));
-        valueNode.setEndComments(new ArrayList<>(valueComments));
+        keyNode.setBlockComments(keyComments);
+        valueNode.setEndComments(valueComments);
         // Init
         block.init(keyNode, valueNode);
         // Assert
-        List<CommentLine> result = new ArrayList<>(keyComments);
-        result.addAll(valueComments);
-        assertEquals(4, block.beforeKeyComments.size());
-        for (int i = 0; i < 4; i++) {
-            assertEquals(CommentType.BLOCK, block.beforeKeyComments.get(i).getCommentType());
-            assertEquals(result.get(i).getValue(), block.beforeKeyComments.get(i).getValue());
-        }
+        assertEquals(keyComments, block.beforeKeyComments);
+        assertEquals(valueComments, block.afterValueComments);
     }
 
     @Test
@@ -94,9 +89,9 @@ class BlockTest {
         // Init
         block.init(node, null);
         // Assert
-        assertEquals(1, block.beforeKeyComments.size());
-        assertEquals(CommentType.BLOCK, block.beforeKeyComments.get(0).getCommentType());
-        assertEquals("abc2", block.beforeKeyComments.get(0).getValue());
+        assertEquals(1, block.inlineKeyComments.size());
+        assertEquals(CommentType.IN_LINE, block.inlineKeyComments.get(0).getCommentType());
+        assertEquals("abc2", block.inlineKeyComments.get(0).getValue());
     }
 
     @Test
@@ -114,7 +109,7 @@ class BlockTest {
         // Init
         block.init(node, null);
         // Assert
-        assertEquals(comments, block.beforeKeyComments);
+        assertEquals(comments, block.afterKeyComments);
     }
 
     @Test
@@ -150,9 +145,9 @@ class BlockTest {
         // Init
         block.init(null, node);
         // Assert
-        assertEquals(1, block.beforeKeyComments.size());
-        assertEquals(CommentType.BLOCK, block.beforeKeyComments.get(0).getCommentType());
-        assertEquals("def2", block.beforeKeyComments.get(0).getValue());
+        assertEquals(1, block.inlineValueComments.size());
+        assertEquals(CommentType.IN_LINE, block.inlineValueComments.get(0).getCommentType());
+        assertEquals("def2", block.inlineValueComments.get(0).getValue());
     }
 
     @Test
@@ -170,7 +165,7 @@ class BlockTest {
         // Init
         block.init(null, node);
         // Assert
-        assertEquals(comments, block.beforeKeyComments);
+        assertEquals(comments, block.afterValueComments);
     }
 
     @Test

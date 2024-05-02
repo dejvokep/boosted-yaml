@@ -86,7 +86,7 @@ class ExtendedRepresenterTest {
                 "      #inline value map.k (2)\n" +
                 "  #after value map.k (1)\n" +
                 "  #after value map.k (2)\n" +
-                "\n" + // Unwanted double blank line (does not occur with user-created YAML, but further investigation needed)
+                "\n" + // Unwanted double blank line (does not occur with user-created YAML, further investigation needed)
                 "  \n" +
                 "#after value map (1)\n" +
                 "#after value map (2)\n" +
@@ -293,6 +293,7 @@ class ExtendedRepresenterTest {
         String dump = document.dump(settings);
         assertEquals("#before value root (1)\n" +
                 "#before value root (2)\n" +
+                "\n" +
                 "{map: {k: v} #inline value map (1)\n" +
                 "             #inline value map (2)\n" +
                 ", list: [a, b] #inline value list (1)\n" +
@@ -300,10 +301,12 @@ class ExtendedRepresenterTest {
                 ", str: val} #inline value root (1)\n" +
                 "            #inline value root (2)\n" +
                 "#after value root (1)\n" +
-                "#after value root (2)\n", dump);
+                "#after value root (2)\n" +
+                "\n", dump);
         assertEquals(dump, document.dump(settings));
         assertEquals("#before value root (1)\n" +
                 "#before value root (2)\n" +
+                "\n" +
                 "{map: {k: v} #inline value map (1)\n" +
                 "             #inline value map (2)\n" +
                 ", list: [a, b] #inline value list (1)\n" +
@@ -311,7 +314,8 @@ class ExtendedRepresenterTest {
                 ", str: val} #inline value root (1)\n" +
                 "            #inline value root (2)\n" +
                 "#after value root (1)\n" +
-                "#after value root (2)\n", YamlDocument.create(new ByteArrayInputStream(dump.getBytes(StandardCharsets.UTF_8))).dump(settings));
+                "#after value root (2)\n" +
+                "\n", YamlDocument.create(new ByteArrayInputStream(dump.getBytes(StandardCharsets.UTF_8))).dump(settings));
     }
 
     @Test
