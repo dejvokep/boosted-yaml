@@ -16,6 +16,7 @@
 package dev.dejvokep.boostedyaml.settings.dumper;
 
 import dev.dejvokep.boostedyaml.settings.Settings;
+import dev.dejvokep.boostedyaml.utils.format.Formatter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -77,6 +78,10 @@ public class DumperSettings implements Settings {
     private final Supplier<AnchorGenerator> generatorSupplier;
     //String style
     private final ScalarStyle stringStyle;
+    //Formatters
+    private final Formatter<ScalarStyle, String> scalarFormatter;
+    private final Formatter<FlowStyle, Iterable<?>> sequenceFormatter;
+    private final Formatter<FlowStyle, Map<?, ?>> mappingFormatter;
 
     /**
      * Creates final, immutable dumper settings from the given builder.
@@ -86,6 +91,9 @@ public class DumperSettings implements Settings {
     private DumperSettings(Builder builder) {
         this.builder = builder.builder;
         this.generatorSupplier = builder.anchorGeneratorSupplier;
+        this.scalarFormatter = builder.scalarFormatter;
+        this.sequenceFormatter = builder.sequenceFormatter;
+        this.mappingFormatter = builder.mappingFormatter;
         this.stringStyle = builder.stringStyle;
     }
 
@@ -105,6 +113,33 @@ public class DumperSettings implements Settings {
      */
     public ScalarStyle getStringStyle() {
         return stringStyle;
+    }
+
+    /**
+     * Returns the formatter to use for scalar nodes.
+     *
+     * @return the formatter to use for scalar nodes
+     */
+    public Formatter<ScalarStyle, String> getScalarFormatter() {
+        return scalarFormatter;
+    }
+
+    /**
+     * Returns the formatter to use for sequence nodes.
+     *
+     * @return the formatter to use for sequence nodes
+     */
+    public Formatter<FlowStyle, Iterable<?>> getSequenceFormatter() {
+        return sequenceFormatter;
+    }
+
+    /**
+     * Returns the formatter to use for mapping nodes.
+     *
+     * @return the formatter to use for mapping nodes
+     */
+    public Formatter<FlowStyle, Map<?, ?>> getMappingFormatter() {
+        return mappingFormatter;
     }
 
     /**
@@ -161,6 +196,18 @@ public class DumperSettings implements Settings {
          */
         public static final ScalarStyle DEFAULT_SCALAR_STYLE = ScalarStyle.PLAIN;
         /**
+         * Default scalar node formatter - identity, which returns {@link DumpSettings#getDefaultScalarStyle()}.
+         */
+        public static final Formatter<ScalarStyle, String> DEFAULT_SCALAR_FORMATTER = Formatter.identity();
+        /**
+         * Default sequence node formatter - identity, which returns {@link DumpSettings#getDefaultFlowStyle()}.
+         */
+        public static final Formatter<FlowStyle, Iterable<?>> DEFAULT_SEQUENCE_FORMATTER = Formatter.identity();
+        /**
+         * Default mapping node formatter - identity, which returns {@link DumpSettings#getDefaultFlowStyle()}.
+         */
+        public static final Formatter<FlowStyle, Map<?, ?>> DEFAULT_MAPPING_FORMATTER = Formatter.identity();
+        /**
          * Default string style.
          */
         public static final ScalarStyle DEFAULT_STRING_STYLE = ScalarStyle.PLAIN;
@@ -213,6 +260,10 @@ public class DumperSettings implements Settings {
         private final DumpSettingsBuilder builder;
         //Anchor generator
         private Supplier<AnchorGenerator> anchorGeneratorSupplier = DEFAULT_ANCHOR_GENERATOR;
+        //Formatters
+        private Formatter<ScalarStyle, String> scalarFormatter = DEFAULT_SCALAR_FORMATTER;
+        private Formatter<FlowStyle, Iterable<?>> sequenceFormatter = DEFAULT_SEQUENCE_FORMATTER;
+        private Formatter<FlowStyle, Map<?, ?>> mappingFormatter = DEFAULT_MAPPING_FORMATTER;
         //String style
         private ScalarStyle stringStyle = DEFAULT_STRING_STYLE;
 
@@ -314,6 +365,81 @@ public class DumperSettings implements Settings {
          */
         public Builder setScalarStyle(@NotNull ScalarStyle scalarStyle) {
             builder.setDefaultScalarStyle(scalarStyle);
+            return this;
+        }
+
+        /**
+         * Sets the scalar formatter to use when formatting scalar nodes.
+         * <p>
+         * Scalar nodes are nodes representing a {@link String}, or any other primitive datatype like integers, floats
+         * and booleans. The value given to the formatter will always be the string representation of the actual scalar
+         * (e.g. <code>"abc"</code>, <code>"2.45"</code>, <code>"true"</code> respectively for strings, numbers and
+         * booleans). <b>To find out about the datatype the node is representing, use the provided {@link Tag tag}.</b>
+         * <p>
+         * Formatters are used to alter the resulting YAML style of any given scalar node in the outputted document.
+         * Please note that the style returned by the formatter for {@link Tag#STR} might be overridden in order to
+         * produce valid YAML (strings cannot begin with reserved YAML indicators, like <code>#</code>, <code>-</code>...).
+         * <p>
+         * <b>Default: </b> {@link #DEFAULT_SCALAR_FORMATTER}<br>
+         * <b>Relevant parent method: </b> {@link DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)}<br>
+         * <b>Relevant parent method docs (v2.3): </b><a
+         * href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultScalarStyle(org.snakeyaml.engine.v2.common.ScalarStyle)">click</a><br>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#81-block-scalar-styles">for
+         * <code>BLOCK</code> flow style</a>, <a href="https://yaml.org/spec/1.2.2/#73-flow-scalar-styles">for
+         * <code>FLOW</code> flow style</a>
+         *
+         * @param formatter the formatter to use
+         * @return the builder
+         * @see Formatter#format(Tag, Object, Object) formatter usage
+         */
+        public Builder setScalarFormatter(@NotNull Formatter<ScalarStyle, String> formatter) {
+            this.scalarFormatter = formatter;
+            return this;
+        }
+
+        /**
+         * Sets the sequence formatter to use when formatting sequence nodes.
+         * <p>
+         * Sequence nodes are nodes which contain a collection of sub-nodes, also called elements, like an array or a
+         * list. The provided {@link Tag tag} will always be {@link Tag#SEQ} or {@link Tag#SET}.
+         * <p>
+         * Formatters are used to alter the resulting YAML style of any given sequence node in the outputted document.
+         * <p>
+         * <b>Default: </b> {@link #DEFAULT_SEQUENCE_FORMATTER}<br>
+         * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
+         * <b>Parent method docs (v2.3): </b><a
+         * href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultFlowStyle(org.snakeyaml.engine.v2.common.FlowStyle)">click</a><br>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#3231-node-styles">node styles</a>
+         *
+         * @param formatter the formatter to use
+         * @return the builder
+         * @see Formatter#format(Tag, Object, Object) formatter usage
+         */
+        public Builder setSequenceFormatter(@NotNull Formatter<FlowStyle, Iterable<?>> formatter) {
+            this.sequenceFormatter = formatter;
+            return this;
+        }
+
+        /**
+         * Sets the mapping formatter to use when formatting mapping nodes.
+         * <p>
+         * Mapping nodes are nodes which contain a collection of <code>key=value</code> pairs, also called a
+         * {@link Map map}. The provided {@link Tag tag} will always be {@link Tag#MAP}.
+         * <p>
+         * Formatters are used to alter the resulting YAML style of any given mapping node in the outputted document.
+         * <p>
+         * <b>Default: </b> {@link #DEFAULT_SEQUENCE_FORMATTER}<br>
+         * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
+         * <b>Parent method docs (v2.3): </b><a
+         * href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultFlowStyle(org.snakeyaml.engine.v2.common.FlowStyle)">click</a><br>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#3231-node-styles">node styles</a>
+         *
+         * @param formatter the formatter to use
+         * @return the builder
+         * @see Formatter#format(Tag, Object, Object) formatter usage
+         */
+        public Builder setMappingFormatter(@NotNull Formatter<FlowStyle, Map<?, ?>> formatter) {
+            this.mappingFormatter = formatter;
             return this;
         }
 

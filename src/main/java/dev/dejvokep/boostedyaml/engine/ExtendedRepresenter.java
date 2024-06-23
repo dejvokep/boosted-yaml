@@ -86,6 +86,21 @@ public class ExtendedRepresenter extends StandardRepresenter {
         this(generalSettings, dumperSettings, dumperSettings.buildEngineSettings());
     }
 
+    @Override
+    protected Node representScalar(Tag tag, String value, ScalarStyle scalarStyle) {
+        return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, scalarStyle));
+    }
+
+    @Override
+    protected Node representSequence(Tag tag, Iterable<?> sequence, FlowStyle flowStyle) {
+        return super.representSequence(tag, sequence, dumperSettings.getSequenceFormatter().format(tag, sequence, flowStyle));
+    }
+
+    @Override
+    protected Node representMapping(Tag tag, Map<?, ?> mapping, FlowStyle flowStyle) {
+        return super.representMapping(tag, mapping, dumperSettings.getMappingFormatter().format(tag, mapping, flowStyle));
+    }
+
     /**
      * Node representer implementation for serializable objects.
      */
