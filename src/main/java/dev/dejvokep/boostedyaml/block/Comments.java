@@ -15,6 +15,7 @@
  */
 package dev.dejvokep.boostedyaml.block;
 
+import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
@@ -93,6 +94,8 @@ public class Comments {
 
     /**
      * Represents to which node the comments are attached in a <i>mapping</i>.
+     *
+     * @deprecated Use {@link NodeRole} instead.
      */
     public enum NodeType {
         /**
@@ -102,7 +105,16 @@ public class Comments {
         /**
          * The comments are attached to the value node of the mapping.
          */
-        VALUE
+        VALUE;
+
+        /**
+         * Returns the type as a role.
+         *
+         * @return the type as a role
+         */
+        public NodeRole toRole() {
+            return this == KEY ? NodeRole.KEY : NodeRole.VALUE;
+        }
     }
 
     /**
@@ -126,17 +138,39 @@ public class Comments {
      * @return the comments
      */
     @Nullable
-    public static List<CommentLine> get(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position) {
+    public static List<CommentLine> get(@NotNull Block<?> block, @NotNull NodeRole node, @NotNull Position position) {
         switch (position) {
             case BEFORE:
-                return node == NodeType.KEY ? block.beforeKeyComments : block.beforeValueComments;
+                return node == NodeRole.KEY ? block.beforeKeyComments : block.beforeValueComments;
             case INLINE:
-                return node == NodeType.KEY ? block.inlineKeyComments : block.inlineValueComments;
+                return node == NodeRole.KEY ? block.inlineKeyComments : block.inlineValueComments;
             case AFTER:
-                return node == NodeType.KEY ? block.afterKeyComments : block.afterValueComments;
+                return node == NodeRole.KEY ? block.afterKeyComments : block.afterValueComments;
             default:
                 return null;
         }
+    }
+
+    /**
+     * Returns comments at the given position.
+     * <p>
+     * This method will return <code>null</code> or an empty {@link List}, indicating there are no comments at the
+     * position.
+     * <p>
+     * <b>The returned list can be modified with changes reflected in the document tree immediately. Please note that
+     * not all comment types are allowed at all positions. Always refer to the {@link Position} documentation when
+     * managing comments in order to avoid content loss and runtime exceptions.</b>
+     *
+     * @param block    the block used to retrieve comments
+     * @param node     node from which to retrieve comments
+     * @param position position of the retrieved comments
+     * @return the comments
+     * @deprecated Replaced by {@link #get(Block, NodeRole, Position)} and subject for removal.
+     */
+    @Deprecated
+    @Nullable
+    public static List<CommentLine> get(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position) {
+        return get(block, node.toRole(), position);
     }
 
     /**
@@ -157,31 +191,55 @@ public class Comments {
      * @param comments the comments to set
      * @see #create(String, Position)
      */
-    public static void set(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @Nullable List<CommentLine> comments) {
+    public static void set(@NotNull Block<?> block, @NotNull NodeRole node, @NotNull Position position, @Nullable List<CommentLine> comments) {
         //Replace
         if (comments != null)
             comments = new ArrayList<>(comments);
 
         switch (position) {
             case BEFORE:
-                if (node == NodeType.KEY)
+                if (node == NodeRole.KEY)
                     block.beforeKeyComments = comments;
                 else
                     block.beforeValueComments = comments;
                 break;
             case INLINE:
-                if (node == NodeType.KEY)
+                if (node == NodeRole.KEY)
                     block.inlineKeyComments = comments;
                 else
                     block.inlineValueComments = comments;
                 break;
             case AFTER:
-                if (node == NodeType.KEY)
+                if (node == NodeRole.KEY)
                     block.afterKeyComments = comments;
                 else
                     block.afterValueComments = comments;
                 break;
         }
+    }
+
+    /**
+     * Sets the given comments at the given position.
+     * <p>
+     * To remove comments, use {@link #remove(Block, NodeType, Position)} instead. Alternatively, pass either
+     * <code>null</code> or an empty {@link List} as the parameter.
+     * <p>
+     * Setting a list returned by {@link #get(Block, NodeType, Position)} is not necessary as the changes made to that
+     * list are automatically reflected in the document structure.
+     * <p>
+     * <b>Please note that not all comment types are allowed at all positions. Always refer to the {@link Position}
+     * documentation when managing comments in order to avoid content loss and runtime exceptions.</b>
+     *
+     * @param block    the block for which to set
+     * @param node     node to attach to
+     * @param position position at which to set
+     * @param comments the comments to set
+     * @see #create(String, Position)
+     * @deprecated Replaced by {@link #set(Block, NodeRole, Position, List)} and subject for removal.
+     */
+    @Deprecated
+    public static void set(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @Nullable List<CommentLine> comments) {
+        set(block, node.toRole(), position, comments);
     }
 
     /**
@@ -191,8 +249,21 @@ public class Comments {
      * @param node     node to which the comments are attached
      * @param position position of the comments to remove
      */
-    public static void remove(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position) {
+    public static void remove(@NotNull Block<?> block, @NotNull NodeRole node, @NotNull Position position) {
         set(block, node, position, null);
+    }
+
+    /**
+     * Removes all comments at the given position.
+     *
+     * @param block    the block for which to remove
+     * @param node     node to which the comments are attached
+     * @param position position of the comments to remove
+     * @deprecated Replaced by {@link #remove(Block, NodeRole, Position)} and subject for removal.
+     */
+    @Deprecated
+    public static void remove(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position) {
+        set(block, node.toRole(), position, null);
     }
 
     /**
@@ -207,8 +278,26 @@ public class Comments {
      * @param comments the comments to add
      * @see #create(String, Position)
      */
-    public static void add(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @NotNull List<CommentLine> comments) {
+    public static void add(@NotNull Block<?> block, @NotNull NodeRole node, @NotNull Position position, @NotNull List<CommentLine> comments) {
         comments.forEach(comment -> add(block, node, position, comment));
+    }
+
+    /**
+     * Adds the given comments to <i>already existing</i> comments at the given position.
+     * <p>
+     * <b>Please note that not all comment types are allowed at all positions. Always refer to the {@link Position}
+     * documentation when managing comments in order to avoid content loss and runtime exceptions.</b>
+     *
+     * @param block    the block to add to
+     * @param node     node to which the comments should be added
+     * @param position position at which the comments should be added
+     * @param comments the comments to add
+     * @see #create(String, Position)
+     * @deprecated Replaced by {@link #add(Block, NodeRole, Position, List)} and subject for removal.
+     */
+    @Deprecated
+    public static void add(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @NotNull List<CommentLine> comments) {
+        comments.forEach(comment -> add(block, node.toRole(), position, comment));
     }
 
     /**
@@ -223,10 +312,10 @@ public class Comments {
      * @param comment  the comment to add
      * @see #create(String, Position)
      */
-    public static void add(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @NotNull CommentLine comment) {
+    public static void add(@NotNull Block<?> block, @NotNull NodeRole node, @NotNull Position position, @NotNull CommentLine comment) {
         switch (position) {
             case BEFORE:
-                if (node == NodeType.KEY) {
+                if (node == NodeRole.KEY) {
                     //Might be null
                     if (block.beforeKeyComments == null)
                         block.beforeKeyComments = new ArrayList<>();
@@ -241,7 +330,7 @@ public class Comments {
                 }
                 break;
             case INLINE:
-                if (node == NodeType.KEY) {
+                if (node == NodeRole.KEY) {
                     //Might be null
                     if (block.inlineKeyComments == null)
                         block.inlineKeyComments = new ArrayList<>();
@@ -256,7 +345,7 @@ public class Comments {
                 }
                 break;
             case AFTER:
-                if (node == NodeType.KEY) {
+                if (node == NodeRole.KEY) {
                     //Might be null
                     if (block.afterKeyComments == null)
                         block.afterKeyComments = new ArrayList<>();
@@ -271,6 +360,24 @@ public class Comments {
                 }
                 break;
         }
+    }
+
+    /**
+     * Adds the given comment to <i>already existing</i> comments at the given position.
+     * <p>
+     * <b>Please note that not all comment types are allowed at all positions. Always refer to the {@link Position}
+     * documentation when managing comments in order to avoid content loss and runtime exceptions.</b>
+     *
+     * @param block    the block to add to
+     * @param node     node to which the comments should be added
+     * @param position position at which the comments should be added
+     * @param comment  the comment to add
+     * @see #create(String, Position)
+     * @deprecated Replaced by {@link #add(Block, NodeRole, Position, CommentLine)} and subject for removal.
+     */
+    @Deprecated
+    public static void add(@NotNull Block<?> block, @NotNull NodeType node, @NotNull Position position, @NotNull CommentLine comment) {
+        add(block, node.toRole(), position, comment);
     }
 
     /**
