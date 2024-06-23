@@ -17,6 +17,7 @@ package dev.dejvokep.boostedyaml.settings.dumper;
 
 import dev.dejvokep.boostedyaml.settings.Settings;
 import dev.dejvokep.boostedyaml.utils.format.Formatter;
+import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -390,7 +391,7 @@ public class DumperSettings implements Settings {
          *
          * @param formatter the formatter to use
          * @return the builder
-         * @see Formatter#format(Tag, Object, Object) formatter usage
+         * @see Formatter#format(Tag, Object, NodeRole, Object) formatter usage
          */
         public Builder setScalarFormatter(@NotNull Formatter<ScalarStyle, String> formatter) {
             this.scalarFormatter = formatter;
@@ -413,7 +414,7 @@ public class DumperSettings implements Settings {
          *
          * @param formatter the formatter to use
          * @return the builder
-         * @see Formatter#format(Tag, Object, Object) formatter usage
+         * @see Formatter#format(Tag, Object, NodeRole, Object) formatter usage
          */
         public Builder setSequenceFormatter(@NotNull Formatter<FlowStyle, Iterable<?>> formatter) {
             this.sequenceFormatter = formatter;
@@ -436,7 +437,7 @@ public class DumperSettings implements Settings {
          *
          * @param formatter the formatter to use
          * @return the builder
-         * @see Formatter#format(Tag, Object, Object) formatter usage
+         * @see Formatter#format(Tag, Object, NodeRole, Object) formatter usage
          */
         public Builder setMappingFormatter(@NotNull Formatter<FlowStyle, Map<?, ?>> formatter) {
             this.mappingFormatter = formatter;
