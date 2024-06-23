@@ -22,6 +22,7 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
@@ -340,12 +341,12 @@ class ExtendedRepresenterTest {
     }
 
     private void addComments(Block<?> block, String uid) {
-        Comments.set(block, Comments.NodeType.KEY, Comments.Position.BEFORE, createComments("before key " + uid, CommentType.BLOCK));
-        Comments.set(block, Comments.NodeType.KEY, Comments.Position.INLINE, createComments("inline key " + uid, CommentType.IN_LINE));
-        Comments.set(block, Comments.NodeType.KEY, Comments.Position.AFTER, createComments("after key " + uid, CommentType.BLOCK));
-        Comments.set(block, Comments.NodeType.VALUE, Comments.Position.BEFORE, createComments("before value " + uid, CommentType.BLOCK));
-        Comments.set(block, Comments.NodeType.VALUE, Comments.Position.INLINE, createComments("inline value " + uid, CommentType.IN_LINE));
-        Comments.set(block, Comments.NodeType.VALUE, Comments.Position.AFTER, createComments("after value " + uid, CommentType.BLOCK));
+        Comments.set(block, NodeRole.KEY, Comments.Position.BEFORE, createComments("before key " + uid, CommentType.BLOCK));
+        Comments.set(block, NodeRole.KEY, Comments.Position.INLINE, createComments("inline key " + uid, CommentType.IN_LINE));
+        Comments.set(block, NodeRole.KEY, Comments.Position.AFTER, createComments("after key " + uid, CommentType.BLOCK));
+        Comments.set(block, NodeRole.VALUE, Comments.Position.BEFORE, createComments("before value " + uid, CommentType.BLOCK));
+        Comments.set(block, NodeRole.VALUE, Comments.Position.INLINE, createComments("inline value " + uid, CommentType.IN_LINE));
+        Comments.set(block, NodeRole.VALUE, Comments.Position.AFTER, createComments("after value " + uid, CommentType.BLOCK));
     }
 
     private List<CommentLine> createComments(String uid, CommentType type) {
