@@ -460,7 +460,9 @@ public class DumperSettings implements Settings {
          * @param stringStyle the scalar style to use
          * @return the builder
          * @see DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)
+         * @deprecated Replaced by {@link #setScalarFormatter(Formatter)}.
          */
+        @Deprecated
         public Builder setStringStyle(@NotNull ScalarStyle stringStyle) {
             this.stringStyle = stringStyle;
             return this;
