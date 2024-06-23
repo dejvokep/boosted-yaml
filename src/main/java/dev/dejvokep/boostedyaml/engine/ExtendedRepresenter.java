@@ -21,6 +21,7 @@ import dev.dejvokep.boostedyaml.block.Comments;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.DumpSettings;
@@ -46,6 +47,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
     private final GeneralSettings generalSettings;
     //Dumper settings
     private final DumperSettings dumperSettings;
+
+    //Currently serialized node role
+    private NodeRole nodeRole = NodeRole.KEY;
 
     /**
      * Creates an instance of the representer.
@@ -88,17 +92,17 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     @Override
     protected Node representScalar(Tag tag, String value, ScalarStyle scalarStyle) {
-        return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, scalarStyle));
+        return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, scalarStyle));
     }
 
     @Override
     protected Node representSequence(Tag tag, Iterable<?> sequence, FlowStyle flowStyle) {
-        return super.representSequence(tag, sequence, dumperSettings.getSequenceFormatter().format(tag, sequence, flowStyle));
+        return super.representSequence(tag, sequence, dumperSettings.getSequenceFormatter().format(tag, sequence, nodeRole, flowStyle));
     }
 
     @Override
     protected Node representMapping(Tag tag, Map<?, ?> mapping, FlowStyle flowStyle) {
-        return super.representMapping(tag, mapping, dumperSettings.getMappingFormatter().format(tag, mapping, flowStyle));
+        return super.representMapping(tag, mapping, dumperSettings.getMappingFormatter().format(tag, mapping, nodeRole, flowStyle));
     }
 
     /**
@@ -129,7 +133,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
             //Cast
             Section section = (Section) data;
             //Return
-            return applyComments(section, Comments.NodeType.VALUE, ExtendedRepresenter.this.representData(section.getStoredValue()), section.isRoot());
+            return applyComments(section, NodeRole.VALUE, ExtendedRepresenter.this.representData(section.getStoredValue()), section.isRoot());
         }
 
     }
@@ -182,23 +186,23 @@ public class ExtendedRepresenter extends StandardRepresenter {
      * associated with the node.
      *
      * @param block    the block whose comments to apply
-     * @param nodeType type of the comments to apply from the block
+     * @param nodeRole comments of node with the role to apply
      * @param node     the node to set the comments to
      * @param isRoot   if the provided node is the root node - represents the root section
      * @return the provided node, now with set comments
      */
-    private Node applyComments(@Nullable Block<?> block, @NotNull Comments.NodeType nodeType, @NotNull Node node, boolean isRoot) {
+    private Node applyComments(@Nullable Block<?> block, @NotNull NodeRole nodeRole, @NotNull Node node, boolean isRoot) {
         // No comments to apply
         if (block == null)
             return node;
 
         // Apply block comments (before+after)
         if (allowBlockComments(isRoot)) {
-            node.setBlockComments(Comments.get(block, nodeType, Comments.Position.BEFORE));
-            node.setEndComments(Comments.get(block, nodeType, Comments.Position.AFTER));
+            node.setBlockComments(Comments.get(block, nodeRole, Comments.Position.BEFORE));
+            node.setEndComments(Comments.get(block, nodeRole, Comments.Position.AFTER));
         }
 
-        List<CommentLine> inline = Comments.get(block, nodeType, Comments.Position.INLINE);
+        List<CommentLine> inline = Comments.get(block, nodeRole, Comments.Position.INLINE);
         if (inline != null && !inline.isEmpty()) {
             // If allowed
             if (allowInlineComments(node)) {
@@ -221,8 +225,8 @@ public class ExtendedRepresenter extends StandardRepresenter {
         //Block
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
         //Represent nodes
-        Node key = applyComments(block, Comments.NodeType.KEY, representData(entry.getKey()), false);
-        Node value = applyComments(block, Comments.NodeType.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);
+        Node key = applyComments(block, nodeRole = NodeRole.KEY, representData(entry.getKey()), false);
+        Node value = applyComments(block, nodeRole = NodeRole.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);
         //Create
         return new NodeTuple(key, value);
     }
