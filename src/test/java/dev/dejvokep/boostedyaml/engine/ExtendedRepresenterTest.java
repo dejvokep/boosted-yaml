@@ -31,6 +31,7 @@ import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
 import org.snakeyaml.engine.v2.nodes.ScalarNode;
+import org.snakeyaml.engine.v2.nodes.Tag;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -326,6 +327,37 @@ class ExtendedRepresenterTest {
         NodeTuple sub = ((MappingNode) tuple.getValueNode()).getValue().get(0);
         assertEquals("k", ((ScalarNode) sub.getKeyNode()).getValue());
         assertEquals("v", ((ScalarNode) sub.getValueNode()).getValue());
+    }
+
+    @Test
+    void representScalar() throws IOException {
+        DumperSettings settings = DumperSettings.builder().setScalarStyle(ScalarStyle.PLAIN).setScalarFormatter(((tag, value, role, def) -> tag == Tag.INT ? ScalarStyle.SINGLE_QUOTED : tag == Tag.STR && (value.equals("quoted") || (role == NodeRole.KEY && value.equals("k4"))) ? ScalarStyle.DOUBLE_QUOTED : def)).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("k1: quoted\nk2: plain\nk3: 1\na:\n  k4: k4".getBytes(StandardCharsets.UTF_8)), settings);
+        assertEquals("k1: \"quoted\"\nk2: plain\nk3: !!int '1'\na:\n  \"k4\": k4\n", document.dump());
+    }
+
+    @Test
+    void representSequence() throws IOException {
+        DumperSettings settings = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setSequenceFormatter(((tag, value, role, def) -> value.iterator().next().toString().equals("a") ? FlowStyle.FLOW : def)).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("flow:\n- a\n- b\n- c\nblock: [d, e, f]".getBytes(StandardCharsets.UTF_8)), settings);
+        assertEquals("flow: [a, b, c]\nblock:\n- d\n- e\n- f\n", document.dump());
+
+        document = YamlDocument.create(new ByteArrayInputStream("flow:\n- a\n- b\n- c\n- [d, e, f]".getBytes(StandardCharsets.UTF_8)), settings);
+        assertEquals("flow: [a, b, c, [d, e, f]]\n", document.dump());
+        document = YamlDocument.create(new ByteArrayInputStream("block:\n- d\n- e\n- f\n- [a, b, c]".getBytes(StandardCharsets.UTF_8)), settings);
+        assertEquals("block:\n- d\n- e\n- f\n- [a, b, c]\n", document.dump());
+    }
+
+    @Test
+    void representMapping() throws IOException {
+        DumperSettings settings = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setMappingFormatter(((tag, value, role, def) -> value.containsKey("flow") ? FlowStyle.FLOW : def)).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("k1:\n  flow: a\nk2: {block: b}".getBytes(StandardCharsets.UTF_8)), settings);
+        assertEquals("k1: {flow: a}\nk2:\n  block: b\n", document.dump());
+
+        document = YamlDocument.create(new ByteArrayInputStream("flow: {block: a}".getBytes(StandardCharsets.UTF_8)), settings);
+        assertEquals("{flow: {block: a}}\n", document.dump());
+        document = YamlDocument.create(new ByteArrayInputStream("block: {flow: a}".getBytes(StandardCharsets.UTF_8)), settings);
+        assertEquals("block: {flow: a}\n", document.dump());
     }
 
     private YamlDocument createDocument() throws IOException {
