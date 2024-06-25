@@ -12,7 +12,10 @@ import org.snakeyaml.engine.v2.nodes.Tag;
 public interface Formatter<S, V> {
 
     /**
-     * Returns format to use for the given node.
+     * Returns the format to use for the given node.
+     * <p>
+     * <b>Please note that the returned style might be overridden</b> in order to produce output compliant with the
+     * YAML specification. Please learn more at the corresponding setting documentation.
      *
      * @param tag   the actual datatype the node is representing
      * @param value value of the node (for scalars, this is a string-based representation)
