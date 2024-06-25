@@ -378,8 +378,11 @@ public class DumperSettings implements Settings {
          * booleans). <b>To find out about the datatype the node is representing, use the provided {@link Tag tag}.</b>
          * <p>
          * Formatters are used to alter the resulting YAML style of any given scalar node in the outputted document.
-         * Please note that the style returned by the formatter for {@link Tag#STR} might be overridden in order to
-         * produce valid YAML (strings cannot begin with reserved YAML indicators, like <code>#</code>, <code>-</code>...).
+         * <p>
+         * <b>Please note that the style returned by the formatter for {@link Tag#STR} might be overridden</b> in order
+         * to produce output compliant with the YAML specification. For example, returning style
+         * {@link ScalarStyle#PLAIN} for strings which start with a reserved YAML indicator (like <code>#</code> or
+         * <code>-</code>) will use a quoted style.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_SCALAR_FORMATTER}<br>
          * <b>Relevant parent method: </b> {@link DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)}<br>
@@ -406,6 +409,11 @@ public class DumperSettings implements Settings {
          * <p>
          * Formatters are used to alter the resulting YAML style of any given sequence node in the outputted document.
          * <p>
+         * <b>Please note that the style returned by the formatter might be overridden</b> in order to produce output
+         * compliant with the YAML specification. This only applies to cases when a parent node (map/sequence this
+         * sequence is an element of) is {@link FlowStyle#FLOW}, but the formatter returned {@link FlowStyle#BLOCK} for
+         * this node.
+         * <p>
          * <b>Default: </b> {@link #DEFAULT_SEQUENCE_FORMATTER}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
          * <b>Parent method docs (v2.3): </b><a
@@ -428,6 +436,11 @@ public class DumperSettings implements Settings {
          * {@link Map map}. The provided {@link Tag tag} will always be {@link Tag#MAP}.
          * <p>
          * Formatters are used to alter the resulting YAML style of any given mapping node in the outputted document.
+         * <p>
+         * <b>Please note that the style returned by the formatter might be overridden</b> in order to produce output
+         * compliant with the YAML specification. This only applies to cases when a parent node (map/sequence this
+         * mapping is an element of) is {@link FlowStyle#FLOW}, but the formatter returned {@link FlowStyle#BLOCK} for
+         * this node.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_SEQUENCE_FORMATTER}<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
