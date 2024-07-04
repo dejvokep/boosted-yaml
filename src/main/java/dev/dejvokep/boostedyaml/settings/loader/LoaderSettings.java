@@ -17,18 +17,15 @@ package dev.dejvokep.boostedyaml.settings.loader;
 
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.Settings;
-import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
-import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.ConstructNode;
-import org.snakeyaml.engine.v2.api.DumpSettingsBuilder;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.api.LoadSettingsBuilder;
 import org.snakeyaml.engine.v2.env.EnvConfig;
 import org.snakeyaml.engine.v2.nodes.Tag;
-import org.snakeyaml.engine.v2.resolver.ScalarResolver;
+import org.snakeyaml.engine.v2.schema.Schema;
 
 import java.util.Map;
 import java.util.Optional;
@@ -301,21 +298,21 @@ public class LoaderSettings implements Settings {
         }
 
         /**
-         * Sets custom scalar resolver, used to resolve tags for objects.
+         * Sets custom schema to use. Schemas are used to resolve and determine object tags contained within a document.
          * <p>
          * For additional information, please refer to documentation of the parent method listed below.
          * <p>
          * <b>Default: </b> defined by the parent method<br>
-         * <b>Parent method: </b> {@link LoadSettingsBuilder#setScalarResolver(ScalarResolver)}<br>
-         * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setScalarResolver(org.snakeyaml.engine.v2.resolver.ScalarResolver)">click</a><br>
+         * <b>Parent method: </b> {@link LoadSettingsBuilder#setSchema(Schema)}<br>
+         * <b>Parent method docs (v2.7): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.7/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setSchema(org.snakeyaml.engine.v2.schema.Schema)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
          *
-         * @param resolver the resolver to set
+         * @param schema the schema to set
          * @return the builder
-         * @see DumpSettingsBuilder#setScalarResolver(ScalarResolver)
+         * @see LoadSettingsBuilder#setSchema(Schema)
          */
-        public Builder setScalarResolver(@NotNull ScalarResolver resolver) {
-            builder.setScalarResolver(resolver);
+        public Builder setSchema(@NotNull Schema schema) {
+            builder.setSchema(schema);
             return this;
         }
 
@@ -331,7 +328,7 @@ public class LoaderSettings implements Settings {
          *
          * @param envConfig the config to set
          * @return the builder
-         * @see DumpSettingsBuilder#setScalarResolver(ScalarResolver)
+         * @see LoadSettingsBuilder#setEnvConfig(Optional)
          */
         public Builder setEnvironmentConfig(@Nullable EnvConfig envConfig) {
             builder.setEnvConfig(Optional.ofNullable(envConfig));

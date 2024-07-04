@@ -68,10 +68,10 @@ class ExtendedRepresenterTest {
                 "  #after key map (1)\n" +
                 "  #after key map (2)\n" +
                 "\n" +
-                "    #before value map (1)\n" +
+                "  #before value map (1)\n" +
                 "  #before value map (2)\n" +
                 "\n" +
-                "    #inline value map (1)\n" +
+                "  #inline value map (1)\n" +
                 "  #inline value map (2)\n" +
                 "  #before key map.k (1)\n" +
                 "  #before key map.k (2)\n" +
@@ -81,7 +81,7 @@ class ExtendedRepresenterTest {
                 "    #after key map.k (1)\n" +
                 "    #after key map.k (2)\n" +
                 "\n" +
-                "        #before value map.k (1)\n" +
+                "    #before value map.k (1)\n" +
                 "    #before value map.k (2)\n" +
                 "\n" +
                 "    v #inline value map.k (1)\n" +
@@ -101,10 +101,10 @@ class ExtendedRepresenterTest {
                 "  #after key list (1)\n" +
                 "  #after key list (2)\n" +
                 "\n" +
-                "    #before value list (1)\n" +
+                "  #before value list (1)\n" +
                 "  #before value list (2)\n" +
                 "\n" +
-                "    #inline value list (1)\n" +
+                "  #inline value list (1)\n" +
                 "  #inline value list (2)\n" +
                 "  - a\n" +
                 "  - b\n" +
@@ -119,7 +119,7 @@ class ExtendedRepresenterTest {
                 "  #after key str (1)\n" +
                 "  #after key str (2)\n" +
                 "\n" +
-                "    #before value str (1)\n" +
+                "  #before value str (1)\n" +
                 "  #before value str (2)\n" +
                 "\n" +
                 "  val #inline value str (1)\n" +
@@ -223,10 +223,10 @@ class ExtendedRepresenterTest {
                 "  #after key map (1)\n" +
                 "  #after key map (2)\n" +
                 "\n" +
-                "    #before value map (1)\n" +
+                "  #before value map (1)\n" +
                 "  #before value map (2)\n" +
                 "\n" +
-                "    #inline value map (1)\n" +
+                "  #inline value map (1)\n" +
                 "  #inline value map (2)\n" +
                 "  #before key map.k (1)\n" +
                 "  #before key map.k (2)\n" +
@@ -236,7 +236,7 @@ class ExtendedRepresenterTest {
                 "    #after key map.k (1)\n" +
                 "    #after key map.k (2)\n" +
                 "\n" +
-                "        #before value map.k (1)\n" +
+                "    #before value map.k (1)\n" +
                 "    #before value map.k (2)\n" +
                 "\n" +
                 "    v #inline value map.k (1)\n" +
@@ -255,10 +255,10 @@ class ExtendedRepresenterTest {
                 "  #after key list (1)\n" +
                 "  #after key list (2)\n" +
                 "\n" +
-                "    #before value list (1)\n" +
+                "  #before value list (1)\n" +
                 "  #before value list (2)\n" +
                 "\n" +
-                "    #inline value list (1)\n" +
+                "  #inline value list (1)\n" +
                 "  #inline value list (2)\n" +
                 "  - a\n" +
                 "  - b\n" +
@@ -273,7 +273,7 @@ class ExtendedRepresenterTest {
                 "  #after key str (1)\n" +
                 "  #after key str (2)\n" +
                 "\n" +
-                "    #before value str (1)\n" +
+                "  #before value str (1)\n" +
                 "  #before value str (2)\n" +
                 "\n" +
                 "  val #inline value str (1)\n" +

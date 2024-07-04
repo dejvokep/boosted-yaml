@@ -27,7 +27,7 @@ import org.snakeyaml.engine.v2.common.NonPrintableStyle;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.common.SpecVersion;
 import org.snakeyaml.engine.v2.nodes.Tag;
-import org.snakeyaml.engine.v2.resolver.ScalarResolver;
+import org.snakeyaml.engine.v2.schema.Schema;
 import org.snakeyaml.engine.v2.serializer.AnchorGenerator;
 import org.snakeyaml.engine.v2.serializer.NumberAnchorGenerator;
 
@@ -526,23 +526,21 @@ public class DumperSettings implements Settings {
         }
 
         /**
-         * Sets a custom scalar resolver, used to resolve tags for objects.
+         * Sets custom schema to use. Schemas are used to resolve and determine object tags contained within a document.
          * <p>
-         * For additional information please refer to documentation of the parent method listed below.
+         * For additional information, please refer to documentation of the parent method listed below.
          * <p>
          * <b>Default: </b> defined by the parent method<br>
-         * <b>Parent method: </b> {@link DumpSettingsBuilder#setScalarResolver(ScalarResolver)}<br>
-         * <b>Parent method docs (v2.3): </b><a
-         * href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setScalarResolver(org.snakeyaml.engine.v2.resolver.ScalarResolver)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a
-         * href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
+         * <b>Parent method: </b> {@link DumpSettingsBuilder#setSchema(Schema)}<br>
+         * <b>Parent method docs (v2.7): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.7/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setSchema(org.snakeyaml.engine.v2.schema.Schema)">click</a><br>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
          *
-         * @param resolver the resolver to set
+         * @param schema the schema to set
          * @return the builder
-         * @see DumpSettingsBuilder#setScalarResolver(ScalarResolver)
+         * @see DumpSettingsBuilder#setSchema(Schema)
          */
-        public Builder setScalarResolver(@NotNull ScalarResolver resolver) {
-            builder.setScalarResolver(resolver);
+        public Builder setSchema(@NotNull Schema schema) {
+            builder.setSchema(schema);
             return this;
         }
 
