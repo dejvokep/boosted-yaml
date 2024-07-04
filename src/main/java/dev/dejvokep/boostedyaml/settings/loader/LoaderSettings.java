@@ -21,12 +21,10 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.api.ConstructNode;
-import org.snakeyaml.engine.v2.api.DumpSettingsBuilder;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 import org.snakeyaml.engine.v2.api.LoadSettingsBuilder;
 import org.snakeyaml.engine.v2.env.EnvConfig;
 import org.snakeyaml.engine.v2.nodes.Tag;
-import org.snakeyaml.engine.v2.resolver.ScalarResolver;
 import org.snakeyaml.engine.v2.schema.Schema;
 
 import java.util.Map;
