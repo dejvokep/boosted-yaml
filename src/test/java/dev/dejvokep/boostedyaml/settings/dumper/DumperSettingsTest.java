@@ -22,8 +22,6 @@ import org.snakeyaml.engine.v2.common.NonPrintableStyle;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.common.SpecVersion;
 import org.snakeyaml.engine.v2.nodes.Tag;
-import org.snakeyaml.engine.v2.resolver.JsonScalarResolver;
-import org.snakeyaml.engine.v2.resolver.ScalarResolver;
 import org.snakeyaml.engine.v2.schema.JsonSchema;
 import org.snakeyaml.engine.v2.schema.Schema;
 import org.snakeyaml.engine.v2.serializer.AnchorGenerator;
@@ -41,7 +39,7 @@ class DumperSettingsTest {
     @Test
     void buildEngineSettings() {
         Supplier<AnchorGenerator> generatorSupplier = () -> new NumberAnchorGenerator(0);
-        assertTrue(DumperSettings.builder().setAnchorGenerator(generatorSupplier).build().buildEngineSettings().getAnchorGenerator() instanceof NumberAnchorGenerator);
+        assertInstanceOf(NumberAnchorGenerator.class, DumperSettings.builder().setAnchorGenerator(generatorSupplier).build().buildEngineSettings().getAnchorGenerator());
         // Canonical form
         assertTrue(DumperSettings.builder().setCanonicalForm(true).build().buildEngineSettings().isCanonical());
         assertFalse(DumperSettings.builder().setCanonicalForm(false).build().buildEngineSettings().isCanonical());
