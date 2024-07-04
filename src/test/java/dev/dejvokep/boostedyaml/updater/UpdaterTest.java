@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -61,8 +62,8 @@ class UpdaterTest {
     void update() throws IOException {
         // File
         YamlDocument file = YamlDocument.create(
-                new ByteArrayInputStream("a: 1.2\ny: true\nz:\n  a: 1\n  b: 15\no: \"a: b\"\np: 50".getBytes(StandardCharsets.UTF_8)),
-                new ByteArrayInputStream("a: 2.3\ny: false\ns:\n  a: 5\n  b: 10\nm: \"a: c\"\nr: 20\nt: 100".getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayInputStream("#old comment\na: 1.2\ny: true\nz:\n  a: 1\n  b: 15\no: \"a: b\"\np: 50".getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayInputStream("a: 2.3\ny: false\ns:\n  a: 5\n  b: 10\nm: \"a: c\"\nr: 20\n#new comment\nt: 100".getBytes(StandardCharsets.UTF_8)),
                 GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.DEFAULT, UPDATER_SETTINGS);
         // Update
         Updater.update(file, Objects.requireNonNull(file.getDefaults()), file.getUpdaterSettings(), file.getGeneralSettings());
@@ -74,6 +75,8 @@ class UpdaterTest {
         assertEquals(1, file.get("m", null));
         assertEquals("+", file.get("r", null));
         assertEquals(100, file.get("t", null));
+        assertEquals(Collections.singletonList("old comment"), file.getBlock("a").getComments());
+        assertEquals(Collections.singletonList("new comment"), file.getBlock("t").getComments());
         assertEquals(6, file.getKeys().size());
         assertEquals(2, file.getSection("s").getKeys().size());
 
