@@ -24,6 +24,8 @@ import org.snakeyaml.engine.v2.common.SpecVersion;
 import org.snakeyaml.engine.v2.nodes.Tag;
 import org.snakeyaml.engine.v2.resolver.JsonScalarResolver;
 import org.snakeyaml.engine.v2.resolver.ScalarResolver;
+import org.snakeyaml.engine.v2.schema.JsonSchema;
+import org.snakeyaml.engine.v2.schema.Schema;
 import org.snakeyaml.engine.v2.serializer.AnchorGenerator;
 import org.snakeyaml.engine.v2.serializer.NumberAnchorGenerator;
 
@@ -71,8 +73,8 @@ class DumperSettingsTest {
         assertEquals(ScalarStyle.SINGLE_QUOTED, DumperSettings.builder().setStringStyle(ScalarStyle.SINGLE_QUOTED).build().getStringStyle());
         assertEquals(ScalarStyle.FOLDED, DumperSettings.builder().setStringStyle(ScalarStyle.FOLDED).build().getStringStyle());
         // Scalar resolver
-        ScalarResolver scalarResolver = new JsonScalarResolver();
-        assertEquals(scalarResolver, DumperSettings.builder().setScalarResolver(scalarResolver).build().buildEngineSettings().getScalarResolver());
+        Schema schema = new JsonSchema();
+        assertEquals(schema, DumperSettings.builder().setSchema(schema).build().buildEngineSettings().getSchema());
         // Line break
         assertEquals("\r\n", DumperSettings.builder().setLineBreak("\r\n").build().buildEngineSettings().getBestLineBreak());
         // Indentation
