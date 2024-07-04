@@ -17,6 +17,7 @@ package dev.dejvokep.boostedyaml.block;
 
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
+import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
@@ -192,17 +193,17 @@ public abstract class Block<T> {
     }
 
     /**
-     * Returns comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
+     * Returns comments (at {@link NodeRole#KEY} node at {@link Comments.Position#BEFORE} position).
      * <p>
      * This method will return <code>null</code> or an empty {@link List}, indicating there are no comments.
      *
      * @return the comments
-     * @see Comments#get(Block, Comments.NodeType, Comments.Position)
+     * @see Comments#get(Block, NodeRole, Comments.Position)
      */
     @Nullable
     public List<String> getComments() {
         // Comments
-        List<CommentLine> comments = Comments.get(this, Comments.NodeType.KEY, Comments.Position.BEFORE);
+        List<CommentLine> comments = Comments.get(this, NodeRole.KEY, Comments.Position.BEFORE);
         // If null
         if (comments == null)
             return null;
@@ -212,47 +213,47 @@ public abstract class Block<T> {
     }
 
     /**
-     * Sets the given comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
+     * Sets the given comments (at {@link NodeRole#KEY} node at {@link Comments.Position#BEFORE} position).
      * <p>
      * To remove comments, use {@link #removeComments()} instead. Alternatively, pass either
      * <code>null</code> or an empty {@link List} as the parameter.
      *
      * @param comments the comments to set
-     * @see Comments#set(Block, Comments.NodeType, Comments.Position, List)
+     * @see Comments#set(Block, NodeRole, Comments.Position, List)
      */
     public void setComments(@Nullable List<String> comments) {
-        Comments.set(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments == null ? null : comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
+        Comments.set(this, NodeRole.KEY, Comments.Position.BEFORE, comments == null ? null : comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
-     * Removes all comments (at {@link Comments.NodeType#KEY} node at {@link Comments.Position#BEFORE} position).
+     * Removes all comments (at {@link NodeRole#KEY} node at {@link Comments.Position#BEFORE} position).
      *
-     * @see Comments#remove(Block, Comments.NodeType, Comments.Position)
+     * @see Comments#remove(Block, NodeRole, Comments.Position)
      */
     public void removeComments() {
-        Comments.remove(this, Comments.NodeType.KEY, Comments.Position.BEFORE);
+        Comments.remove(this, NodeRole.KEY, Comments.Position.BEFORE);
     }
 
     /**
-     * Adds the given comments to <i>already existing</i> comments (at {@link Comments.NodeType#KEY} node at
+     * Adds the given comments to <i>already existing</i> comments (at {@link NodeRole#KEY} node at
      * {@link Comments.Position#BEFORE} position).
      *
      * @param comments the comments to add
-     * @see Comments#add(Block, Comments.NodeType, Comments.Position, List)
+     * @see Comments#add(Block, NodeRole, Comments.Position, List)
      */
     public void addComments(@NotNull List<String> comments) {
-        Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
+        Comments.add(this, NodeRole.KEY, Comments.Position.BEFORE, comments.stream().map(comment -> Comments.create(comment, Comments.Position.BEFORE)).collect(Collectors.toList()));
     }
 
     /**
-     * Adds the given comment to <i>already existing</i> comments (at {@link Comments.NodeType#KEY} node at
+     * Adds the given comment to <i>already existing</i> comments (at {@link NodeRole#KEY} node at
      * {@link Comments.Position#BEFORE} position).
      *
      * @param comment the comment to add
-     * @see Comments#add(Block, Comments.NodeType, Comments.Position, CommentLine)
+     * @see Comments#add(Block, NodeRole, Comments.Position, CommentLine)
      */
     public void addComment(@NotNull String comment) {
-        Comments.add(this, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
+        Comments.add(this, NodeRole.KEY, Comments.Position.BEFORE, Comments.create(comment, Comments.Position.BEFORE));
     }
 
     /**

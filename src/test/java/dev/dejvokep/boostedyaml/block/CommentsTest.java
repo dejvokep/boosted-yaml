@@ -16,6 +16,7 @@
 package dev.dejvokep.boostedyaml.block;
 
 import dev.dejvokep.boostedyaml.block.implementation.TerminatedBlock;
+import dev.dejvokep.boostedyaml.utils.format.NodeRole;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
@@ -33,9 +34,9 @@ class CommentsTest {
         //Create block
         Block<?> block = new TerminatedBlock(null, null);
         //Add
-        Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
+        Comments.add(block, NodeRole.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
         //Assert
-        List<CommentLine> comments = Comments.get(block, Comments.NodeType.KEY, Comments.Position.BEFORE);
+        List<CommentLine> comments = Comments.get(block, NodeRole.KEY, Comments.Position.BEFORE);
         assertNotNull(comments);
         assertEquals(1, comments.size());
         assertEquals("comment", comments.get(0).getValue());
@@ -46,11 +47,11 @@ class CommentsTest {
         //Create block
         Block<?> block = new TerminatedBlock(null, null);
         //Set
-        Comments.set(block, Comments.NodeType.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
+        Comments.set(block, NodeRole.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
             add(Comments.create("comment", Comments.Position.BEFORE));
         }});
         //Assert
-        List<CommentLine> comments = Comments.get(block, Comments.NodeType.KEY, Comments.Position.BEFORE);
+        List<CommentLine> comments = Comments.get(block, NodeRole.KEY, Comments.Position.BEFORE);
         assertNotNull(comments);
         assertEquals(1, comments.size());
         assertEquals("comment", comments.get(0).getValue());
@@ -61,11 +62,11 @@ class CommentsTest {
         //Create block
         Block<?> block = new TerminatedBlock(null, null);
         //Add
-        Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
+        Comments.add(block, NodeRole.KEY, Comments.Position.BEFORE, Comments.create("comment", Comments.Position.BEFORE));
         //Remove
-        Comments.remove(block, Comments.NodeType.KEY, Comments.Position.BEFORE);
+        Comments.remove(block, NodeRole.KEY, Comments.Position.BEFORE);
         //Assert
-        assertNull(Comments.get(block, Comments.NodeType.KEY, Comments.Position.BEFORE));
+        assertNull(Comments.get(block, NodeRole.KEY, Comments.Position.BEFORE));
     }
 
     @Test
@@ -73,13 +74,13 @@ class CommentsTest {
         //Create block
         Block<?> block = new TerminatedBlock(null, null);
         //Add
-        Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
+        Comments.add(block, NodeRole.KEY, Comments.Position.BEFORE, new ArrayList<CommentLine>(){{
             add(Comments.create("comment1", Comments.Position.BEFORE));
             add(Comments.create("comment2", Comments.Position.BEFORE));
         }});
-        Comments.add(block, Comments.NodeType.KEY, Comments.Position.BEFORE, Comments.create("comment3", Comments.Position.BEFORE));
+        Comments.add(block, NodeRole.KEY, Comments.Position.BEFORE, Comments.create("comment3", Comments.Position.BEFORE));
         //Assert
-        List<CommentLine> comments = Comments.get(block, Comments.NodeType.KEY, Comments.Position.BEFORE);
+        List<CommentLine> comments = Comments.get(block, NodeRole.KEY, Comments.Position.BEFORE);
         assertNotNull(comments);
         assertEquals(3, comments.size());
         assertEquals("comment1", comments.get(0).getValue());
