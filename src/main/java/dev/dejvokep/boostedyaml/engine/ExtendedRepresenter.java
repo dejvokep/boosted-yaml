@@ -66,10 +66,10 @@ public class ExtendedRepresenter extends StandardRepresenter {
         this.dumperSettings = dumperSettings;
 
         //Representers
-        RepresentToNode representSection = new RepresentSection(), representSerializable = new RepresentSerializable();
+        RepresentToNode representSerializable = new RepresentSerializable();
         //Add representers
-        super.representers.put(Section.class, representSection);
-        super.representers.put(YamlDocument.class, representSection);
+        super.representers.put(YamlDocument.class, new RepresentDocument());
+        super.representers.put(Section.class, new RepresentSection());
         super.representers.put(Enum.class, new RepresentEnum());
         super.representers.put(String.class, new RepresentString(super.representers.get(String.class)));
         //Add all types
@@ -121,19 +121,34 @@ public class ExtendedRepresenter extends StandardRepresenter {
     }
 
     /**
-     * Node representer implementation for {@link Section sections}. This representer, in fact, is only used to
-     * represent {@link YamlDocument root sections}.
+     * Node representer implementation for {@link YamlDocument documents}.
+     */
+    private class RepresentDocument implements RepresentToNode {
+
+        @Override
+        public Node representData(Object data) {
+            //Cast
+            Section section = (Section) data;
+            //Return
+            return applyComments(section, NodeRole.VALUE, ExtendedRepresenter.this.representData(section.getStoredValue()), section.isRoot());
+        }
+
+    }
+
+    /**
+     * Node representer implementation for {@link Section sections}.
+     * <p>
+     * Used only when cloning during updating, all other cases are already handled by
+     * {@link #representMappingEntry(Map.Entry)}.
      */
     private class RepresentSection implements RepresentToNode {
 
         @Override
         public Node representData(Object data) {
-            // WILL NEVER BE REACHED BY ANYTHING ELSE
-
             //Cast
             Section section = (Section) data;
             //Return
-            return applyComments(section, NodeRole.VALUE, ExtendedRepresenter.this.representData(section.getStoredValue()), section.isRoot());
+            return applyComments(section, NodeRole.KEY, ExtendedRepresenter.this.representData(section.getStoredValue()), section.isRoot());
         }
 
     }
