@@ -57,10 +57,10 @@ class YamlDocumentTest {
         // Assert
         assertFalse(YamlDocument.create(createStream("m: 2\nn: x")).update());
         // Create
-        YamlDocument file = YamlDocument.create(createStream("n: x"), createStream("m: 4"));
+        YamlDocument file = YamlDocument.create(createStream("# a\nkeep: true\n# b\nremove: 1"), createStream("keep: false\n# c\nadd: 2\n# d\nnested:\n  inner: abc"));
         // Assert
         assertTrue(file.update());
-        Assertions.assertEquals(4, file.getInt("m"));
+        assertEquals("# a\nkeep: true\n# c\nadd: 2\n# d\nnested:\n  inner: abc\n", file.dump());
     }
 
     @Test
