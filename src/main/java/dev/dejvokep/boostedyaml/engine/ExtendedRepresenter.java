@@ -54,6 +54,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
     /**
      * Creates an instance of the representer.
      *
+     * @param documentType    the represented type of the document
      * @param generalSettings general settings of the root's file, whose contents are going to be represented
      * @param dumperSettings  dumper settings
      * @param engineSettings  engine dump settings already built by the dumper settings
