@@ -505,7 +505,7 @@ public class YamlDocument extends Section {
         //Output
         SerializedStream stream = new SerializedStream();
         //Create the representer
-        BaseRepresenter representer = new ExtendedRepresenter(generalSettings, dumperSettings, settings);
+        BaseRepresenter representer = new ExtendedRepresenter(this.getClass(), generalSettings, dumperSettings, settings);
 
         //Serializer
         Serializer serializer = new Serializer(settings, new Emitter(settings, stream));

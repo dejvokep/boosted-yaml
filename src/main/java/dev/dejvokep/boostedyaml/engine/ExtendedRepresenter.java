@@ -54,11 +54,17 @@ public class ExtendedRepresenter extends StandardRepresenter {
     /**
      * Creates an instance of the representer.
      *
+     * @param documentType    the represented type of the document
      * @param generalSettings general settings of the root's file, whose contents are going to be represented
      * @param dumperSettings  dumper settings
      * @param engineSettings  engine dump settings already built by the dumper settings
      */
-    public ExtendedRepresenter(@NotNull GeneralSettings generalSettings, @NotNull DumperSettings dumperSettings, @NotNull DumpSettings engineSettings) {
+    public ExtendedRepresenter(
+            final Class<?> documentType,
+            final @NotNull GeneralSettings generalSettings,
+            final @NotNull DumperSettings dumperSettings,
+            final @NotNull DumpSettings engineSettings
+    ) {
         //Call the superclass constructor
         super(engineSettings);
         //Set
@@ -68,7 +74,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
         //Representers
         RepresentToNode representSerializable = new RepresentSerializable();
         //Add representers
-        super.representers.put(YamlDocument.class, new RepresentDocument());
+        super.representers.put(documentType, new RepresentDocument());
         super.representers.put(Section.class, new RepresentSection());
         super.representers.put(Enum.class, new RepresentEnum());
         super.representers.put(String.class, new RepresentString(super.representers.get(String.class)));
@@ -87,7 +93,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
      * @see #ExtendedRepresenter(GeneralSettings, DumperSettings)
      */
     public ExtendedRepresenter(@NotNull GeneralSettings generalSettings, @NotNull DumperSettings dumperSettings) {
-        this(generalSettings, dumperSettings, dumperSettings.buildEngineSettings());
+        this(YamlDocument.class, generalSettings, dumperSettings, dumperSettings.buildEngineSettings());
     }
 
     @Override
