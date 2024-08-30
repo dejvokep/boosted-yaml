@@ -229,6 +229,7 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>
             <version>23.1.0</version>
+            <scope>provided</scope>
         </dependency>
         <!-- JUnit -->
         <dependency>
