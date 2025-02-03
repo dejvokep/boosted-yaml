@@ -80,9 +80,10 @@ dependencies {
 
 Add the following shadowing section to prevent class loader conflicts:
 - Add this at the very start of your build.gradle file: (Gradle 7.3)
+- Get your desired version from [here](https://github.com/GradleUp/shadow)
 ```gradle
 plugins {
-  id 'com.github.johnrengelman.shadow' version '7.1.2'
+  id 'com.gradleup.shadow' version '8.3.5'
   id 'java'
 }
 ```
