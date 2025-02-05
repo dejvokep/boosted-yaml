@@ -1599,8 +1599,8 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param route the route to get the value at
      * @return the value, or section at the given route
      */
-    public Optional<Object> getOptional(@NotNull Route route) {
-        return getOptionalBlock(route).map(block -> block instanceof Section ? block : block.getStoredValue());
+    public Optional<Object> getOptional(@NotNull String route) {
+        return getOptional(Route.fromString(route));
     }
 
     /**
@@ -1612,7 +1612,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @param route the route to get the value at
      * @return the value, or section at the given route
      */
-    public Optional<Object> getOptional(@NotNull String route) {
+    public Optional<Object> getOptional(@NotNull Route route) {
         return getOptionalBlock(route).map(block -> block instanceof Section ? block : block.getStoredValue());
     }
 
@@ -1707,12 +1707,9 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the value cast to the given type
      */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAsOptional(@NotNull Route route, @NotNull Class<T> clazz) {
-        return getOptional(route).map((object) -> clazz.isInstance(object) ? (T) object :
-                PrimitiveConversions.isNumber(object.getClass()) && PrimitiveConversions.isNumber(clazz) ? (T) convertNumber(object, clazz) :
-                        NON_NUMERIC_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERIC_CONVERSIONS.containsKey(clazz) ? (T) object : null);
+    public <T> Optional<T> getAsOptional(@NotNull String route, @NotNull Class<T> clazz) {
+        return getAsOptional(Route.fromString(route), clazz);
     }
-
 
     /**
      * Returns the value of the block (the actual value) at the given route, or if it is a section, the corresponding
@@ -1732,31 +1729,10 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the value cast to the given type
      */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAsOptional(@NotNull String route, @NotNull Class<T> clazz) {
+    public <T> Optional<T> getAsOptional(@NotNull Route route, @NotNull Class<T> clazz) {
         return getOptional(route).map((object) -> clazz.isInstance(object) ? (T) object :
                 PrimitiveConversions.isNumber(object.getClass()) && PrimitiveConversions.isNumber(clazz) ? (T) convertNumber(object, clazz) :
                         NON_NUMERIC_CONVERSIONS.containsKey(object.getClass()) && NON_NUMERIC_CONVERSIONS.containsKey(clazz) ? (T) object : null);
-    }
-
-    /**
-     * Returns the value of the block (the actual value) at the given route, or if it is a section, the corresponding
-     * {@link Section} instance, in both cases cast to instance of the given class.
-     * <p>
-     * If there is no block present at the given route (therefore no value can be returned), or the value (block's
-     * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code><a
-     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
-     * <p>
-     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
-     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
-     * <code>int</code>).
-     *
-     * @param route the route to get the value at
-     * @param clazz class of the target type
-     * @param <T>   the target type
-     * @return the value cast to the given type, or default according to the documentation above
-     */
-    public <T> T getAs(@NotNull Route route, @NotNull Class<T> clazz) {
-        return getAsOptional(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getAs(route, clazz) : null);
     }
 
     /**
@@ -1777,6 +1753,27 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the value cast to the given type, or default according to the documentation above
      */
     public <T> T getAs(@NotNull String route, @NotNull Class<T> clazz) {
+        return getAs(Route.fromString(route), clazz);
+    }
+
+    /**
+     * Returns the value of the block (the actual value) at the given route, or if it is a section, the corresponding
+     * {@link Section} instance, in both cases cast to instance of the given class.
+     * <p>
+     * If there is no block present at the given route (therefore no value can be returned), or the value (block's
+     * actual value or {@link Section} instance) is not castable to the given type, returns <code>null</code><a
+     * href="#note-1"><sup>or value from defaults (#1)</sup></a>.
+     * <p>
+     * <b>This method supports</b> casting between primitive types and their non-primitive representations (e.g.
+     * {@link Double} - <code>double</code>) and also between two different numeric types (e.g. {@link Double} -
+     * <code>int</code>).
+     *
+     * @param route the route to get the value at
+     * @param clazz class of the target type
+     * @param <T>   the target type
+     * @return the value cast to the given type, or default according to the documentation above
+     */
+    public <T> T getAs(@NotNull Route route, @NotNull Class<T> clazz) {
         return getAsOptional(route, clazz).orElseGet(() -> canUseDefaults() ? defaults.getAs(route, clazz) : null);
     }
 
