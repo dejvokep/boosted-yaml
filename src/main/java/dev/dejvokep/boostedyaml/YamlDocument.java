@@ -226,7 +226,9 @@ public class YamlDocument extends Section {
         //If exists
         if (Objects.requireNonNull(file, "File cannot be null!").exists()) {
             //Load from the file
-            reload(new BufferedInputStream(new FileInputStream(file)));
+            try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
+                reload(stream);
+            }
             return;
         }
 
