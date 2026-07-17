@@ -22,9 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
+import org.snakeyaml.engine.v2.nodes.ScalarNode;
 import org.snakeyaml.engine.v2.nodes.SequenceNode;
 
 import java.util.ArrayList;
@@ -42,6 +44,9 @@ public abstract class Block<T> {
     //Comments
     @Nullable
     List<CommentLine> beforeKeyComments = null, inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
+    //Original scalar styles as loaded from the file
+    @Nullable
+    private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
     //Value
     private T value;
     //If to ignore
@@ -112,6 +117,9 @@ public abstract class Block<T> {
             afterKeyComments = key.getEndComments();
             // Collect
             collectComments(key, beforeKeyComments, true);
+            // Capture original scalar style
+            if (key instanceof ScalarNode)
+                originalKeyStyle = ((ScalarNode) key).getScalarStyle();
         }
 
         //If not null
@@ -122,7 +130,32 @@ public abstract class Block<T> {
             afterValueComments = value.getEndComments();
             // Collect
             collectComments(value, beforeValueComments, true);
+            // Capture original scalar style
+            if (value instanceof ScalarNode)
+                originalValueStyle = ((ScalarNode) value).getScalarStyle();
         }
+    }
+
+    /**
+     * Returns the scalar style of the key node, exactly as it was loaded from the file; or <code>null</code> if this
+     * block was not loaded from a scalar key node (e.g. was created programmatically).
+     *
+     * @return the original key scalar style, or <code>null</code>
+     */
+    @Nullable
+    public ScalarStyle getOriginalKeyStyle() {
+        return originalKeyStyle;
+    }
+
+    /**
+     * Returns the scalar style of the value node, exactly as it was loaded from the file; or <code>null</code> if this
+     * block was not loaded from a scalar value node (e.g. was created programmatically, or represents a section).
+     *
+     * @return the original value scalar style, or <code>null</code>
+     */
+    @Nullable
+    public ScalarStyle getOriginalValueStyle() {
+        return originalValueStyle;
     }
 
     /**

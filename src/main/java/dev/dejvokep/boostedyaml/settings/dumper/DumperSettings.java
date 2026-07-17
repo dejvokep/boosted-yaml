@@ -77,6 +77,8 @@ public class DumperSettings implements Settings {
     private final DumpSettingsBuilder builder;
     //Anchor generator supplier
     private final Supplier<AnchorGenerator> generatorSupplier;
+    //If to preserve original scalar styles as loaded from the file
+    private final boolean preserveScalarStyle;
     //Formatters
     private final Formatter<ScalarStyle, String> scalarFormatter;
     private final Formatter<FlowStyle, Iterable<?>> sequenceFormatter;
@@ -93,6 +95,7 @@ public class DumperSettings implements Settings {
         this.scalarFormatter = builder.scalarFormatter;
         this.sequenceFormatter = builder.sequenceFormatter;
         this.mappingFormatter = builder.mappingFormatter;
+        this.preserveScalarStyle = builder.preserveScalarStyle;
     }
 
     /**
@@ -111,6 +114,16 @@ public class DumperSettings implements Settings {
      */
     public Formatter<ScalarStyle, String> getScalarFormatter() {
         return scalarFormatter;
+    }
+
+    /**
+     * Returns whether original scalar styles (as loaded from the file) are preserved and passed to the scalar formatter
+     * as the default style, instead of the configured {@link #getScalarFormatter() scalar} style.
+     *
+     * @return if to preserve original scalar styles
+     */
+    public boolean isPreserveScalarStyle() {
+        return preserveScalarStyle;
     }
 
     /**
@@ -197,6 +210,10 @@ public class DumperSettings implements Settings {
          */
         public static final Formatter<FlowStyle, Map<?, ?>> DEFAULT_MAPPING_FORMATTER = Formatter.identity();
         /**
+         * If to preserve original scalar styles by default.
+         */
+        public static final boolean DEFAULT_PRESERVE_SCALAR_STYLE = false;
+        /**
          * If to add document start by default.
          */
         public static final boolean DEFAULT_START_MARKER = false;
@@ -249,6 +266,8 @@ public class DumperSettings implements Settings {
         private Formatter<ScalarStyle, String> scalarFormatter = DEFAULT_SCALAR_FORMATTER;
         private Formatter<FlowStyle, Iterable<?>> sequenceFormatter = DEFAULT_SEQUENCE_FORMATTER;
         private Formatter<FlowStyle, Map<?, ?>> mappingFormatter = DEFAULT_MAPPING_FORMATTER;
+        //If to preserve original scalar styles
+        private boolean preserveScalarStyle = DEFAULT_PRESERVE_SCALAR_STYLE;
 
         /**
          * Creates a new builder from the given, already created SnakeYAML Engine settings builder.
@@ -379,6 +398,28 @@ public class DumperSettings implements Settings {
          */
         public Builder setScalarFormatter(@NotNull Formatter<ScalarStyle, String> formatter) {
             this.scalarFormatter = formatter;
+            return this;
+        }
+
+        /**
+         * Sets whether to preserve the original scalar styles, exactly as they were loaded from the file.
+         * <p>
+         * When enabled, the style a scalar node was loaded with is passed to the {@link #setScalarFormatter(Formatter)
+         * scalar formatter} as the <i>default</i> style (the last parameter), instead of the configured
+         * {@link #setScalarStyle(ScalarStyle) scalar} style. The formatter still has the final say and may override it.
+         * Using the default (identity) formatter therefore reproduces the original styling.
+         * <p>
+         * This only affects scalars that were actually loaded from a file. Values created or modified programmatically
+         * have no original style and fall back to the configured scalar style. Styles returned might still be overridden
+         * to produce output compliant with the YAML specification.
+         * <p>
+         * <b>Default: </b> {@link #DEFAULT_PRESERVE_SCALAR_STYLE}
+         *
+         * @param preserve if to preserve original scalar styles
+         * @return the builder
+         */
+        public Builder setPreserveScalarStyle(boolean preserve) {
+            this.preserveScalarStyle = preserve;
             return this;
         }
 

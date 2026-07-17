@@ -50,6 +50,8 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     //Currently serialized node role
     private NodeRole nodeRole = NodeRole.KEY;
+    //Original scalar styles of the block currently being serialized
+    private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
 
     /**
      * Creates an instance of the representer.
@@ -97,6 +99,14 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     @Override
     protected Node representScalar(Tag tag, String value, ScalarStyle scalarStyle) {
+        // When preservation is enabled and the original style is known, use it as the default passed to the formatter
+        if (dumperSettings.isPreserveScalarStyle()) {
+            ScalarStyle original = nodeRole == NodeRole.KEY ? originalKeyStyle : originalValueStyle;
+            if (original != null) {
+                ScalarStyle formatted = dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original);
+                return new ScalarNode(tag, value, formatted);
+            }
+        }
         return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, scalarStyle));
     }
 
@@ -213,6 +223,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
     protected NodeTuple representMappingEntry(Map.Entry<?, ?> entry) {
         //Block
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
+        //Stash original scalar styles for this block
+        originalKeyStyle = block == null ? null : block.getOriginalKeyStyle();
+        originalValueStyle = block == null ? null : block.getOriginalValueStyle();
         //Represent nodes
         Node key = applyComments(block, nodeRole = NodeRole.KEY, representData(entry.getKey()), false);
         Node value = applyComments(block, nodeRole = NodeRole.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);

@@ -346,6 +346,23 @@ class ExtendedRepresenterTest {
     }
 
     @Test
+    void representScalarPreserveStyle() throws IOException {
+        String yaml = "k1: \"double\"\nk2: 'single'\nk3: plain\n\"k4\": v\n";
+
+        // On: keep the original styles even though string style says single quote everything
+        DumperSettings preserve = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setStringStyle(ScalarStyle.SINGLE_QUOTED).setPreserveScalarStyle(true).build();
+        assertEquals(yaml, YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(preserve));
+
+        // Off: string style takes over
+        DumperSettings off = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setStringStyle(ScalarStyle.SINGLE_QUOTED).setPreserveScalarStyle(false).build();
+        assertEquals("'k1': 'double'\n'k2': 'single'\n'k3': 'plain'\n'k4': 'v'\n", YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(off));
+
+        // A formatter still has the last word over the preserved style
+        DumperSettings override = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setPreserveScalarStyle(true).setScalarFormatter((tag, value, role, def) -> ScalarStyle.PLAIN).build();
+        assertEquals("k1: double\nk2: single\nk3: plain\nk4: v\n", YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(override));
+    }
+
+    @Test
     void representSequence() throws IOException {
         DumperSettings settings = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setSequenceFormatter(((tag, value, role, def) -> value.iterator().next().toString().equals("a") ? FlowStyle.FLOW : def)).build();
         YamlDocument document = YamlDocument.create(new ByteArrayInputStream("flow:\n- a\n- b\n- c\nblock: [d, e, f]".getBytes(StandardCharsets.UTF_8)), settings);
