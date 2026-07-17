@@ -363,6 +363,23 @@ class ExtendedRepresenterTest {
     }
 
     @Test
+    void representPreserveFlowStyle() throws IOException {
+        String yaml = "flowList: [a, b]\nblockList:\n- c\n- d\nflowMap: {x: 1}\nblockMap:\n  y: 2\n";
+
+        // On: each collection keeps the style it was loaded with, even though the configured style is BLOCK
+        DumperSettings preserve = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setPreserveFlowStyle(true).build();
+        assertEquals(yaml, YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(preserve));
+
+        // Off: everything drops to the configured block style
+        DumperSettings off = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setPreserveFlowStyle(false).build();
+        assertEquals("flowList:\n- a\n- b\nblockList:\n- c\n- d\nflowMap:\n  x: 1\nblockMap:\n  y: 2\n", YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(off));
+
+        // A formatter still has the last word over the preserved style
+        DumperSettings override = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setPreserveFlowStyle(true).setSequenceFormatter((tag, value, role, def) -> FlowStyle.BLOCK).build();
+        assertEquals("flowList:\n- a\n- b\nblockList:\n- c\n- d\nflowMap: {x: 1}\nblockMap:\n  y: 2\n", YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(override));
+    }
+
+    @Test
     void representSequence() throws IOException {
         DumperSettings settings = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setSequenceFormatter(((tag, value, role, def) -> value.iterator().next().toString().equals("a") ? FlowStyle.FLOW : def)).build();
         YamlDocument document = YamlDocument.create(new ByteArrayInputStream("flow:\n- a\n- b\n- c\nblock: [d, e, f]".getBytes(StandardCharsets.UTF_8)), settings);

@@ -52,6 +52,8 @@ public class ExtendedRepresenter extends StandardRepresenter {
     private NodeRole nodeRole = NodeRole.KEY;
     //Original scalar styles of the block currently being serialized
     private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
+    //Original flow style of the value collection currently being serialized
+    private FlowStyle originalValueFlowStyle = null;
 
     /**
      * Creates an instance of the representer.
@@ -112,12 +114,32 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     @Override
     protected Node representSequence(Tag tag, Iterable<?> sequence, FlowStyle flowStyle) {
-        return super.representSequence(tag, sequence, dumperSettings.getSequenceFormatter().format(tag, sequence, nodeRole, flowStyle));
+        return super.representSequence(tag, sequence, dumperSettings.getSequenceFormatter().format(tag, sequence, nodeRole, preserveFlowStyle(flowStyle)));
     }
 
     @Override
     protected Node representMapping(Tag tag, Map<?, ?> mapping, FlowStyle flowStyle) {
-        return super.representMapping(tag, mapping, dumperSettings.getMappingFormatter().format(tag, mapping, nodeRole, flowStyle));
+        return super.representMapping(tag, mapping, dumperSettings.getMappingFormatter().format(tag, mapping, nodeRole, preserveFlowStyle(flowStyle)));
+    }
+
+    /**
+     * Returns the default flow style to hand to the formatter for the collection currently being serialized. When flow
+     * style preservation is enabled and the collection was loaded with a known style, that style is returned; otherwise
+     * the given configured style is returned.
+     * <p>
+     * The captured style is consumed on use, so collections nested within this one (which have no captured style of
+     * their own) fall back to the configured style instead of inheriting this one.
+     *
+     * @param configured the configured flow style
+     * @return the flow style to use as the default
+     */
+    private FlowStyle preserveFlowStyle(FlowStyle configured) {
+        if (dumperSettings.isPreserveFlowStyle() && originalValueFlowStyle != null) {
+            FlowStyle original = originalValueFlowStyle;
+            originalValueFlowStyle = null;
+            return original;
+        }
+        return configured;
     }
 
     /**
@@ -223,9 +245,10 @@ public class ExtendedRepresenter extends StandardRepresenter {
     protected NodeTuple representMappingEntry(Map.Entry<?, ?> entry) {
         //Block
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
-        //Stash original scalar styles for this block
+        //Stash original styles for this block
         originalKeyStyle = block == null ? null : block.getOriginalKeyStyle();
         originalValueStyle = block == null ? null : block.getOriginalValueStyle();
+        originalValueFlowStyle = block == null ? null : block.getOriginalValueFlowStyle();
         //Represent nodes
         Node key = applyComments(block, nodeRole = NodeRole.KEY, representData(entry.getKey()), false);
         Node value = applyComments(block, nodeRole = NodeRole.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);

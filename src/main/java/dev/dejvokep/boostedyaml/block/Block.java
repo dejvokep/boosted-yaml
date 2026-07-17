@@ -22,7 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
+import org.snakeyaml.engine.v2.common.FlowStyle;
 import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.nodes.CollectionNode;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
@@ -47,6 +49,9 @@ public abstract class Block<T> {
     //Original scalar styles as loaded from the file
     @Nullable
     private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
+    //Original flow style of the value collection (sequence/mapping) as loaded from the file
+    @Nullable
+    private FlowStyle originalValueFlowStyle = null;
     //Value
     private T value;
     //If to ignore
@@ -133,6 +138,9 @@ public abstract class Block<T> {
             // Capture original scalar style
             if (value instanceof ScalarNode)
                 originalValueStyle = ((ScalarNode) value).getScalarStyle();
+            // Capture original flow style
+            if (value instanceof CollectionNode)
+                originalValueFlowStyle = ((CollectionNode<?>) value).getFlowStyle();
         }
     }
 
@@ -156,6 +164,18 @@ public abstract class Block<T> {
     @Nullable
     public ScalarStyle getOriginalValueStyle() {
         return originalValueStyle;
+    }
+
+    /**
+     * Returns the flow style of the value collection (sequence or mapping), exactly as it was loaded from the file; or
+     * <code>null</code> if this block's value was not loaded from a collection node (e.g. was created programmatically,
+     * or is a scalar).
+     *
+     * @return the original value flow style, or <code>null</code>
+     */
+    @Nullable
+    public FlowStyle getOriginalValueFlowStyle() {
+        return originalValueFlowStyle;
     }
 
     /**
