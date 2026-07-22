@@ -33,7 +33,10 @@ import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.*;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
@@ -50,10 +53,12 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     //Currently serialized node role
     private NodeRole nodeRole = NodeRole.KEY;
-    //Original scalar styles of the block currently being serialized
+    //Original key and value scalar styles of the block currently being serialized
     private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
-    //Original flow style of the value collection currently being serialized
+    //Original flow style of a section value currently being serialized
     private FlowStyle originalValueFlowStyle = null;
+    //Pre-order styles of the value subtree currently being serialized, replayed for its nested scalars/collections
+    private Deque<Enum<?>> valueStyles = null;
 
     /**
      * Creates an instance of the representer.
@@ -101,14 +106,24 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     @Override
     protected Node representScalar(Tag tag, String value, ScalarStyle scalarStyle) {
-        // When preservation is enabled and the original style is known, use it as the default passed to the formatter
+        // Replaying styles of a value subtree (e.g. the elements of a sequence)
+        if (valueStyles != null) {
+            if (valueStyles.peekFirst() instanceof ScalarStyle) {
+                ScalarStyle original = (ScalarStyle) valueStyles.pollFirst();
+                if (dumperSettings.isPreserveScalarStyle())
+                    return new ScalarNode(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original));
+                return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, scalarStyle));
+            }
+            valueStyles = null;
+        }
+
+        // The key, and a value with no node to replay (e.g. one replaced via a set), keep their block-level style here
         if (dumperSettings.isPreserveScalarStyle()) {
             ScalarStyle original = nodeRole == NodeRole.KEY ? originalKeyStyle : originalValueStyle;
-            if (original != null) {
-                ScalarStyle formatted = dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original);
-                return new ScalarNode(tag, value, formatted);
-            }
+            if (original != null)
+                return new ScalarNode(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original));
         }
+
         return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, scalarStyle));
     }
 
@@ -124,22 +139,78 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     /**
      * Returns the default flow style to hand to the formatter for the collection currently being serialized. When flow
-     * style preservation is enabled and the collection was loaded with a known style, that style is returned; otherwise
-     * the given configured style is returned.
-     * <p>
-     * The captured style is consumed on use, so collections nested within this one (which have no captured style of
-     * their own) fall back to the configured style instead of inheriting this one.
+     * style preservation is enabled, this is the style the collection was loaded with (taken from the value subtree
+     * replay, or from a section's stored style); otherwise the given configured style is returned.
      *
      * @param configured the configured flow style
      * @return the flow style to use as the default
      */
     private FlowStyle preserveFlowStyle(FlowStyle configured) {
+        // Replaying styles of a value subtree
+        if (valueStyles != null) {
+            if (valueStyles.peekFirst() instanceof FlowStyle) {
+                FlowStyle original = (FlowStyle) valueStyles.pollFirst();
+                return dumperSettings.isPreserveFlowStyle() ? original : configured;
+            }
+            // The value no longer matches the loaded node - stop replaying and fall back
+            valueStyles = null;
+        }
+
+        // Section values keep their flow style here, since they are not replayed from a node
         if (dumperSettings.isPreserveFlowStyle() && originalValueFlowStyle != null) {
             FlowStyle original = originalValueFlowStyle;
             originalValueFlowStyle = null;
             return original;
         }
         return configured;
+    }
+
+    /**
+     * Collects the scalar and flow styles of the given node and all its descendants in pre-order (the same order in
+     * which they are serialized), so they can be replayed onto the produced nodes.
+     *
+     * @param node the value node to collect styles from
+     * @return the collected styles, oldest first
+     */
+    private Deque<Enum<?>> collectStyles(@NotNull Node node) {
+        Deque<Enum<?>> styles = new ArrayDeque<>();
+        collectStyles(node, styles);
+        return styles;
+    }
+
+    /**
+     * Returns whether the given value node still matches the given value, i.e. they are the same kind and, for
+     * collections, the same size. Used to decide whether a value replaced via a set can have its per-element styles
+     * replayed - a replacement of a different shape cannot be aligned positionally.
+     *
+     * @param node  the original value node
+     * @param value the current value
+     * @return whether the styles of the node can be replayed onto the value
+     */
+    private boolean nodeMatchesValue(@NotNull Node node, @Nullable Object value) {
+        if (node instanceof ScalarNode)
+            return !(value instanceof Collection) && !(value instanceof Map);
+        if (node instanceof SequenceNode)
+            return value instanceof Collection && ((Collection<?>) value).size() == ((SequenceNode) node).getValue().size();
+        if (node instanceof MappingNode)
+            return value instanceof Map && ((Map<?, ?>) value).size() == ((MappingNode) node).getValue().size();
+        return false;
+    }
+
+    private void collectStyles(@NotNull Node node, @NotNull Deque<Enum<?>> styles) {
+        if (node instanceof ScalarNode) {
+            styles.addLast(((ScalarNode) node).getScalarStyle());
+        } else if (node instanceof SequenceNode) {
+            styles.addLast(((SequenceNode) node).getFlowStyle());
+            for (Node element : ((SequenceNode) node).getValue())
+                collectStyles(element, styles);
+        } else if (node instanceof MappingNode) {
+            styles.addLast(((MappingNode) node).getFlowStyle());
+            for (NodeTuple tuple : ((MappingNode) node).getValue()) {
+                collectStyles(tuple.getKeyNode(), styles);
+                collectStyles(tuple.getValueNode(), styles);
+            }
+        }
     }
 
     /**
@@ -243,15 +314,30 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     @Override
     protected NodeTuple representMappingEntry(Map.Entry<?, ?> entry) {
+        // Entry of a plain map nested within a value subtree - styles are supplied by the active replay
+        if (valueStyles != null) {
+            Node replayedKey = representData(entry.getKey());
+            Node replayedValue = representData(entry.getValue());
+            return new NodeTuple(replayedKey, replayedValue);
+        }
+
         //Block
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
         //Stash original styles for this block
         originalKeyStyle = block == null ? null : block.getOriginalKeyStyle();
         originalValueStyle = block == null ? null : block.getOriginalValueStyle();
         originalValueFlowStyle = block == null ? null : block.getOriginalValueFlowStyle();
-        //Represent nodes
+        //Represent the key (before the value subtree replay is active)
         Node key = applyComments(block, nodeRole = NodeRole.KEY, representData(entry.getKey()), false);
+        boolean replaying = block != null && block.getOriginalValueNode() != null
+                && (dumperSettings.isPreserveScalarStyle() || dumperSettings.isPreserveFlowStyle())
+                && nodeMatchesValue(block.getOriginalValueNode(), block.getStoredValue());
+        if (replaying)
+            valueStyles = collectStyles(block.getOriginalValueNode());
+        //Represent the value
         Node value = applyComments(block, nodeRole = NodeRole.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);
+        if (replaying)
+            valueStyles = null;
         //Create
         return new NodeTuple(key, value);
     }

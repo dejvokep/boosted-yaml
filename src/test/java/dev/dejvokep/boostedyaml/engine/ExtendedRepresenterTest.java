@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -363,6 +364,31 @@ class ExtendedRepresenterTest {
     }
 
     @Test
+    void representPreserveStyleAfterSet() throws IOException {
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("\"key\": \"old\"\n".getBytes(StandardCharsets.UTF_8)), preserve);
+        document.set("key", "new");
+        // A value replaced via a set keeps both the key's and the previous value's style
+        assertEquals("\"key\": \"new\"\n", document.dump());
+    }
+
+    @Test
+    void representPreserveListStyleAfterSet() throws IOException {
+        String yaml = "items:\n- 'a'\n- \"b\"\n";
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
+
+        // Same size: each element keeps the style of the element it replaced, positionally
+        YamlDocument same = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
+        same.set("items", Arrays.asList("x", "y"));
+        assertEquals("items:\n- 'x'\n- \"y\"\n", same.dump());
+
+        // Different size: cannot align, so the whole list falls back to the configured style
+        YamlDocument diff = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
+        diff.set("items", Arrays.asList("x", "y", "z"));
+        assertEquals("items:\n- x\n- y\n- z\n", diff.dump());
+    }
+
+    @Test
     void representPreserveFlowStyle() throws IOException {
         String yaml = "flowList: [a, b]\nblockList:\n- c\n- d\nflowMap: {x: 1}\nblockMap:\n  y: 2\n";
 
@@ -377,6 +403,29 @@ class ExtendedRepresenterTest {
         // A formatter still has the last word over the preserved style
         DumperSettings override = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setPreserveFlowStyle(true).setSequenceFormatter((tag, value, role, def) -> FlowStyle.BLOCK).build();
         assertEquals("flowList:\n- a\n- b\nblockList:\n- c\n- d\nflowMap: {x: 1}\nblockMap:\n  y: 2\n", YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(override));
+    }
+
+    @Test
+    void representPreserveNestedStyle() throws IOException {
+        // Styles nested inside sequences and mappings (not stored as blocks of their own) are preserved too
+        String yaml = "name: \"double quoted\"\n" +
+                "nick: 'single quoted'\n" +
+                "plain: value\n" +
+                "count: 5\n" +
+                "messages:\n" +
+                "- \"first\"\n" +
+                "- \"second\"\n" +
+                "- 'third'\n" +
+                "tags: [alpha, beta]\n" +
+                "nested:\n" +
+                "  key: \"quoted\"\n" +
+                "  flow: {a: 1, b: 2}\n" +
+                "matrix:\n" +
+                "- [1, 2]\n" +
+                "- [3, 4]\n";
+
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
+        assertEquals(yaml, YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve).dump());
     }
 
     @Test

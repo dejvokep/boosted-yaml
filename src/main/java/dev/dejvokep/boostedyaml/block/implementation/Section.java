@@ -218,6 +218,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
                     new Section(root, this, getSubRoute(key), tuple.getKeyNode(), (MappingNode) tuple.getValueNode(), constructor) :
                     new TerminatedBlock(tuple.getKeyNode(), tuple.getValueNode(), value));
         }
+        discardOriginalValueNode();
     }
 
     /**

@@ -52,6 +52,9 @@ public abstract class Block<T> {
     //Original flow style of the value collection (sequence/mapping) as loaded from the file
     @Nullable
     private FlowStyle originalValueFlowStyle = null;
+    //Original value node, kept for replaying styles of nested scalars/collections (not retained by sections)
+    @Nullable
+    private Node originalValueNode = null;
     //Value
     private T value;
     //If to ignore
@@ -102,6 +105,10 @@ public abstract class Block<T> {
         this.beforeValueComments = previous.beforeValueComments;
         this.inlineValueComments = previous.inlineValueComments;
         this.afterValueComments = previous.afterValueComments;
+        this.originalKeyStyle = previous.originalKeyStyle;
+        this.originalValueStyle = previous.originalValueStyle;
+        this.originalValueFlowStyle = previous.originalValueFlowStyle;
+        this.originalValueNode = previous.originalValueNode;
     }
 
     /**
@@ -141,7 +148,16 @@ public abstract class Block<T> {
             // Capture original flow style
             if (value instanceof CollectionNode)
                 originalValueFlowStyle = ((CollectionNode<?>) value).getFlowStyle();
+            originalValueNode = value;
         }
+    }
+
+    /**
+     * Discards the reference to the original value node. Used by {@link Section sections}, which build child blocks from
+     * the node and do not need to retain the (potentially large) node tree afterwards.
+     */
+    protected void discardOriginalValueNode() {
+        originalValueNode = null;
     }
 
     /**
@@ -176,6 +192,20 @@ public abstract class Block<T> {
     @Nullable
     public FlowStyle getOriginalValueFlowStyle() {
         return originalValueFlowStyle;
+    }
+
+    /**
+     * Returns the value node, exactly as it was loaded from the file; or <code>null</code> if this block was not loaded
+     * from a file, or the node was discarded (as is the case for {@link Section sections}).
+     * <p>
+     * Used to replay the styles of scalars and collections nested within the value (e.g. the elements of a sequence),
+     * which are not stored as blocks of their own.
+     *
+     * @return the original value node, or <code>null</code>
+     */
+    @Nullable
+    public Node getOriginalValueNode() {
+        return originalValueNode;
     }
 
     /**
