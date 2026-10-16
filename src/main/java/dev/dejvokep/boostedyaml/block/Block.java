@@ -22,9 +22,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
+import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.nodes.CollectionNode;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
+import org.snakeyaml.engine.v2.nodes.ScalarNode;
 import org.snakeyaml.engine.v2.nodes.SequenceNode;
 
 import java.util.ArrayList;
@@ -42,6 +46,15 @@ public abstract class Block<T> {
     //Comments
     @Nullable
     List<CommentLine> beforeKeyComments = null, inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
+    //Original scalar styles as loaded from the file
+    @Nullable
+    private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
+    //Original flow style of the value collection (sequence/mapping) as loaded from the file
+    @Nullable
+    private FlowStyle originalValueFlowStyle = null;
+    //Original value node, kept for replaying styles of nested scalars/collections (not retained by sections)
+    @Nullable
+    private Node originalValueNode = null;
     //Value
     private T value;
     //If to ignore
@@ -92,6 +105,10 @@ public abstract class Block<T> {
         this.beforeValueComments = previous.beforeValueComments;
         this.inlineValueComments = previous.inlineValueComments;
         this.afterValueComments = previous.afterValueComments;
+        this.originalKeyStyle = previous.originalKeyStyle;
+        this.originalValueStyle = previous.originalValueStyle;
+        this.originalValueFlowStyle = previous.originalValueFlowStyle;
+        this.originalValueNode = previous.originalValueNode;
     }
 
     /**
@@ -112,6 +129,9 @@ public abstract class Block<T> {
             afterKeyComments = key.getEndComments();
             // Collect
             collectComments(key, beforeKeyComments, true);
+            // Capture original scalar style
+            if (key instanceof ScalarNode)
+                originalKeyStyle = ((ScalarNode) key).getScalarStyle();
         }
 
         //If not null
@@ -122,7 +142,70 @@ public abstract class Block<T> {
             afterValueComments = value.getEndComments();
             // Collect
             collectComments(value, beforeValueComments, true);
+            // Capture original scalar style
+            if (value instanceof ScalarNode)
+                originalValueStyle = ((ScalarNode) value).getScalarStyle();
+            // Capture original flow style
+            if (value instanceof CollectionNode)
+                originalValueFlowStyle = ((CollectionNode<?>) value).getFlowStyle();
+            originalValueNode = value;
         }
+    }
+
+    /**
+     * Discards the reference to the original value node. Used by {@link Section sections}, which build child blocks from
+     * the node and do not need to retain the (potentially large) node tree afterwards.
+     */
+    protected void discardOriginalValueNode() {
+        originalValueNode = null;
+    }
+
+    /**
+     * Returns the scalar style of the key node, exactly as it was loaded from the file; or <code>null</code> if this
+     * block was not loaded from a scalar key node (e.g. was created programmatically).
+     *
+     * @return the original key scalar style, or <code>null</code>
+     */
+    @Nullable
+    public ScalarStyle getOriginalKeyStyle() {
+        return originalKeyStyle;
+    }
+
+    /**
+     * Returns the scalar style of the value node, exactly as it was loaded from the file; or <code>null</code> if this
+     * block was not loaded from a scalar value node (e.g. was created programmatically, or represents a section).
+     *
+     * @return the original value scalar style, or <code>null</code>
+     */
+    @Nullable
+    public ScalarStyle getOriginalValueStyle() {
+        return originalValueStyle;
+    }
+
+    /**
+     * Returns the flow style of the value collection (sequence or mapping), exactly as it was loaded from the file; or
+     * <code>null</code> if this block's value was not loaded from a collection node (e.g. was created programmatically,
+     * or is a scalar).
+     *
+     * @return the original value flow style, or <code>null</code>
+     */
+    @Nullable
+    public FlowStyle getOriginalValueFlowStyle() {
+        return originalValueFlowStyle;
+    }
+
+    /**
+     * Returns the value node, exactly as it was loaded from the file; or <code>null</code> if this block was not loaded
+     * from a file, or the node was discarded (as is the case for {@link Section sections}).
+     * <p>
+     * Used to replay the styles of scalars and collections nested within the value (e.g. the elements of a sequence),
+     * which are not stored as blocks of their own.
+     *
+     * @return the original value node, or <code>null</code>
+     */
+    @Nullable
+    public Node getOriginalValueNode() {
+        return originalValueNode;
     }
 
     /**
