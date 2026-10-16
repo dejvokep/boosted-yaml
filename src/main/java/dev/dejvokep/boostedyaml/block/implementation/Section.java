@@ -2132,7 +2132,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptional(String)
      */
     public <T extends Enum<T>> Optional<T> getOptionalEnum(@NotNull String route, @NotNull Class<T> clazz) {
-        return getOptionalString(route).map(name -> toEnum(name, clazz));
+        return getOptional(route).map(name -> toEnum(name, clazz));
     }
 
     /**
