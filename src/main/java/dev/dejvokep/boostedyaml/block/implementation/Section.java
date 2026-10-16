@@ -3347,7 +3347,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the long at the given route
      * @see #getAsOptional(String, Class)
      */
-    public Optional<Long> getOptionalLong(String route) {
+    public Optional<Long> getOptionalLong(@NotNull String route) {
         return toLong(getAs(route, Number.class));
     }
 
