@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 https://dejvokep.dev/
+ * Copyright 2026 https://dejvokep.dev/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2132,7 +2132,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @see #getOptional(String)
      */
     public <T extends Enum<T>> Optional<T> getOptionalEnum(@NotNull String route, @NotNull Class<T> clazz) {
-        return getOptionalString(route).map(name -> toEnum(name, clazz));
+        return getOptional(route).map(name -> toEnum(name, clazz));
     }
 
     /**
@@ -3347,7 +3347,7 @@ public class Section extends Block<Map<Object, Block<?>>> {
      * @return the long at the given route
      * @see #getAsOptional(String, Class)
      */
-    public Optional<Long> getOptionalLong(String route) {
+    public Optional<Long> getOptionalLong(@NotNull String route) {
         return toLong(getAs(route, Number.class));
     }
 
