@@ -175,7 +175,6 @@ public class GeneralSettings implements Settings {
      * Returns the key format to use.
      *
      * @return the key format to use
-     * @see Builder#setKeyFormat(KeyFormat)
      */
     public KeyFormat getKeyFormat() {
         return keyFormat;

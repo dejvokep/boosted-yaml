@@ -55,49 +55,34 @@ class UpdaterSettingsTest {
     void getIgnoredRoutes() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .addIgnoredRoutes(new HashMap<String, Set<Route>>() {{
-                    put("1.2", new HashSet<Route>() {{
-                        add(Route.from("a"));
-                    }});
-                    put("1.3", new HashSet<Route>() {{
-                        add(Route.from("c"));
-                    }});
-                }})
-                .addIgnoredRoutes(new HashMap<String, Set<String>>() {{
-                    put("1.2", new HashSet<String>() {{
-                        add("b");
-                    }});
-                    put("1.4", new HashSet<String>() {{
-                        add("d");
-                    }});
-                }}, '.')
-                .addIgnoredRoutes("1.5", new HashSet<Route>() {{
+                .addIgnoredRoute(Route.from("a"))
+                .addIgnoredStringRoute("a.x")
+                .addIgnoredRoutes(new HashSet<Route>() {{
                     add(Route.from("e"));
+                    add(Route.from("f"));
                 }})
-                .addIgnoredRoutes("1.5", new HashSet<String>() {{
-                    add("f");
-                }}, '.').build();
+                .addIgnoredStringRoutes(new HashSet<String>() {{
+                    add("e.x");
+                    add("f.x");
+                }}).build();
         // Assert
         assertEquals(new HashSet<Route>() {{
             add(Route.from("a"));
-            add(Route.from("b"));
-        }}, settings.getIgnoredRoutes("1.2", '.'));
-        assertEquals(new HashSet<Route>() {{
-            add(Route.from("c"));
-        }}, settings.getIgnoredRoutes("1.3", '.'));
-        assertEquals(new HashSet<Route>() {{
-            add(Route.from("d"));
-        }}, settings.getIgnoredRoutes("1.4", '.'));
-        assertEquals(new HashSet<Route>() {{
+            add(Route.fromString("a.x", '.'));
             add(Route.from("e"));
             add(Route.from("f"));
-        }}, settings.getIgnoredRoutes("1.5", '.'));
+            add(Route.fromString("e.x", '.'));
+            add(Route.fromString("f.x", '.'));
+        }}, settings.getIgnoredRoutes("1.2", '.'));
+        assertEquals(settings.getIgnoredRoutes("1.2", '.'), settings.getIgnoredRoutes("1.3", '.'));
     }
 
     @Test
     void getRelocations() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
+                .addRelocation("1.2", Route.from("x"), Route.from("y"))
+                .addStringRelocation("1.2", "b.x", "d")
                 .addRelocations(new HashMap<String, Map<Route, Route>>() {{
                     put("1.2", new HashMap<Route, Route>() {{
                         put(Route.from("a"), Route.from("g"));
@@ -106,22 +91,24 @@ class UpdaterSettingsTest {
                         put(Route.from("c"), Route.from("i"));
                     }});
                 }})
-                .addRelocations(new HashMap<String, Map<String, String>>() {{
+                .addStringRelocations(new HashMap<String, Map<String, String>>() {{
                     put("1.2", new HashMap<String, String>() {{
                         put("b", "h");
                     }});
                     put("1.4", new HashMap<String, String>() {{
                         put("d", "j");
                     }});
-                }}, '.')
+                }})
                 .addRelocations("1.5", new HashMap<Route, Route>() {{
                     put(Route.from("e"), Route.from("k"));
                 }})
-                .addRelocations("1.5", new HashMap<String, String>() {{
+                .addStringRelocations("1.5", new HashMap<String, String>() {{
                     put("f", "l");
-                }}, '.').build();
+                }}).build();
         // Assert
         assertEquals(new HashMap<Route, Route>() {{
+            put(Route.from("x"), Route.from("y"));
+            put(Route.fromString("b.x", '.'), Route.from("d"));
             put(Route.from("a"), Route.from("g"));
             put(Route.from("b"), Route.from("h"));
         }}, settings.getRelocations("1.2", '.'));
@@ -143,6 +130,8 @@ class UpdaterSettingsTest {
         ValueMapper valueMapper = ValueMapper.value(object -> object), blockMapper = ValueMapper.block(block -> block.getStoredValue().toString());
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
+                .addMapper("1.2", Route.from("x"), valueMapper)
+                .addStringRouteMapper("1.2", "b.x", valueMapper)
                 .addMappers(new HashMap<String, Map<Route, ValueMapper>>() {{
                     put("1.2", new HashMap<Route, ValueMapper>() {{
                         put(Route.from("a"), valueMapper);
@@ -151,22 +140,24 @@ class UpdaterSettingsTest {
                         put(Route.from("c"), blockMapper);
                     }});
                 }})
-                .addMappers(new HashMap<String, Map<String, ValueMapper>>() {{
+                .addStringRouteMappers(new HashMap<String, Map<String, ValueMapper>>() {{
                     put("1.2", new HashMap<String, ValueMapper>() {{
                         put("b", valueMapper);
                     }});
                     put("1.4", new HashMap<String, ValueMapper>() {{
                         put("d", blockMapper);
                     }});
-                }}, '.')
+                }})
                 .addMappers("1.5", new HashMap<Route, ValueMapper>() {{
                     put(Route.from("e"), valueMapper);
                 }})
-                .addMappers("1.5", new HashMap<String, ValueMapper>() {{
+                .addStringRouteMappers("1.5", new HashMap<String, ValueMapper>() {{
                     put("f", blockMapper);
-                }}, '.').build();
+                }}).build();
         // Assert
         assertEquals(new HashMap<Route, ValueMapper>() {{
+            put(Route.from("x"), valueMapper);
+            put(Route.fromString("b.x", '.'), valueMapper);
             put(Route.from("a"), valueMapper);
             put(Route.from("b"), valueMapper);
         }}, settings.getMappers("1.2", '.'));

@@ -58,16 +58,6 @@ public class Pattern {
         this.segments = segments;
     }
 
-
-    /**
-     * @deprecated Method with confusing name, use {@link #getSegment(int)} instead. Subject for removal.
-     */
-    @Deprecated
-    @NotNull
-    public Segment getPart(int index) {
-        return segments[index];
-    }
-
     /**
      * Returns segment at the given index (index <code>0</code> refers to the most significant one on the left).
      *

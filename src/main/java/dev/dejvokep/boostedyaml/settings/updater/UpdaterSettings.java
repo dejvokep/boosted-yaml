@@ -113,11 +113,12 @@ public class UpdaterSettings implements Settings {
     //Merge rules
     private final Map<MergeRule, Boolean> mergeRules;
     //Routes to ignore
-    private final Map<String, RouteSet> ignored;
+    private final Map<String, RouteSet> versionIgnored;
+    private final RouteSet ignored;
     //Relocations
     private final Map<String, RouteMap<Route, String>> relocations;
     //Mappers
-    private final Map<String, Map<Route, ValueMapper>> mappers;
+    private final Map<String, RouteMap<ValueMapper, ValueMapper>> mappers;
     //Custom logic
     private final Map<String, List<Consumer<YamlDocument>>> customLogic;
     //Versioning
@@ -136,6 +137,7 @@ public class UpdaterSettings implements Settings {
         this.keepAll = builder.keepAll;
         this.optionSorting = builder.optionSorting;
         this.mergeRules = builder.mergeRules;
+        this.versionIgnored = builder.versionIgnored;
         this.ignored = builder.ignored;
         this.relocations = builder.relocations;
         this.mappers = builder.mappers;
@@ -163,8 +165,10 @@ public class UpdaterSettings implements Settings {
      * @return the set of routes representing blocks to ignore at the version ID
      */
     public Set<Route> getIgnoredRoutes(@NotNull String versionId, char separator) {
-        RouteSet ignored = this.ignored.get(versionId);
-        return ignored == null ? Collections.emptySet() : ignored.merge(separator);
+        RouteSet ignored = this.versionIgnored.get(versionId);
+        Set<Route> result = ignored == null ? new HashSet<>() : ignored.merge(separator);
+        result.addAll(this.ignored.merge(separator));
+        return result;
     }
 
     /**
@@ -187,7 +191,8 @@ public class UpdaterSettings implements Settings {
      * @return the mappers to apply at the given version ID
      */
     public Map<Route, ValueMapper> getMappers(@NotNull String versionId, char separator) {
-        return mappers.getOrDefault(versionId, Collections.emptyMap());
+        RouteMap<ValueMapper, ValueMapper> mappers = this.mappers.get(versionId);
+        return mappers == null ? Collections.emptyMap() : mappers.merge(Function.identity(), Function.identity(), separator);
     }
 
     /**
@@ -268,9 +273,10 @@ public class UpdaterSettings implements Settings {
                 .setKeepAll(settings.keepAll)
                 .setOptionSorting(settings.optionSorting)
                 .setMergeRules(settings.mergeRules)
+                .setVersionIgnoredRoutesInternal(settings.versionIgnored)
                 .setIgnoredRoutesInternal(settings.ignored)
                 .setRelocationsInternal(settings.relocations)
-                .addMappers(settings.mappers)
+                .setMappersInternal(settings.mappers)
                 .addCustomLogic(settings.customLogic)
                 .setVersioning(settings.versioning);
     }
@@ -289,11 +295,12 @@ public class UpdaterSettings implements Settings {
         //Merge rules
         private final Map<MergeRule, Boolean> mergeRules = new HashMap<>(DEFAULT_MERGE_RULES);
         //Routes to ignore
-        private final Map<String, RouteSet> ignored = new HashMap<>();
+        private final Map<String, RouteSet> versionIgnored = new HashMap<>();
+        private final RouteSet ignored = new RouteSet();
         //Relocations
         private final Map<String, RouteMap<Route, String>> relocations = new HashMap<>();
         //Mappers
-        private final Map<String, Map<Route, ValueMapper>> mappers = new HashMap<>();
+        private final Map<String, RouteMap<ValueMapper, ValueMapper>> mappers = new HashMap<>();
         //Custom logic
         private final Map<String, List<Consumer<YamlDocument>>> customLogic = new HashMap<>();
         //Versioning
@@ -417,48 +424,20 @@ public class UpdaterSettings implements Settings {
          * @param routes the routes to set
          * @return the builder
          */
-        private Builder setIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
-            this.ignored.putAll(routes);
+        private Builder setVersionIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
+            this.versionIgnored.putAll(routes);
             return this;
         }
 
         /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
+         * Sets initial ignored routes. <b>Internal method.</b>
+         *
+         * @param routes the routes to set
+         * @return the builder
          */
-        @Deprecated
-        public Builder setIgnoredRoutes(@NotNull Map<String, Set<Route>> routes) {
-            routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
-            this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(routes);
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setIgnoredStringRoutes(@NotNull Map<String, Set<String>> routes) {
-            routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(set));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setIgnoredStringRoutes(@NotNull String versionId, @NotNull Set<String> routes) {
-            this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(routes);
+        private Builder setIgnoredRoutesInternal(@NotNull RouteSet routes) {
+            this.ignored.getRouteSet().addAll(routes.getRouteSet());
+            this.ignored.getStringSet().addAll(routes.getStringSet());
             return this;
         }
 
@@ -473,7 +452,9 @@ public class UpdaterSettings implements Settings {
          * @param versionId the version ID
          * @param route     the route to ignore
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoute(@NotNull String versionId, @NotNull Route route) {
             return addIgnoredRoutes(versionId, Collections.singleton(route));
         }
@@ -489,7 +470,9 @@ public class UpdaterSettings implements Settings {
          * @param versionId the version ID
          * @param routes    the routes to ignore
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
             return addIgnoredRoutes(Collections.singletonMap(versionId, routes));
         }
@@ -504,9 +487,11 @@ public class UpdaterSettings implements Settings {
          *
          * @param routes the routes to ignore, per version ID
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull Map<String, Set<Route>> routes) {
-            routes.forEach((versionId, set) -> this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
+            routes.forEach((versionId, set) -> this.versionIgnored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
             return this;
         }
 
@@ -522,7 +507,9 @@ public class UpdaterSettings implements Settings {
          * @param route     the route to ignore
          * @param separator separator used to parse the route
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoute(@NotNull String versionId, @NotNull String route, char separator) {
             return addIgnoredRoutes(versionId, Collections.singleton(route), separator);
         }
@@ -539,7 +526,9 @@ public class UpdaterSettings implements Settings {
          * @param routes    the routes to ignore
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, char separator) {
             addIgnoredRoutes(versionId, routes, new RouteFactory(separator));
             return this;
@@ -556,7 +545,9 @@ public class UpdaterSettings implements Settings {
          * @param routes    the routes to ignore, per version ID
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull Map<String, Set<String>> routes, char separator) {
             RouteFactory factory = new RouteFactory(separator);
             routes.forEach((versionId, collection) -> addIgnoredRoutes(versionId, collection, factory));
@@ -564,14 +555,77 @@ public class UpdaterSettings implements Settings {
         }
 
         /**
-         * Adds routes to ignore if updating to the provided version ID. <b>Internal method.</b>
+         * Adds a route to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
+         * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param route the route to ignore
+         * @return the builder
+         */
+        public Builder addIgnoredRoute(@NotNull Route route) {
+            return addIgnoredRoutes(Collections.singleton(route));
+        }
+
+        /**
+         * Adds routes to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
+         * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param routes the routes to ignore
+         * @return the builder
+         */
+        public Builder addIgnoredRoutes(@NotNull Set<Route> routes) {
+            ignored.getRouteSet().addAll(routes);
+            return this;
+        }
+
+        /**
+         * Adds a route to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
+         * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param route     the route to ignore
+         * @return the builder
+         */
+        public Builder addIgnoredStringRoute(@NotNull String route) {
+            return addIgnoredStringRoutes(Collections.singleton(route));
+        }
+
+        /**
+         * Adds routes to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
+         * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
+         * <p>
+         * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
+         * strictly defined. Effective if and only a versioning is specified.</b>
+         *
+         * @param routes    the routes to ignore
+         * @return the builder
+         */
+        public Builder addIgnoredStringRoutes(@NotNull Set<String> routes) {
+            ignored.getStringSet().addAll(routes);
+            return this;
+        }
+
+        /**
+         * Adds routes to ignore if updating to the provided version ID. <b>Internal method. Deprecated in the means of
+         * all usages are deprecated, will be removed.</b>
          *
          * @param versionId the version ID
          * @param routes    the routes to ignore
          * @param factory   provider of the separator used to parse the routes
          */
         private void addIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, @NotNull RouteFactory factory) {
-            Set<Route> set = this.ignored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet();
+            Set<Route> set = this.versionIgnored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet();
             routes.forEach(route -> set.add(factory.create(route)));
         }
 
@@ -583,46 +637,6 @@ public class UpdaterSettings implements Settings {
          */
         private Builder setRelocationsInternal(@NotNull Map<String, RouteMap<Route, String>> relocations) {
             this.relocations.putAll(relocations);
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setRelocations(@NotNull Map<String, Map<Route, Route>> relocations) {
-            relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
-            this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(relocations);
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setStringRelocations(@NotNull Map<String, Map<String, String>> relocations) {
-            relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(map));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
-            this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(relocations);
             return this;
         }
 
@@ -712,7 +726,9 @@ public class UpdaterSettings implements Settings {
          * @param toRoute   route to which the mapping was relocated
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated relocations will no longer receive a dedicated separator, the separator of the updated document will be used instead
          */
+        @Deprecated
         public Builder addRelocation(@NotNull String versionId, @NotNull String fromRoute, @NotNull String toRoute, char separator) {
             return addRelocations(versionId, Collections.singletonMap(fromRoute, toRoute), separator);
         }
@@ -735,7 +751,9 @@ public class UpdaterSettings implements Settings {
          * @param relocations relocations which took effect at the version ID
          * @param separator   separator used to parse the routes
          * @return the builder
+         * @deprecated relocations will no longer receive a dedicated separator, the separator of the updated document will be used instead
          */
+        @Deprecated
         public Builder addRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations, char separator) {
             addRelocations(Collections.singletonMap(versionId, relocations), separator);
             return this;
@@ -758,13 +776,94 @@ public class UpdaterSettings implements Settings {
          * @param relocations the relocations, per version ID
          * @param separator   separator used to parse the routes
          * @return the builder
+         * @deprecated relocations will no longer receive a dedicated separator, the separator of the updated document will be used instead
          */
+        @Deprecated
         public Builder addRelocations(@NotNull Map<String, Map<String, String>> relocations, char separator) {
             RouteFactory factory = new RouteFactory(separator);
             relocations.forEach((versionId, collection) -> {
                 Map<Route, Route> map = this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap();
                 collection.forEach((from, to) -> map.put(factory.create(from), factory.create(to)));
             });
+            return this;
+        }
+
+        /**
+         * Adds a relocation that took effect at the provided version ID.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for the version ID which is from the provided route, it is
+         * overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param fromRoute route from which a mapping was relocated
+         * @param toRoute   route to which the mapping was relocated
+         * @return the builder
+         */
+        public Builder addStringRelocation(@NotNull String versionId, @NotNull String fromRoute, @NotNull String toRoute) {
+            return addStringRelocations(versionId, Collections.singletonMap(fromRoute, toRoute));
+        }
+
+        /**
+         * Adds relocations (in <code>from route = to route</code> format) that took effect at the provided version ID.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for the version ID and for a from route contained within
+         * the given map, it is overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
+         * custom logic.</i>
+         *
+         * @param versionId   the version ID
+         * @param relocations relocations which took effect at the version ID
+         * @return the builder
+         */
+        public Builder addStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
+            addStringRelocations(Collections.singletonMap(versionId, relocations));
+            return this;
+        }
+
+        /**
+         * Adds relocations (in <code>from route = to route</code> format) per version ID, at which they took effect.
+         * <p>
+         * Relocations represent that some mapping was moved from route <i>x</i> to <i>y</i>, which implies no content
+         * loss while updating. The ID at which a relocation took effect is the ID of the document which included the
+         * changes. If there is already a relocation defined for a version ID and from route contained within the given
+         * map, it is overwritten.
+         * <p>
+         * <b>Relocations are useful if you moved something in the document to another place. Effective if and only a
+         * versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
+         * custom logic.</i>
+         *
+         * @param relocations the relocations, per version ID
+         * @return the builder
+         */
+        public Builder addStringRelocations(@NotNull Map<String, Map<String, String>> relocations) {
+            relocations.forEach((versionId, collection) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(collection));
+            return this;
+        }
+
+        /**
+         * Sets initial mappers. <b>Internal method.</b>
+         *
+         * @param mappers the mappers to set
+         * @return the builder
+         */
+        private Builder setMappersInternal(@NotNull Map<String, RouteMap<ValueMapper, ValueMapper>> mappers) {
+            this.mappers.putAll(mappers);
             return this;
         }
 
@@ -835,7 +934,7 @@ public class UpdaterSettings implements Settings {
          * @return the builder
          */
         public Builder addMappers(@NotNull Map<String, Map<Route, ValueMapper>> mappers) {
-            mappers.forEach((versionId, map) -> this.mappers.computeIfAbsent(versionId, key -> new HashMap<>()).putAll(map));
+            mappers.forEach((versionId, map) -> this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
             return this;
         }
 
@@ -859,7 +958,9 @@ public class UpdaterSettings implements Settings {
          * @param mapper    mapper to apply at the version ID
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated mappers will no longer receive a dedicated separator, the separator of the updated document will be used instead
          */
+        @Deprecated
         public Builder addMapper(@NotNull String versionId, @NotNull String route, @NotNull ValueMapper mapper, char separator) {
             return addMappers(versionId, Collections.singletonMap(route, mapper), separator);
         }
@@ -883,7 +984,9 @@ public class UpdaterSettings implements Settings {
          * @param mappers   mappers to apply at the version ID
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated mappers will no longer receive a dedicated separator, the separator of the updated document will be used instead
          */
+        @Deprecated
         public Builder addMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers, char separator) {
             return addMappers(Collections.singletonMap(versionId, mappers), separator);
         }
@@ -906,13 +1009,81 @@ public class UpdaterSettings implements Settings {
          * @param mappers   the mappers, per version ID
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated mappers will no longer receive a dedicated separator, the separator of the updated document will be used instead
          */
+        @Deprecated
         public Builder addMappers(@NotNull Map<String, Map<String, ValueMapper>> mappers, char separator) {
-            RouteFactory factory = new RouteFactory(separator);
-            mappers.forEach((versionId, collection) -> {
-                Map<Route, ValueMapper> map = this.mappers.computeIfAbsent(versionId, key -> new HashMap<>());
-                collection.forEach((route, mapper) -> map.put(factory.create(route), mapper));
-            });
+            mappers.forEach((versionId, collection) -> this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(collection));
+            return this;
+        }
+
+        /**
+         * Adds a mapper to apply to the given route at the provided version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for the version ID and the provided route,
+         * it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param route     route to apply the mapper at
+         * @param mapper    mapper to apply at the version ID
+         * @return the builder
+         */
+        public Builder addStringRouteMapper(@NotNull String versionId, @NotNull String route, @NotNull ValueMapper mapper) {
+            return addStringRouteMappers(versionId, Collections.singletonMap(route, mapper));
+        }
+
+        /**
+         * Adds mappers to apply to their respective routes at the provided version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for the version ID and for a route
+         * contained within the given map, it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
+         * custom logic.</i>
+         *
+         * @param versionId the version ID
+         * @param mappers   mappers to apply at the version ID
+         * @return the builder
+         */
+        public Builder addStringRouteMappers(@NotNull String versionId, @NotNull Map<String, ValueMapper> mappers) {
+            return addStringRouteMappers(Collections.singletonMap(versionId, mappers));
+        }
+
+        /**
+         * Adds mappers to apply to their respective routes, per version ID.
+         * <p>
+         * Mappers can be used to map (= transform) a value at a route, to different value or from one type to another
+         * (for example from a boolean to an enum). The ID at which to apply a mapper is the ID of the document which
+         * included the datatype change. If there is already a mapper defined for a version ID and route contained
+         * within the given map, it is overwritten.
+         * <p>
+         * <b>Mappers are useful if you decided to change a value to represent the same, but using another datatype
+         * (for example, you now have a multi-constant enum for which was previously only true/false setting). Effective
+         * if and only a versioning is specified.</b>
+         * <p>
+         * <i>Updating cycle for each version ID in the corresponding range (first to last): relocations -&gt; mappers -&gt;
+         * custom logic.</i>
+         *
+         * @param mappers   the mappers, per version ID
+         * @return the builder
+         */
+        public Builder addStringRouteMappers(@NotNull Map<String, Map<String, ValueMapper>> mappers) {
+            mappers.forEach((versionId, collection) -> this.mappers.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(collection));
             return this;
         }
 

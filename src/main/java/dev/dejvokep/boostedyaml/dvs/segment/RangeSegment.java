@@ -30,20 +30,18 @@ public class RangeSegment implements Segment {
      * <p>
      * The range is defined by <code>start</code> (inclusive) and <code>end</code> (exclusive) boundaries and difference
      * between each integer called <code>step</code>. To get <i>i</i>-th element of the range, we can use this formula:
-     * <p>
-     * <code>start + step*i</code>
+     * <code>start + step*i</code>.
      * <p>
      * Filling defines how long (in digits) must each integer in the range be. If an integer in the range has fewer
      * digits than defined by the parameter, additional zeros (<code>0</code>) are prepended to fulfill the requirement
      * (<code>5</code> -&gt; <code>005</code> for <code>fill=3</code>). Set to non-positive (<code>&lt;= 0</code>) value to
      * disable.
      * <p>
-     * <b>Please mind following:</b>
+     * <b>Please mind the following:</b>
      * <ul>
-     *     <li><code>step</code> must not be equal to <code>0</code>,</li>
      *     <li><code>start</code> cannot be equal to <code>end</code>,</li>
-     *     <li><code>step</code> must be specified accordingly to the boundaries, if <code>start &lt; end</code> it must be positive (and vice-versa),</li>
-     *     <li>all elements in the range must be <code>&gt;= 0</code>, which implies the same for <code>start</code>, but not necessarily for <code>end</code> (which may be negative),</li>
+     *     <li><code>step</code> must be specified accordingly to the boundaries, if <code>start &lt; end</code> it must be positive, negative otherwise (but never zero),</li>
+     *     <li>all elements in the range must be <code>&gt;= 0</code>, which implies the same for <code>start</code>, but not necessarily for <code>end</code> (which may be negative, e.g. to include zero in the range),</li>
      *     <li>if <code>fill &gt; 0</code>, each integer in the range must have at most <code>fill</code> digits (e.g. no 3 digit integer for <code>fill=2</code>); mathematical notation: <code>0 &lt;=</code> each range integer <code>&lt;= 10<sup>fill</sup> - 1</code>.</li>
      * </ul>
      * If any of the conditions above is not met, an {@link IllegalArgumentException} is thrown.
@@ -87,17 +85,47 @@ public class RangeSegment implements Segment {
     }
 
     /**
-     * @deprecated Duplicated internal method subject for removal.
+     * Creates a segment from the given range properties.
+     * <p>
+     * The range is defined by <code>start</code> (inclusive) and <code>end</code> (exclusive) boundaries. To get
+     * <i>i</i>-th element of the range, we can use this formula: <code>start + step*i</code>, where <code>step</code>
+     * is <code>1</code> when the range is increasing (<code>start &lt; end</code>), otherwise <code>-1</code>.
+     * <p>
+     * <b>Please mind the following:</b>
+     * <ul>
+     *     <li><code>start</code> cannot be equal to <code>end</code>.</li>
+     * </ul>
+     * If any of the conditions above is not met, an {@link IllegalArgumentException} is thrown.
+     *
+     * @param start starting boundary (inclusive) of the range, also the first element in the range
+     * @param end   ending boundary (exclusive) of the range
+     * @see #RangeSegment(int, int, int, int) for custom step and fill options
      */
-    @Deprecated
     public RangeSegment(int start, int end) {
         this(start, end, start < end ? 1 : -1, 0);
     }
 
     /**
-     * @deprecated Duplicated internal method subject for removal.
+     * Creates a segment from the given range properties.
+     * <p>
+     * The range is defined by <code>start</code> (inclusive) and <code>end</code> (exclusive) boundaries and difference
+     * between each integer called <code>step</code>. To get <i>i</i>-th element of the range, we can use this formula:
+     * <code>start + step*i</code>.
+     * <p>
+     * <b>Please mind the following:</b>
+     * <ul>
+     *     <li><code>start</code> cannot be equal to <code>end</code>,</li>
+     *     <li><code>step</code> must be specified accordingly to the boundaries, if <code>start &lt; end</code> it must be positive, negative otherwise (but never zero),</li>
+     *     <li>all elements in the range must be <code>&gt;= 0</code>, which implies the same for <code>start</code>, but not necessarily for <code>end</code> (which may be negative, e.g. to include zero in the range),</li>
+     * </ul>
+     * If any of the conditions above is not met, an {@link IllegalArgumentException} is thrown.
+     *
+     * @param start starting boundary (inclusive) of the range, also the first element in the range
+     * @param end   ending boundary (exclusive) of the range
+     * @param step  difference between each neighboring elements in the range (value needed to add to get from element
+     *              <i>i</i> to <i>i+1</i>)
+     * @see #RangeSegment(int, int, int, int) for custom fill options
      */
-    @Deprecated
     public RangeSegment(int start, int end, int step) {
         this(start, end, step, 0);
     }
@@ -125,7 +153,6 @@ public class RangeSegment implements Segment {
         }
         return false;
     }
-
 
     @Override
     public int parse(String versionId, int index) {
