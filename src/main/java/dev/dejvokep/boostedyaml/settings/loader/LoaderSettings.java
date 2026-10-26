@@ -213,7 +213,7 @@ public class LoaderSettings implements Settings {
          * <p>
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link LoadSettingsBuilder#setLabel(String)}<br>
-         * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setLabel(java.lang.String)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setLabel(java.lang.String)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b>-
          *
          * @param label the label
@@ -231,7 +231,7 @@ public class LoaderSettings implements Settings {
          * <p>
          * <b>Default: </b> {@link #DEFAULT_DETAILED_ERRORS}<br>
          * <b>Parent method: </b> {@link LoadSettingsBuilder#setUseMarks(boolean)}<br>
-         * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setUseMarks(boolean)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setUseMarks(boolean)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b>-
          *
          * @param detailedErrors if to print detailed errors
@@ -249,7 +249,7 @@ public class LoaderSettings implements Settings {
          * <p>
          * <b>Default: </b> {@link #DEFAULT_ALLOW_DUPLICATE_KEYS}<br>
          * <b>Parent method: </b> {@link LoadSettingsBuilder#setAllowDuplicateKeys(boolean)}<br>
-         * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setAllowDuplicateKeys(boolean)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setAllowDuplicateKeys(boolean)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b>-
          *
          * @param allowDuplicateKeys if to allow duplicate keys
@@ -268,7 +268,7 @@ public class LoaderSettings implements Settings {
          * <p>
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link LoadSettingsBuilder#setMaxAliasesForCollections(int)}<br>
-         * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setMaxAliasesForCollections(int)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setMaxAliasesForCollections(int)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b>-
          *
          * @param maxCollectionAliases maximum aliases for collections
@@ -286,7 +286,7 @@ public class LoaderSettings implements Settings {
          * <p>
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link LoadSettingsBuilder#setTagConstructors(Map)} (int)}<br>
-         * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setTagConstructors(java.util.Map)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setTagConstructors(java.util.Map)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
          *
          * @param constructors constructor map
@@ -323,7 +323,7 @@ public class LoaderSettings implements Settings {
          * <p>
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link LoadSettingsBuilder#setEnvConfig(Optional)}<br>
-         * <b>Parent method docs (v2.3): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setEnvConfig(java.util.Optional)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setEnvConfig(java.util.Optional)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b>-
          *
          * @param envConfig the config to set
