@@ -1,5 +1,10 @@
 # 🔼 BoostedYAML
 
+[![Maven Central](https://img.shields.io/maven-central/v/dev.dejvokep/boosted-yaml)](https://central.sonatype.com/artifact/dev.dejvokep/boosted-yaml)
+[![CI](https://github.com/dejvokep/boosted-yaml/actions/workflows/ci.yml/badge.svg)](https://github.com/dejvokep/boosted-yaml/actions/workflows/ci.yml)
+[![Javadoc](https://javadoc.io/badge2/dev.dejvokep/boosted-yaml/javadoc.svg)](https://javadoc.io/doc/dev.dejvokep/boosted-yaml)
+[![License](https://img.shields.io/github/license/dejvokep/boosted-yaml)](LICENSE)
+
 A simple-to-use standalone (beneficial for cross-platform and multimodule projects) Java library delivering boosted experience while working with YAML documents. Work on this
 project started on Apr 8, 2021 with the target to build advanced, hence still easy-to-use library which would enable
 developers to manage documents and files with ease.
@@ -18,13 +23,13 @@ BoostedYAML is single of its kind, given the following advantages:
 5. **Beautiful structure management** - makes your code cleaner and easier to read.
 6. **Functional interfaces included** - we've got something for everyone.
 7. **Amazing features** - automatic saving, updating, endless possibilities.
-8. **Settings for everything** - customize it to suite your needs just perfectly.
+8. **Settings for everything** - customize it to suit your needs just perfectly.
 9. **Performant and well documented** - just like a dream.
 10. **Open source** - if there's anything that can be improved, feel free to let me know, or contribute.
-11. **TDD (test driven development)** - don't worry about reliability, everything's verified automatically before
-    production by more than 140 tests.
+11. **TDD (test driven development)** - don't worry about reliability, every change is verified automatically by
+    more than 160 tests on Java 8 through 25.
 
-All of that with quick and kind support. Convinced? Let's get you onboard.
+All of that with quick and kind support. Convinced? Let's get you on board.
 
 # 🔧 Quick setup
 Setup takes only about 5 minutes. Example software built using this guide is available at https://github.com/dejvokep/boosted-yaml-example.
@@ -34,7 +39,7 @@ BoostedYAML is hosted by Maven Central Repository. That means, you only need to 
 <dependency>
   <groupId>dev.dejvokep</groupId>
   <artifactId>boosted-yaml</artifactId>
-  <version>1.3.7</version>
+  <version>1.3.8</version>
 </dependency>
 ```
 Add the following shading section to prevent class loader conflicts:
@@ -44,7 +49,7 @@ Add the following shading section to prevent class loader conflicts:
     <plugin>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-shade-plugin</artifactId>
-      <version>3.3.0</version>
+      <version>3.6.0</version>
       <configuration>
         <relocations>
           <relocation>
@@ -74,21 +79,17 @@ repositories {
 }
 
 dependencies {
-   implementation "dev.dejvokep:boosted-yaml:1.3.6"
+   implementation "dev.dejvokep:boosted-yaml:1.3.8"
 }
 ```
 
-Add the following shadowing section to prevent class loader conflicts:
-- Add this at the very start of your build.gradle file: (Gradle 7.3)
-- Get your desired version from [here](https://github.com/GradleUp/shadow)
+Add the following shadowing section to prevent class loader conflicts. First, apply the [Shadow plugin](https://github.com/GradleUp/shadow) at the very start of your build.gradle file (pick the plugin version that matches your Gradle version):
 ```gradle
 plugins {
   id 'com.gradleup.shadow' version '8.3.5'
   id 'java'
 }
 ```
-- To use the shadowing project, this will help with relocating,
-- if this is not available for your gradle version, please [take a look here](https://imperceptiblethoughts.com/shadow/getting-started/)
 
 Then at the end of your build.gradle file:
 ```gradle
@@ -98,10 +99,10 @@ shadowJar {
    relocate 'dev.dejvokep.boostedyaml', 'me.plugin.libs'
 }
 ```
-Learn more about shadow for gradle [here](https://imperceptiblethoughts.com/shadow/introduction/#benefits-of-shadow)
+Learn more about Shadow for Gradle [here](https://gradleup.com/shadow/).
 
 ## 2. Routes and how to access content
-Routes are immutable objects used to address content - similar to URIs (Universe Resource Identifier). Please read more about them [here](https://dejvokep.gitbook.io/boostedyaml/routing/routes).
+Routes are immutable objects used to address content - similar to URIs (Uniform Resource Identifiers). Please read more about them [here](https://dejvokep.gitbook.io/boostedyaml/routing/routes).
 ## 3. Create your document:
 Please note that this guide covers only the basics, there are a lot more variations of the method - learn more at the [Javadoc](https://javadoc.io/doc/dev.dejvokep/boosted-yaml/latest/dev/dejvokep/boostedyaml/YamlDocument.html) or [wiki](https://dejvokep.gitbook.io/boostedyaml/).
 ```java
@@ -137,8 +138,8 @@ YamlDocument config = YamlDocument.create(new File("config.yml"), getResource("c
 ```
 The custom LoaderSettings with enabled auto-update will ensure the document's automatically updated initially and each time it's reloaded.
 
-**That's it! No need to do some weird file version handling manually, let BoostedYAML do it for you.** The updater also offers some nice features like [ignored routes](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#ignored-routes) and [relocations](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#ignored-routes), which you can learn more about by clicking the links.
-## 5. Use the document to it's fullest:
+**That's it! No need to do some weird file version handling manually, let BoostedYAML do it for you.** The updater also offers some nice features like [ignored routes](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#ignored-routes) and [relocations](https://dejvokep.gitbook.io/boostedyaml/settings/updatersettings#relocations), which you can learn more about by clicking the links.
+## 5. Use the document to its fullest:
 Reload/save anytime from/to the file:
 ```java
 config.reload();
@@ -146,9 +147,14 @@ config.save();
 ```
 Obtain data using `getX(String route)`, alternatively, use functional getters for functional method chaining:
 ```java
-Mode m = config.getStringOptional("mode").map(mode -> Mode.valueOf(mode.toUpperCase())).orElse(Mode.PERFORMANCE);
+Mode m = config.getOptionalString("mode").map(mode -> Mode.valueOf(mode.toUpperCase())).orElse(Mode.PERFORMANCE);
 ```
 **BoostedYAML also provides** its own serialization system and other cool options, about which you can read more [at the wiki](https://dejvokep.gitbook.io/boostedyaml/).
 
 # 🤖 Support
-You can read the detailed instructions [at the wiki](https://dejvokep.gitbook.io/boostedyaml/). If you need help with anything, feel free join the [Discord server](https://discord.gg/BbhADEy). Or, just to talk with us 👋
+You can read the detailed instructions [at the wiki](https://dejvokep.gitbook.io/boostedyaml/). If you need help with anything, feel free to join the [Discord server](https://discord.gg/BbhADEy). Or, just to talk with us 👋
+
+To report a security vulnerability, please follow the [security policy](SECURITY.md) instead of opening a public issue.
+
+# 🤝 Contributing
+Contributions are welcome! Please read the [contributing guide](CONTRIBUTING.md) before opening a pull request. To build the project and run all tests, run `./mvnw verify` (or `mvnw verify` on Windows); JDK 8 or newer is required.

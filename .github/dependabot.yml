@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      maven-plugins:
+        patterns: [ "org.apache.maven.plugins:*" ]
+    ignore:
+      # Major versions that drop Java 8 support: only upgrade together with the library's minimum Java version
+      - dependency-name: org.snakeyaml:snakeyaml-engine
+        update-types: [ "version-update:semver-major" ]
+      - dependency-name: org.junit.jupiter:*
+        update-types: [ "version-update:semver-major" ]
+      - dependency-name: com.mycila:license-maven-plugin
+        update-types: [ "version-update:semver-major" ]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
