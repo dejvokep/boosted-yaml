@@ -555,59 +555,6 @@ public class YamlDocument extends Section {
         setSettingsInternal(settings);
     }
 
-    /**
-     * Associates new loader settings.
-     *
-     * @param loaderSettings the new loader settings
-     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
-     */
-    @Deprecated
-    public void setLoaderSettings(@NotNull LoaderSettings loaderSettings) {
-        this.loaderSettings = loaderSettings;
-    }
-
-    /**
-     * Associates new dumper settings.
-     *
-     * @param dumperSettings the new dumper settings
-     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
-     */
-    public void setDumperSettings(@NotNull DumperSettings dumperSettings) {
-        this.dumperSettings = dumperSettings;
-    }
-
-    /**
-     * Associates new general settings.
-     * <p>
-     * <b>WARNING!</b>
-     * <ul>
-     *     <li>Never change the key format! Such attempts will result in an {@link IllegalArgumentException}.</li>
-     *     <li>If the default {@link GeneralSettings#getDefaultList() list}, {@link GeneralSettings#getDefaultMap() map}
-     *     or {@link GeneralSettings#getDefaultSet() set} was changed, already existing instances will not be changed.
-     *     Reload to take effect.</li>
-     * </ul>
-     *
-     * @param generalSettings the new general settings
-     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
-     */
-    public void setGeneralSettings(@NotNull GeneralSettings generalSettings) {
-        //Validate
-        if (generalSettings.getKeyFormat() != this.generalSettings.getKeyFormat())
-            throw new IllegalArgumentException("Cannot change key format! Recreate the file if needed to do so.");
-        //Set
-        this.generalSettings = generalSettings;
-    }
-
-    /**
-     * Associates new updater settings.
-     *
-     * @param updaterSettings the new updater settings
-     * @deprecated replaced by {@link #setSettings(Settings...)} and subject for removal
-     */
-    public void setUpdaterSettings(@NotNull UpdaterSettings updaterSettings) {
-        this.updaterSettings = updaterSettings;
-    }
-
     //
     //
     //      -----------------------
