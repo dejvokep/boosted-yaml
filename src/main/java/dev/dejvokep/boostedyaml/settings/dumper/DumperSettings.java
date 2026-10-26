@@ -77,8 +77,6 @@ public class DumperSettings implements Settings {
     private final DumpSettingsBuilder builder;
     //Anchor generator supplier
     private final Supplier<AnchorGenerator> generatorSupplier;
-    //String style
-    private final ScalarStyle stringStyle;
     //Formatters
     private final Formatter<ScalarStyle, String> scalarFormatter;
     private final Formatter<FlowStyle, Iterable<?>> sequenceFormatter;
@@ -95,7 +93,6 @@ public class DumperSettings implements Settings {
         this.scalarFormatter = builder.scalarFormatter;
         this.sequenceFormatter = builder.sequenceFormatter;
         this.mappingFormatter = builder.mappingFormatter;
-        this.stringStyle = builder.stringStyle;
     }
 
     /**
@@ -105,15 +102,6 @@ public class DumperSettings implements Settings {
      */
     public DumpSettings buildEngineSettings() {
         return builder.setAnchorGenerator(generatorSupplier.get()).setDumpComments(true).build();
-    }
-
-    /**
-     * Returns the style to use for {@link String} instances.
-     *
-     * @return the style to use for {@link String} instances
-     */
-    public ScalarStyle getStringStyle() {
-        return stringStyle;
     }
 
     /**
@@ -209,10 +197,6 @@ public class DumperSettings implements Settings {
          */
         public static final Formatter<FlowStyle, Map<?, ?>> DEFAULT_MAPPING_FORMATTER = Formatter.identity();
         /**
-         * Default string style.
-         */
-        public static final ScalarStyle DEFAULT_STRING_STYLE = ScalarStyle.PLAIN;
-        /**
          * If to add document start by default.
          */
         public static final boolean DEFAULT_START_MARKER = false;
@@ -265,8 +249,6 @@ public class DumperSettings implements Settings {
         private Formatter<ScalarStyle, String> scalarFormatter = DEFAULT_SCALAR_FORMATTER;
         private Formatter<FlowStyle, Iterable<?>> sequenceFormatter = DEFAULT_SEQUENCE_FORMATTER;
         private Formatter<FlowStyle, Map<?, ?>> mappingFormatter = DEFAULT_MAPPING_FORMATTER;
-        //String style
-        private ScalarStyle stringStyle = DEFAULT_STRING_STYLE;
 
         /**
          * Creates a new builder from the given, already created SnakeYAML Engine settings builder.
@@ -289,7 +271,6 @@ public class DumperSettings implements Settings {
             //Set defaults
             setFlowStyle(DEFAULT_FLOW_STYLE);
             setScalarStyle(DEFAULT_SCALAR_STYLE);
-            setStringStyle(DEFAULT_STRING_STYLE);
             setStartMarker(DEFAULT_START_MARKER);
             setEndMarker(DEFAULT_END_MARKER);
             setRootTag(DEFAULT_ROOT_TAG);
@@ -454,31 +435,6 @@ public class DumperSettings implements Settings {
          */
         public Builder setMappingFormatter(@NotNull Formatter<FlowStyle, Map<?, ?>> formatter) {
             this.mappingFormatter = formatter;
-            return this;
-        }
-
-        /**
-         * Sets the string style to use. This is the same as {@link #setScalarStyle(ScalarStyle)}, but used exclusively
-         * for {@link String} instances.
-         * <p>
-         * For additional information please refer to documentation of the relevant parent method listed below.
-         * <p>
-         * <b>Default: </b> {@link #DEFAULT_STRING_STYLE}<br>
-         * <b>Relevant parent method: </b> {@link DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)}<br>
-         * <b>Relevant parent method docs (v2.3): </b><a
-         * href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.3/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultScalarStyle(org.snakeyaml.engine.v2.common.ScalarStyle)">click</a><br>
-         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#81-block-scalar-styles">for
-         * <code>BLOCK</code> flow style</a>, <a href="https://yaml.org/spec/1.2.2/#73-flow-scalar-styles">for
-         * <code>FLOW</code> flow style</a>
-         *
-         * @param stringStyle the scalar style to use
-         * @return the builder
-         * @see DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)
-         * @deprecated Replaced by {@link #setScalarFormatter(Formatter)}.
-         */
-        @Deprecated
-        public Builder setStringStyle(@NotNull ScalarStyle stringStyle) {
-            this.stringStyle = stringStyle;
             return this;
         }
 

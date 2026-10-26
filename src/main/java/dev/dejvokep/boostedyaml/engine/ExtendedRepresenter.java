@@ -77,7 +77,6 @@ public class ExtendedRepresenter extends StandardRepresenter {
         super.representers.put(documentType, new RepresentDocument());
         super.representers.put(Section.class, new RepresentSection());
         super.representers.put(Enum.class, new RepresentEnum());
-        super.representers.put(String.class, new RepresentString(super.representers.get(String.class)));
         //Add all types
         for (Class<?> clazz : generalSettings.getSerializer().getSupportedClasses())
             super.representers.put(clazz, representSerializable);
@@ -167,37 +166,6 @@ public class ExtendedRepresenter extends StandardRepresenter {
         @Override
         public Node representData(Object data) {
             return ExtendedRepresenter.this.representData(((Enum<?>) data).name());
-        }
-
-    }
-
-    /**
-     * Node representer implementation for {@link String strings}.
-     */
-    private class RepresentString implements RepresentToNode {
-
-        // Previous representer
-        private final RepresentToNode previous;
-
-        /**
-         * Creates an instance of the custom string representer.
-         *
-         * @param previous the previous representer, used to represent the string itself
-         */
-        private RepresentString(@NotNull RepresentToNode previous) {
-            this.previous = previous;
-        }
-
-        @Override
-        public Node representData(Object data) {
-            // Update the style
-            ScalarStyle previousStyle = defaultScalarStyle;
-            defaultScalarStyle = dumperSettings.getStringStyle();
-            // Represent
-            Node node = previous.representData(data);
-            // Revert back
-            defaultScalarStyle = previousStyle;
-            return node;
         }
 
     }

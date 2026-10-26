@@ -15,6 +15,9 @@
  */
 package dev.dejvokep.boostedyaml.settings.dumper;
 
+import dev.dejvokep.boostedyaml.utils.format.Formatter;
+import dev.dejvokep.boostedyaml.utils.format.NodeRole;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.common.FlowStyle;
@@ -67,9 +70,34 @@ class DumperSettingsTest {
         // Scalar style
         assertEquals(ScalarStyle.LITERAL, DumperSettings.builder().setScalarStyle(ScalarStyle.LITERAL).build().buildEngineSettings().getDefaultScalarStyle());
         assertEquals(ScalarStyle.DOUBLE_QUOTED, DumperSettings.builder().setScalarStyle(ScalarStyle.DOUBLE_QUOTED).build().buildEngineSettings().getDefaultScalarStyle());
-        // String style
-        assertEquals(ScalarStyle.SINGLE_QUOTED, DumperSettings.builder().setStringStyle(ScalarStyle.SINGLE_QUOTED).build().getStringStyle());
-        assertEquals(ScalarStyle.FOLDED, DumperSettings.builder().setStringStyle(ScalarStyle.FOLDED).build().getStringStyle());
+        // Scalar formatter
+        Formatter<ScalarStyle, String> scalarFormatter = new Formatter<ScalarStyle, String>() {
+            @NotNull
+            @Override
+            public ScalarStyle format(@NotNull Tag tag, @NotNull String value, @NotNull NodeRole role, @NotNull ScalarStyle def) {
+                return null;
+            }
+        };
+        assertEquals(scalarFormatter, DumperSettings.builder().setScalarFormatter(scalarFormatter).build().getScalarFormatter());
+        // Mapping formatter
+        Formatter<FlowStyle, Map<?, ?>> mappingFormatter = new Formatter<FlowStyle, Map<?, ?>>() {
+            @NotNull
+            @Override
+            public FlowStyle format(@NotNull Tag tag, @NotNull Map<?, ?> value, @NotNull NodeRole role, @NotNull FlowStyle def) {
+                return null;
+            }
+        };
+        assertEquals(scalarFormatter, DumperSettings.builder().setMappingFormatter(mappingFormatter).build().getScalarFormatter());
+        //
+        Formatter<FlowStyle, Iterable<?>> sequenceFormatter = new Formatter<FlowStyle, Iterable<?>>() {
+            @NotNull
+            @Override
+            public FlowStyle format(@NotNull Tag tag, @NotNull Iterable<?> value, @NotNull NodeRole role, @NotNull FlowStyle def) {
+                return null;
+            }
+        };
+        assertEquals(scalarFormatter, DumperSettings.builder().setSequenceFormatter(sequenceFormatter).build().getScalarFormatter());
+
         // Scalar resolver
         Schema schema = new JsonSchema();
         assertEquals(schema, DumperSettings.builder().setSchema(schema).build().buildEngineSettings().getSchema());
