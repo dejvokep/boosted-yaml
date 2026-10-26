@@ -75,7 +75,7 @@ class DumperSettingsTest {
             @NotNull
             @Override
             public ScalarStyle format(@NotNull Tag tag, @NotNull String value, @NotNull NodeRole role, @NotNull ScalarStyle def) {
-                return null;
+                return ScalarStyle.PLAIN;
             }
         };
         assertEquals(scalarFormatter, DumperSettings.builder().setScalarFormatter(scalarFormatter).build().getScalarFormatter());
@@ -84,7 +84,7 @@ class DumperSettingsTest {
             @NotNull
             @Override
             public FlowStyle format(@NotNull Tag tag, @NotNull Map<?, ?> value, @NotNull NodeRole role, @NotNull FlowStyle def) {
-                return null;
+                return FlowStyle.AUTO;
             }
         };
         assertEquals(scalarFormatter, DumperSettings.builder().setMappingFormatter(mappingFormatter).build().getScalarFormatter());
@@ -93,7 +93,7 @@ class DumperSettingsTest {
             @NotNull
             @Override
             public FlowStyle format(@NotNull Tag tag, @NotNull Iterable<?> value, @NotNull NodeRole role, @NotNull FlowStyle def) {
-                return null;
+                return FlowStyle.AUTO;
             }
         };
         assertEquals(scalarFormatter, DumperSettings.builder().setSequenceFormatter(sequenceFormatter).build().getScalarFormatter());
