@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Cancel superseded runs of the same PR/branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (Java ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 8 = the compile target; the rest are current LTS releases users run on
+        java: [ '8', '17', '21', '25' ]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      # Compiles, runs the tests, checks license headers and builds the shaded jar
+      - name: Build and test
+        run: ./mvnw -B -ntp verify
+
+  javadoc:
+    # Builds the release artifacts (sources + Javadoc) without signing
+    name: Release artifacts (no signing)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build release artifacts
+        run: ./mvnw -B -ntp -Prelease -Dgpg.skip -DskipTests verify
