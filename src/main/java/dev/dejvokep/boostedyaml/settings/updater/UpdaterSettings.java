@@ -272,7 +272,8 @@ public class UpdaterSettings implements Settings {
                 .setKeepAll(settings.keepAll)
                 .setOptionSorting(settings.optionSorting)
                 .setMergeRules(settings.mergeRules)
-                .setIgnoredRoutesInternal(settings.versionIgnored)
+                .setVersionIgnoredRoutesInternal(settings.versionIgnored)
+                .setIgnoredRoutesInternal(settings.ignored)
                 .setRelocationsInternal(settings.relocations)
                 .addMappers(settings.mappers)
                 .addCustomLogic(settings.customLogic)
@@ -422,8 +423,20 @@ public class UpdaterSettings implements Settings {
          * @param routes the routes to set
          * @return the builder
          */
-        private Builder setIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
+        private Builder setVersionIgnoredRoutesInternal(@NotNull Map<String, RouteSet> routes) {
             this.versionIgnored.putAll(routes);
+            return this;
+        }
+
+        /**
+         * Sets initial ignored routes. <b>Internal method.</b>
+         *
+         * @param routes the routes to set
+         * @return the builder
+         */
+        private Builder setIgnoredRoutesInternal(@NotNull RouteSet routes) {
+            this.ignored.getRouteSet().addAll(routes.getRouteSet());
+            this.ignored.getStringSet().addAll(routes.getStringSet());
             return this;
         }
 
@@ -438,7 +451,9 @@ public class UpdaterSettings implements Settings {
          * @param versionId the version ID
          * @param route     the route to ignore
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoute(@NotNull String versionId, @NotNull Route route) {
             return addIgnoredRoutes(versionId, Collections.singleton(route));
         }
@@ -454,7 +469,9 @@ public class UpdaterSettings implements Settings {
          * @param versionId the version ID
          * @param routes    the routes to ignore
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
             return addIgnoredRoutes(Collections.singletonMap(versionId, routes));
         }
@@ -469,7 +486,9 @@ public class UpdaterSettings implements Settings {
          *
          * @param routes the routes to ignore, per version ID
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull Map<String, Set<Route>> routes) {
             routes.forEach((versionId, set) -> this.versionIgnored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
             return this;
@@ -487,7 +506,9 @@ public class UpdaterSettings implements Settings {
          * @param route     the route to ignore
          * @param separator separator used to parse the route
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoute(@NotNull String versionId, @NotNull String route, char separator) {
             return addIgnoredRoutes(versionId, Collections.singleton(route), separator);
         }
@@ -504,7 +525,9 @@ public class UpdaterSettings implements Settings {
          * @param routes    the routes to ignore
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull String versionId, @NotNull Set<String> routes, char separator) {
             addIgnoredRoutes(versionId, routes, new RouteFactory(separator));
             return this;
@@ -521,7 +544,9 @@ public class UpdaterSettings implements Settings {
          * @param routes    the routes to ignore, per version ID
          * @param separator separator used to parse the routes
          * @return the builder
+         * @deprecated ignored routes will no longer be configurable per version to avoid pileup and redundancy, use the version-less variant instead
          */
+        @Deprecated
         public Builder addIgnoredRoutes(@NotNull Map<String, Set<String>> routes, char separator) {
             RouteFactory factory = new RouteFactory(separator);
             routes.forEach((versionId, collection) -> addIgnoredRoutes(versionId, collection, factory));
@@ -531,7 +556,7 @@ public class UpdaterSettings implements Settings {
         /**
          * Adds a route to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
          * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
-         * merge rules).
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
          * <p>
          * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
          * strictly defined. Effective if and only a versioning is specified.</b>
@@ -546,7 +571,7 @@ public class UpdaterSettings implements Settings {
         /**
          * Adds routes to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
          * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
-         * merge rules).
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
          * <p>
          * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
          * strictly defined. Effective if and only a versioning is specified.</b>
@@ -562,38 +587,37 @@ public class UpdaterSettings implements Settings {
         /**
          * Adds a route to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
          * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
-         * merge rules).
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
          * <p>
          * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
          * strictly defined. Effective if and only a versioning is specified.</b>
          *
          * @param route     the route to ignore
-         * @param separator separator used to parse the route
          * @return the builder
          */
-        public Builder addIgnoredRoute(@NotNull String route, char separator) {
-            return addIgnoredRoutes(Collections.singleton(route), separator);
+        public Builder addIgnoredStringRoute(@NotNull String route) {
+            return addIgnoredStringRoutes(Collections.singleton(route));
         }
 
         /**
          * Adds routes to ignore. Ignored routes and their corresponding {@link dev.dejvokep.boostedyaml.block.Block
          * blocks} and contents will be excluded from merging and will appear in the updated document (no matter the
-         * merge rules).
+         * merge rules). For this reason, always keep them up to date and remove stale ignores.
          * <p>
          * <b>Ignoring routes is generally useful for sections which users can freely extend and their content is not
          * strictly defined. Effective if and only a versioning is specified.</b>
          *
          * @param routes    the routes to ignore
-         * @param separator separator used to parse the route
          * @return the builder
          */
-        public Builder addIgnoredRoutes(@NotNull Set<String> routes, char separator) {
-            routes.forEach(route -> ignored.getRouteSet().add(Route.fromString(route, separator)));
+        public Builder addIgnoredStringRoutes(@NotNull Set<String> routes) {
+            ignored.getStringSet().addAll(routes);
             return this;
         }
 
         /**
-         * Adds routes to ignore if updating to the provided version ID. <b>Internal method.</b>
+         * Adds routes to ignore if updating to the provided version ID. <b>Internal method. Deprecated in the means of
+         * all usages are deprecated, will be removed.</b>
          *
          * @param versionId the version ID
          * @param routes    the routes to ignore
