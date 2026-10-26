@@ -43,6 +43,7 @@ import org.snakeyaml.engine.v2.serializer.Serializer;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
@@ -226,7 +227,7 @@ public class YamlDocument extends Section {
         //If exists
         if (Objects.requireNonNull(file, "File cannot be null!").exists()) {
             //Load from the file
-            try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
+            try (InputStream stream = new BufferedInputStream(Files.newInputStream(file.toPath()))) {
                 reload(stream);
             }
             return;
