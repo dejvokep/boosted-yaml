@@ -89,7 +89,7 @@ public class RangeSegment implements Segment {
      * <p>
      * The range is defined by <code>start</code> (inclusive) and <code>end</code> (exclusive) boundaries. To get
      * <i>i</i>-th element of the range, we can use this formula: <code>start + step*i</code>, where <code>step</code>
-     * is <code>1</code> when the range is increasing (<code>start < end</code>), otherwise <code>-1</code>.
+     * is <code>1</code> when the range is increasing (<code>start &lt; end</code>), otherwise <code>-1</code>.
      * <p>
      * <b>Please mind the following:</b>
      * <ul>
