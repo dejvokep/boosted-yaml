@@ -16,6 +16,8 @@
 package dev.dejvokep.boostedyaml.utils.format;
 
 import org.jetbrains.annotations.NotNull;
+import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.Tag;
 
 /**
@@ -35,7 +37,7 @@ public interface Formatter<S, V> {
      * @param tag   the actual datatype the node is representing
      * @param value value of the node (for scalars, this is a string-based representation)
      * @param role  role of the node
-     * @param def   the default style (as configured by the respective setting)
+     * @param def   the default style (as configured by the respective setting, {@link dev.dejvokep.boostedyaml.settings.dumper.DumperSettings.Builder#setScalarStyle(ScalarStyle)} or {@link dev.dejvokep.boostedyaml.settings.dumper.DumperSettings.Builder#setFlowStyle(FlowStyle)})
      * @return the style to use for the node
      */
     @NotNull
