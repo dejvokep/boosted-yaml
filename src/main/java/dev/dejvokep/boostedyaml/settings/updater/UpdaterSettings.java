@@ -428,46 +428,6 @@ public class UpdaterSettings implements Settings {
         }
 
         /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setIgnoredRoutes(@NotNull Map<String, Set<Route>> routes) {
-            routes.forEach((versionId, set) -> this.versionIgnored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(set));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setIgnoredRoutes(@NotNull String versionId, @NotNull Set<Route> routes) {
-            this.versionIgnored.computeIfAbsent(versionId, key -> new RouteSet()).getRouteSet().addAll(routes);
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setIgnoredStringRoutes(@NotNull Map<String, Set<String>> routes) {
-            routes.forEach((versionId, set) -> this.versionIgnored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(set));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setIgnoredStringRoutes(@NotNull String versionId, @NotNull Set<String> routes) {
-            this.versionIgnored.computeIfAbsent(versionId, key -> new RouteSet()).getStringSet().addAll(routes);
-            return this;
-        }
-
-        /**
          * Adds a route to ignore if updating to the provided version ID. Ignored routes and their corresponding {@link
          * dev.dejvokep.boostedyaml.block.Block blocks} and contents will be excluded from merging and will appear in
          * the updated document (no matter the merge rules).
@@ -652,46 +612,6 @@ public class UpdaterSettings implements Settings {
          */
         private Builder setRelocationsInternal(@NotNull Map<String, RouteMap<Route, String>> relocations) {
             this.relocations.putAll(relocations);
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setRelocations(@NotNull Map<String, Map<Route, Route>> relocations) {
-            relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(map));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setRelocations(@NotNull String versionId, @NotNull Map<Route, Route> relocations) {
-            this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getRouteMap().putAll(relocations);
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setStringRelocations(@NotNull Map<String, Map<String, String>> relocations) {
-            relocations.forEach((versionId, map) -> this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(map));
-            return this;
-        }
-
-        /**
-         * @deprecated Method with confusing name, use <code>addX()</code> instead of <code>setX()</code>. Subject for
-         * removal.
-         */
-        @Deprecated
-        public Builder setStringRelocations(@NotNull String versionId, @NotNull Map<String, String> relocations) {
-            this.relocations.computeIfAbsent(versionId, key -> new RouteMap<>()).getStringMap().putAll(relocations);
             return this;
         }
 
