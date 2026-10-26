@@ -87,7 +87,7 @@ class DumperSettingsTest {
                 return FlowStyle.AUTO;
             }
         };
-        assertEquals(scalarFormatter, DumperSettings.builder().setMappingFormatter(mappingFormatter).build().getScalarFormatter());
+        assertEquals(mappingFormatter, DumperSettings.builder().setMappingFormatter(mappingFormatter).build().getMappingFormatter());
         //
         Formatter<FlowStyle, Iterable<?>> sequenceFormatter = new Formatter<FlowStyle, Iterable<?>>() {
             @NotNull
@@ -96,7 +96,7 @@ class DumperSettingsTest {
                 return FlowStyle.AUTO;
             }
         };
-        assertEquals(scalarFormatter, DumperSettings.builder().setSequenceFormatter(sequenceFormatter).build().getScalarFormatter());
+        assertEquals(sequenceFormatter, DumperSettings.builder().setSequenceFormatter(sequenceFormatter).build().getSequenceFormatter());
 
         // Scalar resolver
         Schema schema = new JsonSchema();

@@ -55,43 +55,26 @@ class UpdaterSettingsTest {
     void getIgnoredRoutes() {
         // Build
         UpdaterSettings settings = UpdaterSettings.builder()
-                .addIgnoredRoutes(new HashMap<String, Set<Route>>() {{
-                    put("1.2", new HashSet<Route>() {{
-                        add(Route.from("a"));
-                    }});
-                    put("1.3", new HashSet<Route>() {{
-                        add(Route.from("c"));
-                    }});
-                }})
-                .addIgnoredRoutes(new HashMap<String, Set<String>>() {{
-                    put("1.2", new HashSet<String>() {{
-                        add("b");
-                    }});
-                    put("1.4", new HashSet<String>() {{
-                        add("d");
-                    }});
-                }}, '.')
-                .addIgnoredRoutes("1.5", new HashSet<Route>() {{
+                .addIgnoredRoute(Route.from("a"))
+                .addIgnoredStringRoute("a.x")
+                .addIgnoredRoutes(new HashSet<Route>() {{
                     add(Route.from("e"));
+                    add(Route.from("f"));
                 }})
-                .addIgnoredRoutes("1.5", new HashSet<String>() {{
-                    add("f");
-                }}, '.').build();
+                .addIgnoredStringRoutes(new HashSet<String>() {{
+                    add("e.x");
+                    add("f.x");
+                }}).build();
         // Assert
         assertEquals(new HashSet<Route>() {{
             add(Route.from("a"));
-            add(Route.from("b"));
-        }}, settings.getIgnoredRoutes("1.2", '.'));
-        assertEquals(new HashSet<Route>() {{
-            add(Route.from("c"));
-        }}, settings.getIgnoredRoutes("1.3", '.'));
-        assertEquals(new HashSet<Route>() {{
-            add(Route.from("d"));
-        }}, settings.getIgnoredRoutes("1.4", '.'));
-        assertEquals(new HashSet<Route>() {{
+            add(Route.fromString("a.x", '.'));
             add(Route.from("e"));
             add(Route.from("f"));
-        }}, settings.getIgnoredRoutes("1.5", '.'));
+            add(Route.fromString("e.x", '.'));
+            add(Route.fromString("f.x", '.'));
+        }}, settings.getIgnoredRoutes("1.2", '.'));
+        assertEquals(settings.getIgnoredRoutes("1.2", '.'), settings.getIgnoredRoutes("1.3", '.'));
     }
 
     @Test

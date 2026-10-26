@@ -22,7 +22,9 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.utils.format.Formatter;
 import dev.dejvokep.boostedyaml.utils.format.NodeRole;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
@@ -46,7 +48,14 @@ class ExtendedRepresenterTest {
 
     @Test
     void represent() throws IOException {
-        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setStringStyle(ScalarStyle.FOLDED).build(), UpdaterSettings.DEFAULT);
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8)), GeneralSettings.DEFAULT, LoaderSettings.DEFAULT, DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setScalarFormatter(new Formatter<ScalarStyle, String>() {
+            @NotNull
+            @Override
+            public ScalarStyle format(@NotNull Tag tag, @NotNull String value, @NotNull NodeRole role, @NotNull ScalarStyle def) {
+                return tag == Tag.STR ? ScalarStyle.FOLDED : def;
+            }
+        }).build(), UpdaterSettings.DEFAULT);
+
         document.set("a", ScalarStyle.PLAIN);
         document.set("b", "string");
         assertEquals("\"a\": !!org.snakeyaml.engine.v2.common.ScalarStyle 'PLAIN'\n\"b\": >-\n  string\n", document.dump());
