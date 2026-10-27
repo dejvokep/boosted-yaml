@@ -455,7 +455,8 @@ public class DumperSettings implements Settings {
          * <p>
          * This only affects collections that were actually loaded from a file. Values created or modified
          * programmatically, as well as collections nested within another collection's value, have no original style and
-         * fall back to the configured flow style. Styles returned might still be overridden to produce output compliant
+         * fall back to the configured flow style. Collection keys are not covered either - only a block's value keeps
+         * its original flow style. Styles returned might still be overridden to produce output compliant
          * with the YAML specification.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_PRESERVE_FLOW_STYLE}

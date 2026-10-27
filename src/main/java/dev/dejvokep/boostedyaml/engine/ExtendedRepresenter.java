@@ -50,11 +50,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     //Currently serialized node role
     private NodeRole nodeRole = NodeRole.KEY;
-    //Original styles of the block currently being serialized
-    private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
-    private FlowStyle originalValueFlowStyle = null;
-    //If the original key style should be applied (the entry's key is still the one it was loaded with)
-    private boolean applyOriginalKeyStyle = false;
+    //Styles of the node currently being serialized, if they should be preserved
+    private ScalarStyle pendingScalarStyle = null;
+    private FlowStyle pendingFlowStyle = null;
 
     /**
      * Creates an instance of the representer.
@@ -102,16 +100,12 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     @Override
     protected Node representScalar(Tag tag, String value, ScalarStyle scalarStyle) {
-        //Use the original style of the block currently being serialized (if enabled and still applicable)
-        if (dumperSettings.isPreserveScalarStyle()) {
-            ScalarStyle original = nodeRole == NodeRole.KEY ? (applyOriginalKeyStyle ? originalKeyStyle : null) : originalValueStyle;
-            if (original != null) {
-                //Consume the value style, so it does not leak into nested scalars
-                if (nodeRole == NodeRole.VALUE)
-                    originalValueStyle = null;
-                //Construct directly - the parent represents PLAIN as the configured default style
-                return new ScalarNode(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original));
-            }
+        //Consume the original style of the block currently being serialized (if enabled)
+        ScalarStyle original = pendingScalarStyle;
+        clearPendingStyles();
+        if (original != null) {
+            //Construct directly - the parent represents PLAIN as the configured default style
+            return new ScalarNode(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original));
         }
 
         return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, scalarStyle));
@@ -136,14 +130,18 @@ public class ExtendedRepresenter extends StandardRepresenter {
      * @return the flow style to use as the default
      */
     private FlowStyle preserveFlowStyle(FlowStyle configured) {
-        //Only a block's own value can have an original style (not nested collections)
-        if (dumperSettings.isPreserveFlowStyle() && nodeRole == NodeRole.VALUE && originalValueFlowStyle != null) {
-            FlowStyle original = originalValueFlowStyle;
-            //Consume the style, so it does not leak into nested collections
-            originalValueFlowStyle = null;
-            return original;
-        }
-        return configured;
+        //Consume the original style of the block currently being serialized (if enabled)
+        FlowStyle original = pendingFlowStyle;
+        clearPendingStyles();
+        return original != null ? original : configured;
+    }
+
+    /**
+     * Clears the styles pending to be applied, so they cannot leak into other nodes.
+     */
+    private void clearPendingStyles() {
+        pendingScalarStyle = null;
+        pendingFlowStyle = null;
     }
 
     /**
@@ -249,15 +247,26 @@ public class ExtendedRepresenter extends StandardRepresenter {
     protected NodeTuple representMappingEntry(Map.Entry<?, ?> entry) {
         //Block
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
-        //Stash original styles for this block; apply the key style only while the key is still the one it was loaded with
-        originalKeyStyle = block == null ? null : block.getOriginalKeyStyle();
-        applyOriginalKeyStyle = originalKeyStyle != null && block.getOriginalKey() != null && block.getOriginalKey().equals(String.valueOf(entry.getKey()));
-        originalValueStyle = block == null ? null : block.getOriginalValueStyle();
-        originalValueFlowStyle = block == null ? null : block.getOriginalValueFlowStyle();
+        //Ensure no styles leak in from a previous entry
+        clearPendingStyles();
+        //Apply the key style only while the key is still the one it was loaded with
+        if (block != null && dumperSettings.isPreserveScalarStyle() && entry.getKey().equals(block.getOriginalKey()))
+            pendingScalarStyle = block.getOriginalKeyStyle();
         //Represent the key
         Node key = applyComments(block, nodeRole = NodeRole.KEY, representData(entry.getKey()), false);
+        //Ensure the key's own nodes did not consume the value's styles
+        clearPendingStyles();
+        //Set the value's styles
+        if (block != null) {
+            if (dumperSettings.isPreserveScalarStyle())
+                pendingScalarStyle = block.getOriginalValueStyle();
+            if (dumperSettings.isPreserveFlowStyle())
+                pendingFlowStyle = block.getOriginalValueFlowStyle();
+        }
         //Represent the value
         Node value = applyComments(block, nodeRole = NodeRole.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);
+        //Ensure the value's styles do not leak into the next entry
+        clearPendingStyles();
         //Create
         return new NodeTuple(key, value);
     }

@@ -520,6 +520,56 @@ class ExtendedRepresenterTest {
     }
 
     @Test
+    void representPreserveCollectionKeyDoesNotStealValueScalarStyle() throws IOException {
+        GeneralSettings general = GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build();
+        DumperSettings preserve = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setPreserveScalarStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("{x: 1}: 'quoted'\n".getBytes(StandardCharsets.UTF_8)), general, LoaderSettings.DEFAULT, preserve);
+
+        // The collection key falls back to the configured flow style, but must not consume the value's scalar style
+        assertEquals("? x: 1\n: 'quoted'\n", document.dump());
+    }
+
+    @Test
+    void representPreserveCollectionKeyDoesNotStealValueFlowStyle() throws IOException {
+        GeneralSettings general = GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build();
+        DumperSettings preserve = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setPreserveFlowStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("{x: 1}: [a, b]\n".getBytes(StandardCharsets.UTF_8)), general, LoaderSettings.DEFAULT, preserve);
+
+        // The collection key falls back to the configured flow style, but must not consume the value's flow style
+        assertEquals("? x: 1\n: [a, b]\n", document.dump());
+    }
+
+    @Test
+    void representPreserveStyleAfterMoveToStringEquivalentCollectionKey() throws IOException {
+        GeneralSettings general = GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build();
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("'[a, b]': 'value'\n".getBytes(StandardCharsets.UTF_8)), general, LoaderSettings.DEFAULT, preserve);
+
+        // Move the block to a list key whose string representation equals the original string key
+        Block<?> block = document.getBlock(Route.fromSingleKey("[a, b]"));
+        document.remove(Route.fromSingleKey("[a, b]"));
+        document.set(Route.fromSingleKey(Arrays.asList("a", "b")), block);
+
+        // The original key style belonged to the string key, so the list key's elements must not inherit it
+        assertEquals("? - a\n  - b\n: 'value'\n", document.dump());
+    }
+
+    @Test
+    void representPreserveStyleAfterMoveToNonStringKey() throws IOException {
+        GeneralSettings general = GeneralSettings.builder().setKeyFormat(GeneralSettings.KeyFormat.OBJECT).build();
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("'1': x\n".getBytes(StandardCharsets.UTF_8)), general, LoaderSettings.DEFAULT, preserve);
+
+        // Move the block from the string key '1' to the integer key 1
+        Block<?> block = document.getBlock(Route.fromSingleKey("1"));
+        document.remove(Route.fromSingleKey("1"));
+        document.set(Route.fromSingleKey(1), block);
+
+        // The key style must not be applied to the (non-string) integer key
+        assertEquals("1: x\n", document.dump());
+    }
+
+    @Test
     void representSequence() throws IOException {
         DumperSettings settings = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setSequenceFormatter(((tag, value, role, def) -> value.iterator().next().toString().equals("a") ? FlowStyle.FLOW : def)).build();
         YamlDocument document = YamlDocument.create(new ByteArrayInputStream("flow:\n- a\n- b\n- c\nblock: [d, e, f]".getBytes(StandardCharsets.UTF_8)), settings);
