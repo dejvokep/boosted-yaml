@@ -429,8 +429,10 @@ public class DumperSettings implements Settings {
          * Using the default (identity) formatter therefore reproduces the original styling.
          * <p>
          * This only affects scalars that were actually loaded from a file. Values created or modified programmatically
-         * have no original style and fall back to the configured scalar style. Styles returned might still be overridden
-         * to produce output compliant with the YAML specification.
+         * have no original style and fall back to the configured scalar style. A key's style is only applied while the
+         * entry's key is still the one it was loaded with, so a block moved to a different key falls back to the
+         * configured style as well. Styles returned might still be overridden to produce output compliant with the YAML
+         * specification.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_PRESERVE_SCALAR_STYLE}
          *

@@ -18,12 +18,15 @@ package dev.dejvokep.boostedyaml.engine;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.Block;
 import dev.dejvokep.boostedyaml.block.Comments;
+import dev.dejvokep.boostedyaml.route.Route;
 import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.updater.operators.Relocator;
 import dev.dejvokep.boostedyaml.utils.format.Formatter;
 import dev.dejvokep.boostedyaml.utils.format.NodeRole;
+import dev.dejvokep.boostedyaml.utils.supplier.MapSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.snakeyaml.engine.v2.comments.CommentLine;
@@ -40,8 +43,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -350,12 +357,12 @@ class ExtendedRepresenterTest {
     void representScalarPreserveStyle() throws IOException {
         String yaml = "k1: \"double\"\nk2: 'single'\nk3: plain\n\"k4\": v\n";
 
-        // On: keep the original styles even though string style says single quote everything
-        DumperSettings preserve = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setStringStyle(ScalarStyle.SINGLE_QUOTED).setPreserveScalarStyle(true).build();
+        // On: keep the original key and value styles, even though the configured style says single quote everything
+        DumperSettings preserve = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setScalarStyle(ScalarStyle.SINGLE_QUOTED).setPreserveScalarStyle(true).build();
         assertEquals(yaml, YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(preserve));
 
-        // Off: string style takes over
-        DumperSettings off = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setStringStyle(ScalarStyle.SINGLE_QUOTED).setPreserveScalarStyle(false).build();
+        // Off: the configured style takes over
+        DumperSettings off = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setScalarStyle(ScalarStyle.SINGLE_QUOTED).setPreserveScalarStyle(false).build();
         assertEquals("'k1': 'double'\n'k2': 'single'\n'k3': 'plain'\n'k4': 'v'\n", YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))).dump(off));
 
         // A formatter still has the last word over the preserved style
@@ -368,8 +375,8 @@ class ExtendedRepresenterTest {
         DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).build();
         YamlDocument document = YamlDocument.create(new ByteArrayInputStream("\"key\": \"old\"\n".getBytes(StandardCharsets.UTF_8)), preserve);
         document.set("key", "new");
-        // A value replaced via a set keeps both the key's and the previous value's style
-        assertEquals("\"key\": \"new\"\n", document.dump());
+        // The key keeps its original style, the replaced value falls back to the configured style
+        assertEquals("\"key\": new\n", document.dump());
     }
 
     @Test
@@ -377,15 +384,112 @@ class ExtendedRepresenterTest {
         String yaml = "items:\n- 'a'\n- \"b\"\n";
         DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
 
-        // Same size: each element keeps the style of the element it replaced, positionally
-        YamlDocument same = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
-        same.set("items", Arrays.asList("x", "y"));
-        assertEquals("items:\n- 'x'\n- \"y\"\n", same.dump());
+        // The replaced list has no original style (and no per-element styles), so it falls back to the configured style
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
+        document.set("items", Arrays.asList("x", "y"));
+        assertEquals("items:\n- x\n- y\n", document.dump());
+    }
 
-        // Different size: cannot align, so the whole list falls back to the configured style
-        YamlDocument diff = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
-        diff.set("items", Arrays.asList("x", "y", "z"));
-        assertEquals("items:\n- x\n- y\n- z\n", diff.dump());
+    @Test
+    void representPreserveStyleAfterMove() throws IOException {
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("\"old-key\": \"value\"\n".getBytes(StandardCharsets.UTF_8)), preserve);
+
+        // Move the same block instance to a different key
+        Block<?> block = document.getBlock("old-key");
+        document.remove("old-key");
+        document.set("new-key", block);
+
+        // The key style belonged to the old key, so it must not be applied to the new one; the value style is kept
+        assertEquals("new-key: \"value\"\n", document.dump());
+    }
+
+    @Test
+    void representPreserveStyleAfterRelocation() throws IOException {
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("\"old-key\": \"value\"\n".getBytes(StandardCharsets.UTF_8)), preserve);
+
+        // Relocation moves the block instance, so the old key's style must not be applied to the new key
+        Relocator.apply(document, new HashMap<>(Collections.singletonMap(Route.from("old-key"), Route.from("new-key"))));
+        assertEquals("new-key: \"value\"\n", document.dump());
+    }
+
+    @Test
+    void representPreserveStyleWithNonOrderedMap() throws IOException {
+        String yaml = "l:\n- b: 'single'\n  a: \"double\"\n";
+
+        // A sorted map supplier changes the iteration order compared to the loaded order
+        GeneralSettings general = GeneralSettings.builder().setDefaultMap(new MapSupplier() {
+            @NotNull
+            @Override
+            public <K, V> Map<K, V> supply(int size) {
+                return new TreeMap<>();
+            }
+        }).build();
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), general, LoaderSettings.DEFAULT, preserve);
+
+        // Nested elements use the configured style, so the order change cannot move styles onto other values
+        assertEquals("l:\n- a: double\n  b: single\n", document.dump());
+    }
+
+    @Test
+    void representPreserveStyleAfterInPlaceListEdit() throws IOException {
+        String yaml = "l: ['a', b, \"c\"]\n";
+
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
+
+        @SuppressWarnings("unchecked")
+        List<Object> list = (List<Object>) document.getList("l");
+        list.remove(0);
+        list.add("z");
+
+        // The list keeps its flow style, but its (nested) elements fall back to the configured style
+        assertEquals("l: [b, c, z]\n", document.dump());
+    }
+
+    @Test
+    void representPreserveStyleReplacedValues() throws IOException {
+        String yaml = "port: '8080'\nenabled: \"yes\"\nname: |\n  block\nl: ['1', \"two\", three]\n";
+
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
+        document.set("port", 9090);
+        document.set("enabled", true);
+        document.set("name", "short");
+        document.set("l", Arrays.asList(1, 2, 3));
+
+        // Replaced values fall back to the configured styles, without inheriting the previous value's formatting
+        assertEquals("port: 9090\nenabled: true\nname: short\nl:\n- 1\n- 2\n- 3\n", document.dump());
+    }
+
+    @Test
+    void representPreserveStyleAfterSectionSet() throws IOException {
+        String yaml = "\"section\": {key: \"value\"}\n";
+
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve);
+        document.set("section", Collections.singletonMap("other", "thing"));
+
+        // The key keeps its style, but the replaced section and its contents fall back to the configured styles
+        assertEquals("\"section\":\n  other: thing\n", document.dump());
+    }
+
+    @Test
+    void representPreserveFormatterNodeRole() throws IOException {
+        Map<String, NodeRole> roles = new HashMap<>();
+        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setScalarFormatter((tag, value, role, def) -> {
+            roles.put(value, role);
+            return def;
+        }).build();
+        YamlDocument document = YamlDocument.create(new ByteArrayInputStream("l: [{k: v}]\n".getBytes(StandardCharsets.UTF_8)), preserve);
+        document.dump();
+
+        // Keys nested within a collection value are still reported as keys
+        assertEquals(NodeRole.KEY, roles.get("l"));
+        assertEquals(NodeRole.KEY, roles.get("k"));
+        assertEquals(NodeRole.VALUE, roles.get("v"));
     }
 
     @Test
@@ -407,25 +511,12 @@ class ExtendedRepresenterTest {
 
     @Test
     void representPreserveNestedStyle() throws IOException {
-        // Styles nested inside sequences and mappings (not stored as blocks of their own) are preserved too
-        String yaml = "name: \"double quoted\"\n" +
-                "nick: 'single quoted'\n" +
-                "plain: value\n" +
-                "count: 5\n" +
-                "messages:\n" +
-                "- \"first\"\n" +
-                "- \"second\"\n" +
-                "- 'third'\n" +
-                "tags: [alpha, beta]\n" +
-                "nested:\n" +
-                "  key: \"quoted\"\n" +
-                "  flow: {a: 1, b: 2}\n" +
-                "matrix:\n" +
-                "- [1, 2]\n" +
-                "- [3, 4]\n";
+        // Elements nested within a collection value are not blocks of their own, so they have no original style and
+        // fall back to the configured style
+        String yaml = "items:\n- \"a\"\n- {b: \"c\"}\n";
 
-        DumperSettings preserve = DumperSettings.builder().setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
-        assertEquals(yaml, YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve).dump());
+        DumperSettings preserve = DumperSettings.builder().setFlowStyle(FlowStyle.BLOCK).setScalarStyle(ScalarStyle.PLAIN).setPreserveScalarStyle(true).setPreserveFlowStyle(true).build();
+        assertEquals("items:\n- a\n- b: c\n", YamlDocument.create(new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)), preserve).dump());
     }
 
     @Test
