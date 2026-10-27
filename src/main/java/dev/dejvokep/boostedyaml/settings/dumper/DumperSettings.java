@@ -309,7 +309,10 @@ public class DumperSettings implements Settings {
         }
 
         /**
-         * Sets the flow style to use. Flow styles determine style of the dumped document.
+         * Sets the flow style to use for collections (mappings and sequences) in the document. Block style represents
+         * an expanded document; flow is somewhat similar to JSON format. Both may be overridden by a custom
+         * {@link #setSequenceFormatter(Formatter) sequence} or {@link #setMappingFormatter(Formatter) mapping}
+         * formatter, if any.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -329,7 +332,10 @@ public class DumperSettings implements Settings {
         }
 
         /**
-         * Sets the scalar style to use.
+         * Sets the scalar style to use. Please note that for example settings this to a quoted style will mean that the
+         * resulting document will have all scalars, including numbers, quoted (and with YAML tags prefixed), which
+         * might not be what you want. Use a custom {@link #setScalarFormatter(Formatter) scalar formatter} instead to
+         * selectively apply custom styling.
          * <p>
          * For additional information please refer to documentation of the parent method listed below.
          * <p>
@@ -366,8 +372,8 @@ public class DumperSettings implements Settings {
          * <code>-</code>) will use a quoted style.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_SCALAR_FORMATTER}<br>
-         * <b>Relevant parent method: </b> {@link DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)}<br>
-         * <b>Relevant Parent method docs (v2.10): </b><a
+         * <b>Related parent method: </b> {@link DumpSettingsBuilder#setDefaultScalarStyle(ScalarStyle)}<br>
+         * <b>Related parent method docs (v2.10): </b><a
          * href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultScalarStyle(org.snakeyaml.engine.v2.common.ScalarStyle)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#81-block-scalar-styles">for
          * <code>BLOCK</code> flow style</a>, <a href="https://yaml.org/spec/1.2.2/#73-flow-scalar-styles">for
@@ -396,8 +402,8 @@ public class DumperSettings implements Settings {
          * this node.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_SEQUENCE_FORMATTER}<br>
-         * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
-         * <b>Parent method docs (v2.10): </b><a
+         * <b>Related parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
+         * <b>Related parent method docs (v2.10): </b><a
          * href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultFlowStyle(org.snakeyaml.engine.v2.common.FlowStyle)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#3231-node-styles">node styles</a>
          *
@@ -424,8 +430,8 @@ public class DumperSettings implements Settings {
          * this node.
          * <p>
          * <b>Default: </b> {@link #DEFAULT_SEQUENCE_FORMATTER}<br>
-         * <b>Parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
-         * <b>Parent method docs (v2.10): </b><a
+         * <b>Related parent method: </b> {@link DumpSettingsBuilder#setDefaultFlowStyle(FlowStyle)}<br>
+         * <b>Related parent method docs (v2.10): </b><a
          * href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setDefaultFlowStyle(org.snakeyaml.engine.v2.common.FlowStyle)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#3231-node-styles">node styles</a>
          *
@@ -488,7 +494,7 @@ public class DumperSettings implements Settings {
          * <p>
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link DumpSettingsBuilder#setSchema(Schema)}<br>
-         * <b>Parent method docs (v2.7): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.7/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setSchema(org.snakeyaml.engine.v2.schema.Schema)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/DumpSettingsBuilder.html#setSchema(org.snakeyaml.engine.v2.schema.Schema)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
          *
          * @param schema the schema to set

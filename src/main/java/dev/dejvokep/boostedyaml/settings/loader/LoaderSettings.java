@@ -304,7 +304,7 @@ public class LoaderSettings implements Settings {
          * <p>
          * <b>Default: </b> defined by the parent method<br>
          * <b>Parent method: </b> {@link LoadSettingsBuilder#setSchema(Schema)}<br>
-         * <b>Parent method docs (v2.7): </b><a href="https://javadoc.io/static/org.snakeyaml/snakeyaml-engine/2.7/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setSchema(org.snakeyaml.engine.v2.schema.Schema)">click</a><br>
+         * <b>Parent method docs (v2.10): </b><a href="https://javadoc.io/doc/org.snakeyaml/snakeyaml-engine/2.10/org/snakeyaml/engine/v2/api/LoadSettingsBuilder.html#setSchema(org.snakeyaml.engine.v2.schema.Schema)">click</a><br>
          * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#1021-tags">JSON schema tags</a>, <a href="https://yaml.org/spec/1.2.2/#failsafe-schema">failsafe schema tags</a>
          *
          * @param schema the schema to set
