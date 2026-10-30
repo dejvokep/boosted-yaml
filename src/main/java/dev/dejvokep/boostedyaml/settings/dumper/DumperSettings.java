@@ -441,55 +441,6 @@ public class DumperSettings implements Settings {
         }
 
         /**
-         * Sets whether to preserve the original scalar styles, exactly as they were loaded from the file.
-         * <p>
-         * When enabled, the style a scalar node was loaded with is passed to the {@link #setScalarFormatter(Formatter)
-         * scalar formatter} as the <i>default</i> style (the last parameter), instead of the configured
-         * {@link #setScalarStyle(ScalarStyle) scalar} style. The formatter still has the final say and may override it.
-         * Using the default (identity) formatter therefore reproduces the original styling.
-         * <p>
-         * This only affects scalars that were actually loaded from a file. Values created or modified programmatically
-         * have no original style and fall back to the configured scalar style. A key's style is only applied while the
-         * entry's key is still the one it was loaded with, so a block moved to a different key falls back to the
-         * configured style as well. Styles returned might still be overridden to produce output compliant with the YAML
-         * specification.
-         * <p>
-         * <b>Default: </b> {@link #DEFAULT_PRESERVE_SCALAR_STYLE}
-         *
-         * @param preserve if to preserve original scalar styles
-         * @return the builder
-         */
-        public Builder setPreserveScalarStyle(boolean preserve) {
-            this.preserveScalarStyle = preserve;
-            return this;
-        }
-
-        /**
-         * Sets whether to preserve the original flow styles, exactly as they were loaded from the file.
-         * <p>
-         * When enabled, the flow style a sequence or mapping node was loaded with is passed to the respective
-         * {@link #setSequenceFormatter(Formatter) sequence} or {@link #setMappingFormatter(Formatter) mapping} formatter
-         * as the <i>default</i> style (the last parameter), instead of the configured {@link #setFlowStyle(FlowStyle)
-         * flow} style. The formatter still has the final say and may override it. Using the default (identity) formatter
-         * therefore reproduces the original styling.
-         * <p>
-         * This only affects collections that were actually loaded from a file. Values created or modified
-         * programmatically, as well as collections nested within another collection's value, have no original style and
-         * fall back to the configured flow style. Collection keys are not covered either - only a block's value keeps
-         * its original flow style. Styles returned might still be overridden to produce output compliant
-         * with the YAML specification.
-         * <p>
-         * <b>Default: </b> {@link #DEFAULT_PRESERVE_FLOW_STYLE}
-         *
-         * @param preserve if to preserve original flow styles
-         * @return the builder
-         */
-        public Builder setPreserveFlowStyle(boolean preserve) {
-            this.preserveFlowStyle = preserve;
-            return this;
-        }
-
-        /**
          * Sets the sequence formatter to use when formatting sequence nodes.
          * <p>
          * Sequence nodes are nodes which contain a collection of sub-nodes, also called elements, like an array or a
@@ -542,6 +493,59 @@ public class DumperSettings implements Settings {
          */
         public Builder setMappingFormatter(@NotNull Formatter<FlowStyle, Map<?, ?>> formatter) {
             this.mappingFormatter = formatter;
+            return this;
+        }
+
+        /**
+         * Sets whether to preserve the original scalar styles, exactly as they were loaded from the file.
+         * <p>
+         * When enabled, the style a scalar node was loaded with is passed to the {@link #setScalarFormatter(Formatter)
+         * scalar formatter} as the <i>default</i> style (the last parameter), instead of the configured
+         * {@link #setScalarStyle(ScalarStyle) scalar style}. The formatter still has the final say and may override it.
+         * Using the default (identity) formatter therefore reproduces the original styling.
+         * <p>
+         * This only affects scalars that were actually loaded from a file. Values created or modified programmatically
+         * have no original style and fall back to the configured scalar style. A key's style is only applied while the
+         * entry's key is still the one it was loaded with, so a block moved to a different key falls back to the
+         * configured style as well. Styles returned might still be overridden to produce output compliant with the YAML
+         * specification.
+         * <p>
+         * <b>Default: </b> {@link #DEFAULT_PRESERVE_SCALAR_STYLE}<br>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#81-block-scalar-styles">for
+         * <code>BLOCK</code> flow style</a>, <a href="https://yaml.org/spec/1.2.2/#73-flow-scalar-styles">for
+         * <code>FLOW</code> flow style</a>
+         *
+         * @param preserve if to preserve original scalar styles
+         * @return the builder
+         */
+        public Builder setPreserveScalarStyle(boolean preserve) {
+            this.preserveScalarStyle = preserve;
+            return this;
+        }
+
+        /**
+         * Sets whether to preserve the original flow styles, exactly as they were loaded from the file.
+         * <p>
+         * When enabled, the flow style a sequence or mapping node was loaded with is passed to the respective
+         * {@link #setSequenceFormatter(Formatter) sequence} or {@link #setMappingFormatter(Formatter) mapping} formatter
+         * as the <i>default</i> style (the last parameter), instead of the configured {@link #setFlowStyle(FlowStyle)
+         * flow style}. The formatter still has the final say and may override it. Using the default (identity) formatter
+         * therefore reproduces the original styling.
+         * <p>
+         * This only affects collections that were actually loaded from a file. Values created or modified
+         * programmatically, as well as collections nested within another collection's value, have no original style and
+         * fall back to the configured flow style. Collection keys are not covered either - only a block's value keeps
+         * its original flow style. Styles returned might still be overridden to produce output compliant with the YAML
+         * specification.
+         * <p>
+         * <b>Default: </b> {@link #DEFAULT_PRESERVE_FLOW_STYLE}<br>
+         * <b>Related YAML spec (v1.2.2): </b><a href="https://yaml.org/spec/1.2.2/#3231-node-styles">node styles</a>
+         *
+         * @param preserve if to preserve original flow styles
+         * @return the builder
+         */
+        public Builder setPreserveFlowStyle(boolean preserve) {
+            this.preserveFlowStyle = preserve;
             return this;
         }
 
