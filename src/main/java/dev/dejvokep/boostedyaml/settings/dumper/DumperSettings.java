@@ -370,7 +370,7 @@ public class DumperSettings implements Settings {
         }
 
         /**
-         * Sets the scalar style to use. Please note that for example settings this to a quoted style will mean that the
+         * Sets the scalar style to use. Please note that for example setting this to a quoted style will mean that the
          * resulting document will have all scalars, including numbers, quoted (and with YAML tags prefixed), which
          * might not be what you want. Use a custom {@link #setScalarFormatter(Formatter) scalar formatter} instead to
          * selectively apply custom styling.
