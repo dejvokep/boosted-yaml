@@ -31,8 +31,10 @@ import java.util.Map;
 public class ExtendedConstructor extends StandardConstructor {
 
     //Serializer
+    @NotNull
     private final YamlSerializer serializer;
     //Constructed Java objects by nodes
+    @NotNull
     private final Map<Node, Object> constructed = new HashMap<>();
 
     /**
