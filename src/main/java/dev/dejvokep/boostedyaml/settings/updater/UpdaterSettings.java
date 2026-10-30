@@ -271,14 +271,14 @@ public class UpdaterSettings implements Settings {
                 .setAutoSave(settings.autoSave)
                 .setEnableDowngrading(settings.enableDowngrading)
                 .setKeepAll(settings.keepAll)
-                .setOptionSorting(settings.optionSorting)
                 .setMergeRules(settings.mergeRules)
                 .setVersionIgnoredRoutesInternal(settings.versionIgnored)
                 .setIgnoredRoutesInternal(settings.ignored)
                 .setRelocationsInternal(settings.relocations)
                 .setMappersInternal(settings.mappers)
                 .addCustomLogic(settings.customLogic)
-                .setVersioning(settings.versioning);
+                .setVersioning(settings.versioning)
+                .setOptionSorting(settings.optionSorting);
     }
 
     /**

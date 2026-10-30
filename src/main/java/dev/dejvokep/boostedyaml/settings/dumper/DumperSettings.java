@@ -172,8 +172,16 @@ public class DumperSettings implements Settings {
      * <b>Note that the given builder is not cloned, so it is in the caller's best interest to never change it's
      * settings from now on.</b>
      * <p>
-     * Please note that {@link Builder#setAnchorGenerator(Supplier)} still has to be called (if you want to alter the
-     * default), as they are not part of the Engine's settings.
+     * Please note that the SnakeYAML Engine settings form just a subset of what you can configure with BoostedYAML
+     * {@link DumperSettings}, meaning you may need to configure these settings additionally:
+     * <ul>
+     *     <li>{@link Builder#setAnchorGenerator(Supplier)}</li>
+     *     <li>{@link Builder#setScalarFormatter(Formatter)}</li>
+     *     <li>{@link Builder#setSequenceFormatter(Formatter)}</li>
+     *     <li>{@link Builder#setMappingFormatter(Formatter)}</li>
+     *     <li>{@link Builder#setPreserveScalarStyle(boolean)}</li>
+     *     <li>{@link Builder#setPreserveFlowStyle(boolean)}</li>
+     * </ul>
      *
      * @param builder the underlying builder
      * @return the new builder
@@ -189,7 +197,13 @@ public class DumperSettings implements Settings {
      * @return the new builder
      */
     public static Builder builder(DumperSettings settings) {
-        return builder(settings.builder).setAnchorGenerator(settings.generatorSupplier);
+        return builder(settings.builder)
+                .setAnchorGenerator(settings.generatorSupplier)
+                .setScalarFormatter(settings.scalarFormatter)
+                .setSequenceFormatter(settings.sequenceFormatter)
+                .setMappingFormatter(settings.mappingFormatter)
+                .setPreserveScalarStyle(settings.preserveScalarStyle)
+                .setPreserveFlowStyle(settings.preserveFlowStyle);
     }
 
     /**

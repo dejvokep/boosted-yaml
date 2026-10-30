@@ -103,8 +103,12 @@ public class LoaderSettings implements Settings {
      * <b>Note that the given builder is not cloned, so it is in the caller's best interest to never change it's
      * settings from now on.</b>
      * <p>
-     * Please note that {@link Builder#setCreateFileIfAbsent(boolean)} and {@link Builder#setAutoUpdate(boolean)} still have to be
-     * called (if you want to alter the default), as they are not part of the Engine's settings.
+     * Please note that the SnakeYAML Engine settings form just a subset of what you can configure with BoostedYAML
+     * {@link LoaderSettings}, meaning you may need to configure these settings additionally:
+     * <ul>
+     *     <li>{@link Builder#setAutoUpdate(boolean)}</li>
+     *     <li>{@link Builder#setCreateFileIfAbsent(boolean)}</li>
+     * </ul>
      *
      * @param builder the underlying builder
      * @return the new builder
