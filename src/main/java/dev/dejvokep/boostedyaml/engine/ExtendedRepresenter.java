@@ -50,6 +50,9 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     //Currently serialized node role
     private NodeRole nodeRole = NodeRole.KEY;
+    //Styles of the node currently being serialized, if they should be preserved
+    private ScalarStyle pendingScalarStyle = null;
+    private FlowStyle pendingFlowStyle = null;
 
     /**
      * Creates an instance of the representer.
@@ -97,17 +100,48 @@ public class ExtendedRepresenter extends StandardRepresenter {
 
     @Override
     protected Node representScalar(Tag tag, String value, ScalarStyle scalarStyle) {
+        //Consume the original style of the block currently being serialized (if enabled)
+        ScalarStyle original = pendingScalarStyle;
+        clearPendingStyles();
+        if (original != null) {
+            //Construct directly - the parent represents PLAIN as the configured default style
+            return new ScalarNode(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original));
+        }
+
         return super.representScalar(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, scalarStyle));
     }
 
     @Override
     protected Node representSequence(Tag tag, Iterable<?> sequence, FlowStyle flowStyle) {
-        return super.representSequence(tag, sequence, dumperSettings.getSequenceFormatter().format(tag, sequence, nodeRole, flowStyle));
+        return super.representSequence(tag, sequence, dumperSettings.getSequenceFormatter().format(tag, sequence, nodeRole, preserveFlowStyle(flowStyle)));
     }
 
     @Override
     protected Node representMapping(Tag tag, Map<?, ?> mapping, FlowStyle flowStyle) {
-        return super.representMapping(tag, mapping, dumperSettings.getMappingFormatter().format(tag, mapping, nodeRole, flowStyle));
+        return super.representMapping(tag, mapping, dumperSettings.getMappingFormatter().format(tag, mapping, nodeRole, preserveFlowStyle(flowStyle)));
+    }
+
+    /**
+     * Returns the default flow style to hand to the formatter for the collection currently being serialized. When flow
+     * style preservation is enabled, this is the style the collection was loaded with; otherwise the given configured
+     * style is returned.
+     *
+     * @param configured the configured flow style
+     * @return the flow style to use as the default
+     */
+    private FlowStyle preserveFlowStyle(FlowStyle configured) {
+        //Consume the original style of the block currently being serialized (if enabled)
+        FlowStyle original = pendingFlowStyle;
+        clearPendingStyles();
+        return original != null ? original : configured;
+    }
+
+    /**
+     * Clears the styles pending to be applied, so they cannot leak into other nodes.
+     */
+    private void clearPendingStyles() {
+        pendingScalarStyle = null;
+        pendingFlowStyle = null;
     }
 
     /**
@@ -213,9 +247,26 @@ public class ExtendedRepresenter extends StandardRepresenter {
     protected NodeTuple representMappingEntry(Map.Entry<?, ?> entry) {
         //Block
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
-        //Represent nodes
+        //Ensure no styles leak in from a previous entry
+        clearPendingStyles();
+        //Apply the key style only while the key is still the one it was loaded with
+        if (block != null && dumperSettings.isPreserveScalarStyle() && entry.getKey().equals(block.getOriginalKey()))
+            pendingScalarStyle = block.getOriginalKeyStyle();
+        //Represent the key
         Node key = applyComments(block, nodeRole = NodeRole.KEY, representData(entry.getKey()), false);
+        //Ensure the key's own nodes did not consume the value's styles
+        clearPendingStyles();
+        //Set the value's styles
+        if (block != null) {
+            if (dumperSettings.isPreserveScalarStyle())
+                pendingScalarStyle = block.getOriginalValueStyle();
+            if (dumperSettings.isPreserveFlowStyle())
+                pendingFlowStyle = block.getOriginalValueFlowStyle();
+        }
+        //Represent the value
         Node value = applyComments(block, nodeRole = NodeRole.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);
+        //Ensure the value's styles do not leak into the next entry
+        clearPendingStyles();
         //Create
         return new NodeTuple(key, value);
     }

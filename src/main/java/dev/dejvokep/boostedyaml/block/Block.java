@@ -22,9 +22,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.snakeyaml.engine.v2.comments.CommentLine;
 import org.snakeyaml.engine.v2.comments.CommentType;
+import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.nodes.CollectionNode;
 import org.snakeyaml.engine.v2.nodes.MappingNode;
 import org.snakeyaml.engine.v2.nodes.Node;
 import org.snakeyaml.engine.v2.nodes.NodeTuple;
+import org.snakeyaml.engine.v2.nodes.ScalarNode;
 import org.snakeyaml.engine.v2.nodes.SequenceNode;
 
 import java.util.ArrayList;
@@ -42,6 +46,15 @@ public abstract class Block<T> {
     //Comments
     @Nullable
     List<CommentLine> beforeKeyComments = null, inlineKeyComments = null, afterKeyComments = null, beforeValueComments = null, inlineValueComments = null, afterValueComments = null;
+    //Original scalar styles as loaded from the file
+    @Nullable
+    private ScalarStyle originalKeyStyle = null, originalValueStyle = null;
+    //Original flow style of the value collection (sequence/mapping) as loaded from the file
+    @Nullable
+    private FlowStyle originalValueFlowStyle = null;
+    //Key the original key style was loaded with
+    @Nullable
+    private String originalKey = null;
     //Value
     private T value;
     //If to ignore
@@ -92,6 +105,9 @@ public abstract class Block<T> {
         this.beforeValueComments = previous.beforeValueComments;
         this.inlineValueComments = previous.inlineValueComments;
         this.afterValueComments = previous.afterValueComments;
+        // Only the key style carries over - the value has been replaced, so it has no original style anymore
+        this.originalKeyStyle = previous.originalKeyStyle;
+        this.originalKey = previous.originalKey;
     }
 
     /**
@@ -112,6 +128,11 @@ public abstract class Block<T> {
             afterKeyComments = key.getEndComments();
             // Collect
             collectComments(key, beforeKeyComments, true);
+            // Capture original scalar style and the key it was loaded with
+            if (key instanceof ScalarNode) {
+                originalKeyStyle = ((ScalarNode) key).getScalarStyle();
+                originalKey = ((ScalarNode) key).getValue();
+            }
         }
 
         //If not null
@@ -122,7 +143,62 @@ public abstract class Block<T> {
             afterValueComments = value.getEndComments();
             // Collect
             collectComments(value, beforeValueComments, true);
+            // Capture original scalar style
+            if (value instanceof ScalarNode)
+                originalValueStyle = ((ScalarNode) value).getScalarStyle();
+            // Capture original flow style
+            if (value instanceof CollectionNode)
+                originalValueFlowStyle = ((CollectionNode<?>) value).getFlowStyle();
         }
+    }
+
+    /**
+     * Returns the scalar style of the key node, exactly as it was loaded from the file; or <code>null</code> if this
+     * block was not loaded from a scalar key node (e.g. was created programmatically).
+     *
+     * @return the original key scalar style, or <code>null</code>
+     */
+    @Nullable
+    public ScalarStyle getOriginalKeyStyle() {
+        return originalKeyStyle;
+    }
+
+    /**
+     * Returns the key the {@link #getOriginalKeyStyle() original key style} was loaded with; or <code>null</code> if
+     * there is no original key style.
+     * <p>
+     * The style should only be applied while the entry's key still equals this key. That way, a value replaced via
+     * {@link Section#set(dev.dejvokep.boostedyaml.route.Route, Object) set} keeps its key's style, while a block moved
+     * to a different key does not.
+     *
+     * @return the key the original key style was loaded with, or <code>null</code>
+     */
+    @Nullable
+    public String getOriginalKey() {
+        return originalKey;
+    }
+
+    /**
+     * Returns the scalar style of the value node, exactly as it was loaded from the file; or <code>null</code> if this
+     * block was not loaded from a scalar value node (e.g. was created programmatically, or represents a section).
+     *
+     * @return the original value scalar style, or <code>null</code>
+     */
+    @Nullable
+    public ScalarStyle getOriginalValueStyle() {
+        return originalValueStyle;
+    }
+
+    /**
+     * Returns the flow style of the value collection (sequence or mapping), exactly as it was loaded from the file; or
+     * <code>null</code> if this block's value was not loaded from a collection node (e.g. was created programmatically,
+     * or is a scalar).
+     *
+     * @return the original value flow style, or <code>null</code>
+     */
+    @Nullable
+    public FlowStyle getOriginalValueFlowStyle() {
+        return originalValueFlowStyle;
     }
 
     /**
