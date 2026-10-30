@@ -44,14 +44,19 @@ import java.util.Map;
 public class ExtendedRepresenter extends StandardRepresenter {
 
     //General settings
+    @NotNull
     private final GeneralSettings generalSettings;
     //Dumper settings
+    @NotNull
     private final DumperSettings dumperSettings;
 
     //Currently serialized node role
+    @NotNull
     private NodeRole nodeRole = NodeRole.KEY;
     //Styles of the node currently being serialized, if they should be preserved
+    @Nullable
     private ScalarStyle pendingScalarStyle = null;
+    @Nullable
     private FlowStyle pendingFlowStyle = null;
 
     /**
@@ -62,12 +67,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
      * @param dumperSettings  dumper settings
      * @param engineSettings  engine dump settings already built by the dumper settings
      */
-    public ExtendedRepresenter(
-            final Class<?> documentType,
-            final @NotNull GeneralSettings generalSettings,
-            final @NotNull DumperSettings dumperSettings,
-            final @NotNull DumpSettings engineSettings
-    ) {
+    public ExtendedRepresenter(@NotNull Class<?> documentType, @NotNull GeneralSettings generalSettings, @NotNull DumperSettings dumperSettings, @NotNull DumpSettings engineSettings) {
         //Call the superclass constructor
         super(engineSettings);
         //Set
@@ -103,6 +103,7 @@ public class ExtendedRepresenter extends StandardRepresenter {
         //Consume the original style of the block currently being serialized (if enabled)
         ScalarStyle original = pendingScalarStyle;
         clearPendingStyles();
+
         if (original != null) {
             //Construct directly - the parent represents PLAIN as the configured default style
             return new ScalarNode(tag, value, dumperSettings.getScalarFormatter().format(tag, value, nodeRole, original));
@@ -249,13 +250,16 @@ public class ExtendedRepresenter extends StandardRepresenter {
         Block<?> block = entry.getValue() instanceof Block ? (Block<?>) entry.getValue() : null;
         //Ensure no styles leak in from a previous entry
         clearPendingStyles();
+
         //Apply the key style only while the key is still the one it was loaded with
         if (block != null && dumperSettings.isPreserveScalarStyle() && entry.getKey().equals(block.getOriginalKey()))
             pendingScalarStyle = block.getOriginalKeyStyle();
+
         //Represent the key
         Node key = applyComments(block, nodeRole = NodeRole.KEY, representData(entry.getKey()), false);
         //Ensure the key's own nodes did not consume the value's styles
         clearPendingStyles();
+
         //Set the value's styles
         if (block != null) {
             if (dumperSettings.isPreserveScalarStyle())
@@ -263,10 +267,12 @@ public class ExtendedRepresenter extends StandardRepresenter {
             if (dumperSettings.isPreserveFlowStyle())
                 pendingFlowStyle = block.getOriginalValueFlowStyle();
         }
+
         //Represent the value
         Node value = applyComments(block, nodeRole = NodeRole.VALUE, representData(block == null ? entry.getValue() : block.getStoredValue()), false);
         //Ensure the value's styles do not leak into the next entry
         clearPendingStyles();
+
         //Create
         return new NodeTuple(key, value);
     }
