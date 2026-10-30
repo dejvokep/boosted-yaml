@@ -5,9 +5,7 @@
 [![Javadoc](https://javadoc.io/badge2/dev.dejvokep/boosted-yaml/javadoc.svg)](https://javadoc.io/doc/dev.dejvokep/boosted-yaml)
 [![License](https://img.shields.io/github/license/dejvokep/boosted-yaml)](LICENSE)
 
-A simple-to-use standalone (beneficial for cross-platform and multimodule projects) Java library delivering boosted experience while working with YAML documents. Work on this
-project started on Apr 8, 2021 with the target to build advanced, hence still easy-to-use library which would enable
-developers to manage documents and files with ease.
+A simple-to-use standalone (beneficial for cross-platform and multimodule projects) Java library delivering boosted experience while working with YAML documents. Work on this project started on Apr 8, 2021 with the target to build advanced, hence still easy-to-use library which would enable developers to manage documents and files with ease.
 
 If you are developing plugins for Spigot/BungeeCord API, make sure to read the post at [SpigotMC forums](https://www.spigotmc.org/threads/545585/) for more information regarding setup and other relevant useful information.
 
@@ -18,16 +16,14 @@ BoostedYAML is single of its kind, given the following advantages:
 1. **SnakeYAML Engine based** - built upon popular and trusted software.
 2. **YAML 1.2 supported** - allows to reliably parse JSON files
 3. **Comments everywhere** - no longer a headache for your customers, say bye to external documentation.
-4. **File updater** - upgrading to the latest version of your software? Adapt the configuration files easily, with one
-   line of code.
+4. **File updater** - upgrading to the latest version of your software? Adapt the configuration files easily, with one line of code.
 5. **Beautiful structure management** - makes your code cleaner and easier to read.
 6. **Functional interfaces included** - we've got something for everyone.
 7. **Amazing features** - automatic saving, updating, endless possibilities.
 8. **Settings for everything** - customize it to suit your needs just perfectly.
 9. **Performant and well documented** - just like a dream.
 10. **Open source** - if there's anything that can be improved, feel free to let me know, or contribute.
-11. **TDD (test driven development)** - don't worry about reliability, every change is verified automatically by
-    more than 160 tests on Java 8 through 25.
+11. **TDD (test driven development)** - don't worry about reliability, every change is verified automatically by more than 160 tests on Java 8 through 25.
 
 All of that with quick and kind support. Convinced? Let's get you on board.
 
